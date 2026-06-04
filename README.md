@@ -14,7 +14,7 @@ This work is an extension to validate findings from [CD8_NSCLC_scRNAseq](https:/
 |---|---|
 | **Accession** | [GSE243013](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243013) |
 | **Publication** | Liu et al., *Cell* 2025 |
-| **Histology** | LUAD only (n = 61, filtered from 234 NSCLC) |
+| **Histology** | LUAD only (n = 63, filtered from 234 NSCLC) |
 | **Modalities** | scRNA-seq + scTCR-seq |
 | **Treatment** | Neoadjuvant chemo + anti-PD-1 |
 | **Response variable** | Pathological response: MPR vs. non-MPR |
@@ -37,8 +37,8 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 
 ### Block 0 — Data acquisition
 - Download GSE243013 (expression matrix + TCR metadata)
-- Filter to LUAD samples (n = 61)
-- Harmonize clinical metadata (MPR / non-MPR classification)
+- Filter to LUAD samples (n = 63)
+- Harmonize clinical metadata (MPR / non-MPR / pCR classification)
 
 ### Block 1 — QC and preprocessing
 - Quality control, normalization, HVG selection (`Seurat`)
