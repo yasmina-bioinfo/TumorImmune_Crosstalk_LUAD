@@ -10,10 +10,18 @@
 - `dir.create()` : create a directory
 - `file.path()` : build a file path from components
 - `table()` : contingency table of counts
+- `setdiff()` : return elements in the first vector that are not in the second.
+  Used here to identify expected columns that are missing from the metadata.
+- `colSums(is.na())` :count the number of NA values per column. Used here to detect missing clinical data per variable.
 
 ## data.table
 - `fread()` : fast read of large files (csv, gz) into a data.table object
-- `uniqueN()` : count number of unique values in a column
+- `uniqueN()` : count number of unique values in a column.
+Return unique rows of a data.table or unique values of a vector. When used with `by = "sampleID"`, keeps only the first row per unique sampleID.
+  Used here to deduplicate from cell-level to patient-level (336685 rows → 63 rows).
+- `..cols_patient` : data.table syntax to select columns by a vector of names.
+The `..` prefix tells data.table to look for the variable in the parent environment, not inside the table itself.
+  Example: `dt[, ..my_cols]` selects only the columns listed in `my_cols`.
 
 ## BPCells
 - `import_matrix_market()` : read MTX matrix from disk without loading into RAM
@@ -21,9 +29,44 @@
 - `t()` : transpose a matrix (swap rows and columns). 
   Used here because the MTX file is stored as cells x genes, 
   but Seurat expects genes x cells.
-  - `unlink()` — delete a file or directory from disk. 
+  - `unlink()` : delete a file or directory from disk. 
   Use recursive = TRUE to delete a folder and all its contents.
   Used here to remove an incomplete BPCells output before rewriting.
-- `convert_matrix_type()` — convert BPCells matrix to a specific numeric type.
+- `convert_matrix_type()` : convert BPCells matrix to a specific numeric type.
   type = "uint32_t" stores values as unsigned 32-bit integers (whole numbers only),
   required for efficient compression. Raw counts are always integers.
+
+## Seurat
+- `subset()` : filter a Seurat object by cells or by metadata conditions
+- `merge()` : combine two or more Seurat objects into one
+- `DimPlot()` : visualize cells in a 2D embedding (UMAP, PCA, etc.).
+  group.by: color cells by a metadata column.
+  label: show cluster labels on the plot.
+  raster = FALSE: disable point rasterization for publication-quality figures.
+  split.by: split the plot by a metadata variable.
+
+## Seurat / Harmony
+- `RunHarmony()` : batch correction in PCA space across patients.
+  group.by.vars = "sampleID": corrects inter-patient technical variation.
+  Output: a new "harmony" embedding that replaces "pca" for downstream steps.
+  
+- `FindNeighbors()` : builds a nearest-neighbor graph between cells.
+  reduction = "harmony": uses Harmony-corrected embedding (not raw PCA).
+  dims = 1:40: number of PCs used, chosen based on ElbowPlot inspection.
+
+- `FindClusters()` : groups cells into clusters based on neighbor graph.
+  resolution: controls cluster granularity. Lower = fewer broader clusters.
+  Start conservative (0.5) for global TME annotation, refine later.
+
+- `RunUMAP()` : projects cells into 2D space for visualization.
+  reduction = "harmony": uses Harmony-corrected embedding.
+  Does not change the biology — only the visualization.
+
+- `JoinLayers()` : merges multiple layers into one in a Seurat v5 object.
+Required after merge() which creates one layer per sample.Must be called before FindAllMarkers() or any layer-dependent operation.
+NOTE: Seurat v5 replaced 'slot' with 'layer' — use layer = "data" instead of slot = "data" in GetAssayData().
+
+
+
+## Concepts
+- **Embedding** : a lower-dimensional representation of the data. PCA embedding: 50 PCs. Harmony embedding: batch-corrected PCs. UMAP embedding: 2D visualization. Each is a different representation of the same cells in a progressively reduced space.
