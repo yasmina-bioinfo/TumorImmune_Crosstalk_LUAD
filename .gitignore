@@ -1,0 +1,6 @@
+.RData
+.RDataTmp
+.Rhistory
+Data/
+Objects/
+lungref.SeuratData_2.0.0.tar.gz
