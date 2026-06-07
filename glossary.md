@@ -42,7 +42,8 @@ The `..` prefix tells data.table to look for the variable in the parent environm
 - `DimPlot()` : visualize cells in a 2D embedding (UMAP, PCA, etc.).
   group.by: color cells by a metadata column.
   label: show cluster labels on the plot.
-  raster = FALSE: disable point rasterization for publication-quality figures.
+  raster = FALSE: in DimPlot(), disables automatic point rasterization. Default behavior rasterizes points when >100,000 cells (image becomes blurry). raster = FALSE keeps each point as a vector object; sharper at any zoom level.
+  Recommended for publication-quality figures.
   split.by: split the plot by a metadata variable.
 
 ## Seurat / Harmony

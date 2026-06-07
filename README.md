@@ -116,14 +116,37 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - UMAP: generated and validated (Harmony integration confirmed)
 
 ### Bloc 2 — TME annotation
-- Script 01: FindAllMarkers complete — 20 clusters annotated manually (top50 markers)
+- Script 01: FindAllMarkers complete with 20 clusters annotated manually (top50 markers)
     - 18/20 clusters annotated with high confidence
     - 2/20 clusters with medium confidence (Cluster 5: CD4 Tfh/exhausted, Cluster 9: NKT/γδ)
 - Script 02: SingleR complete (HumanPrimaryCellAtlas, label.main + label.fine)
-- Script 03: sctype (Azimuth not installable on Windows: 
-  heavy genomic dependencies; sctype selected as lightweight alternative)
-- Script 04: Consensus annotation — pending
+- Script 03: sctype complete (Lung tissue reference; limited resolution for immune subtypes)
+- Script 04: Azimuth, installed in WSL (Ubuntu 24.04, R 4.6.0) after 3h installation
+  - lungref reference (584,884 cells) loaded successfully
+  - RunAzimuth blocked by RAM constraint (16GB), server execution pending
+- Script 05: Consensus annotation complete with 20 clusters annotated, 3 pending Azimuth confirmation
+  (Clusters 5, 9, 13, 18)
 
+## Methodological Notes
+
+### Automated annotation : iterative approach
+Three automated annotation methods were tested for global TME annotation:
+
+1. **Azimuth** (Hao et al., *bioRxiv* 2022), initially planned as primary tool. 
+   Installation failed on Windows due to heavy genomic dependencies 
+   (BSgenome.Hsapiens.UCSC.hg38, EnsDb.Hsapiens.v86). Documented as Windows limitation.
+
+2. **sctype** (Ianevski et al., *Nat Commun* 2022), selected as lightweight alternative. 
+   Lung tissue reference insufficiently granular for TME immune subtype resolution. 
+   Useful for macrophage/myeloid validation only.
+
+3. **Azimuth** via WSL/VS Code, reinstalled under Ubuntu 24.04 LTS to bypass. 
+Windows dependency constraints. lungref reference (584,884 cells) loaded successfully. 
+RunAzimuth() blocked by insufficient local RAM (16GB), server execution pending.
+
+Manual annotation (top50 markers per cluster) remains the primary reference, 
+validated by SingleR (HumanPrimaryCellAtlas) and partially by sctype (myeloid clusters). 
+Azimuth validation pending server execution.
 
 ---
 
@@ -133,9 +156,9 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 TumorImmune_Crosstalk_LUAD/
 ├── README.md
 ├── Scripts/
-│   ├── 00_data_download.R
-│   ├── 01_QC_preprocessing.R
-│   ├── 02_TME_annotation.R
+│   ├── BLOC 0_Data acquisition.R
+│   ├── BLOC 1_QC and preprocessing.R
+│   ├── BLOC 2_Global_TME_Annotation.R
 │   ├── 03_CD8_ProjecTILs_UCell_TCR.R
 │   ├── 04_Epithelial_CopyKAT_UCell.R
 │   ├── 05_CellChat_MPR_NMPR.R
