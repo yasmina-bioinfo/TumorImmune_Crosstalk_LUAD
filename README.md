@@ -2,7 +2,7 @@
 
 > **How does tumor cell plasticity shape CD8 T cell functional states and their response to anti-PD-1 in lung adenocarcinoma?**
 
-This project investigates the crosstalk between malignant epithelial cells and CD8 T cells in the tumor microenvironment (TME) of lung adenocarcinoma (LUAD), using neoadjuvant chemo-immunotherapy data with matched pathological response (MPR vs. non-MPR).
+This project investigates the crosstalk between malignant epithelial cells and CD8 T cells in the tumor microenvironment (TME) of lung adenocarcinoma (LUAD), using neoadjuvant chemo-immunotherapy data with matched pathological response (MPR vs. non-MPR; MPR vs pCR and non-MPR vs pCR).
 
 This work is an extension to validate findings from [CD8_NSCLC_scRNAseq](https://github.com/yasmina-bioinfo/CD8_NSCLC_scRNAseq) in an independent, larger cohort with paired TCR sequencing.
 
@@ -28,7 +28,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 
 1. What transcriptional programs define malignant epithelial heterogeneity in LUAD under treatment pressure?
 2. Do specific tumor cell states associate with impaired CD8 T cell function in non-MPR patients?
-3. What ligand-receptor axes mediate epithelial–CD8 crosstalk differentially in MPR vs. non-MPR?
+3. What ligand-receptor axes mediate epithelial–CD8 crosstalk differentially in MPR vs. non-MPR, MPR vs pCR and non-MPR and pCR?
 4. Which transcription factors drive these programs in each compartment?
 
 ---
@@ -126,6 +126,22 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
   - RunAzimuth blocked by RAM constraint (16GB), server execution pending
 - Script 05: Consensus annotation complete with 20 clusters annotated, 3 pending Azimuth confirmation
   (Clusters 5, 9, 13, 18)
+- Script 06: TME visualization complete
+  - UMAP final annotation + split by response
+  - Barplot proportions (Chi-2 p < 2.2e-16)
+  - Fisher post-hoc: MPR vs non-MPR, pCR vs non-MPR, MPR vs pCR; post-hoc pairwise comparisons saved in Results/Tables/Bloc2_fisher_posthoc.csv
+
+### Bloc 3 — T cells analysis
+- Script 01: T cells subsetting (clusters 1,2,3,4,5,9,10,11,17) : 172,110 cells
+  ElbowPlot inspection = 30 PCs retained
+- Script 02: Harmony + clustering (resolution=0.4) + UMAP = 16 T cell clusters
+- Script 03: ProjecTILs annotation (human CD8 reference)
+  - 108,456/172,110 cells (63%) filtered by scGate (non-CD8 pure)
+  - 63,654 cells projected = 7 CD8 states identified:
+    CD8.EM (25,575), CD8.CM (18,181), CD8.TEX (15,115), CD8.TPEX (2,011),
+    CD8.NaiveLike (1,342), CD8.MAIT (1,273), CD8.TEMRA (157)
+  - STACAS alignment failed (RAM) = direct projection used
+  - CD8.TEX enriched in non-MPR, consistent with portfolio narrative
 
 ## Methodological Notes
 

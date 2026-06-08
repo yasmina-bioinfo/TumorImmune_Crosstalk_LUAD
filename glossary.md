@@ -36,8 +36,38 @@ The `..` prefix tells data.table to look for the variable in the parent environm
   type = "uint32_t" stores values as unsigned 32-bit integers (whole numbers only),
   required for efficient compression. Raw counts are always integers.
 
+## Concepts
+- **Embedding** : a lower-dimensional representation of the data. PCA embedding: 50 PCs. Harmony embedding: batch-corrected PCs. UMAP embedding: 2D visualization. Each is a different representation of the same cells in a progressively reduced space.
+
+## ProjecTILs
+- `get.reference.maps()` : download and load all available ProjecTILs reference atlases.
+  Returns a nested list organized by species (human/mouse) and cell type (CD8, CD4, DC, MoMac).
+  NOTE: downloads ~2GB total on first use; run once, references cached locally.
+  Example: ref <- get.reference.maps()$human$CD8
+
+- `Run.ProjecTILs()` : project query T cells onto a reference TIL atlas.
+  ref: reference Seurat object (e.g. human CD8 atlas).
+  filter.cells = TRUE: removes cells too distant from reference (low quality projection).
+  Output: adds functional.cluster column to Seurat object with T cell state labels.
+  NOTE: uses RNA assay by default — log-normalization applied internally.
+
+- `list.reference.maps()` : list all available ProjecTILs references with metadata
+  (species, cell type, filename, figshare ID).
+
+## sctype
+- `gene_sets_prepare()` : load and prepare cell type marker database from sctype.
+  Takes a database file path and tissue type as input.
+  Example: gene_sets_prepare(db_path, "Lung")
+
+- `sctype_score()` : compute cell type scores for each cell based on marker expression.
+  scRNAseqData: scaled expression matrix (genes x cells).
+  gs: positive markers list. gs2: negative markers list.
+  NOTE: requires standard matrix — not compatible with BPCells directly.
+
 ## Seurat
 - `subset()` : filter a Seurat object by cells or by metadata conditions
+Used here to extract T cell clusters from the full TME object.
+  Example: subset(seu, subset = seurat_clusters %in% c(1,2,3))
 - `merge()` : combine two or more Seurat objects into one
 - `DimPlot()` : visualize cells in a 2D embedding (UMAP, PCA, etc.).
   group.by: color cells by a metadata column.
@@ -45,6 +75,9 @@ The `..` prefix tells data.table to look for the variable in the parent environm
   raster = FALSE: in DimPlot(), disables automatic point rasterization. Default behavior rasterizes points when >100,000 cells (image becomes blurry). raster = FALSE keeps each point as a vector object; sharper at any zoom level.
   Recommended for publication-quality figures.
   split.by: split the plot by a metadata variable.
+- `@reductions <- list()` : reset all dimensional reductions (PCA, UMAP, Harmony) stored in the Seurat object. Required after subsetting to force recalculation on the new cell population from scratch.
+
+- `@graphs <- list()` : reset all neighbor graphs stored in the Seurat object. Required after subsetting for the same reason as @reductions.
 
 ## Seurat / Harmony
 - `RunHarmony()` : batch correction in PCA space across patients.
@@ -67,7 +100,3 @@ The `..` prefix tells data.table to look for the variable in the parent environm
 Required after merge() which creates one layer per sample.Must be called before FindAllMarkers() or any layer-dependent operation.
 NOTE: Seurat v5 replaced 'slot' with 'layer' — use layer = "data" instead of slot = "data" in GetAssayData().
 
-
-
-## Concepts
-- **Embedding** : a lower-dimensional representation of the data. PCA embedding: 50 PCs. Harmony embedding: batch-corrected PCs. UMAP embedding: 2D visualization. Each is a different representation of the same cells in a progressively reduced space.

@@ -1,14 +1,14 @@
 cluster,manual_annotation,manual_confidence,SingleR_main,sctype,final_annotation,final_confidence,notes
 0,B cells (memory/activated),high,B_cell,Immune system cells,B cells,high,
-1,CD4 T cells (naive/memory activated),high,T_cells,Basal cells (Airway progenitor cells),CD4 T cells (naïve/memory activated),high,sctype non pertinent
+1,CD4 T cells (naive/memory activated),high,T_cells,Basal cells (Airway progenitor cells),CD4 T cells (naive/memory activated),high,sctype non pertinent
 2,CD8 T cells (exhausted/cytotoxic TRM),high,T_cells,Airway goblet cells,CD8 T cells (exhausted/cytotoxic TRM),high,sctype non pertinent
 3,CD8 T cells (effector memory),high,T_cells,Airway goblet cells,CD8 T cells (effector memory),high,sctype non pertinent
 4,Tregs (tumor-infiltrating),high,T_cells,Pulmonary alveolar type I cells,Tregs (tumor-infiltrating),high,
 5,CD4 Tfh / exhausted CD4,medium,T_cells,Airway goblet cells,CD4 Tfh/exhausted CD4,medium,To confirm with Azimuth
 6,Monocytes (inflammatory),high,Monocyte,Alveolar macrophages,Monocytes (inflammatory),high,
-7,TAMs (M2-like/immunosuppressive),high,Macrophage,Alveolar macrophages,TAM (M2-like/immunosuppressive),high,
+7,TAMs (M2-like/immunosuppressive),high,Macrophage,Alveolar macrophages,TAMs (M2-like/immunosuppressive),high,
 8,NK cells (cytotoxic),high,NK_cell,Pulmonary alveolar type I cells,NK cells (cytotoxic),high,sctype non pertinent
-9,NKT / gamma-delta T cells,medium,NK_cell,Pulmonary alveolar type I cells,NKT/ gamma-delta T cells,medium,To confirm with Azimuth
+9,NKT / gamma-delta T cells,medium,NK_cell,Pulmonary alveolar type I cells,NKT / gamma-delta T cells,medium,To confirm with Azimuth
 10,CD4 T cells (naive/resting),high,T_cells,Clara cells,CD4 T cells (naive/resting),high,sctype non pertinent
 11,Proliferating cells (cycling),high,T_cells,Immune system cells,Proliferating cells (cycling),high,"Majority T cells in active proliferation, transversal cycling state"
 12,B cells (naive/transitional),high,B_cell,Immune system cells,B cells (naive/transitional),high,
