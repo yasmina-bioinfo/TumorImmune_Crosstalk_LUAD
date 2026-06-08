@@ -115,7 +115,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - Clustering: resolution = 0.5 and 20 clusters identified
 - UMAP: generated and validated (Harmony integration confirmed)
 
-### Bloc 2 — TME annotation
+### Bloc 2 : TME annotation
 - Script 01: FindAllMarkers complete with 20 clusters annotated manually (top50 markers)
     - 18/20 clusters annotated with high confidence
     - 2/20 clusters with medium confidence (Cluster 5: CD4 Tfh/exhausted, Cluster 9: NKT/γδ)
@@ -131,7 +131,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
   - Barplot proportions (Chi-2 p < 2.2e-16)
   - Fisher post-hoc: MPR vs non-MPR, pCR vs non-MPR, MPR vs pCR; post-hoc pairwise comparisons saved in Results/Tables/Bloc2_fisher_posthoc.csv
 
-### Bloc 3 — T cells analysis
+### Bloc 3 : T cells analysis
 - Script 01: T cells subsetting (clusters 1,2,3,4,5,9,10,11,17) : 172,110 cells
   ElbowPlot inspection = 30 PCs retained
 - Script 02: Harmony + clustering (resolution=0.4) + UMAP = 16 T cell clusters
@@ -143,25 +143,31 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
   - STACAS alignment failed (RAM) = direct projection used
   - CD8.TEX enriched in non-MPR, consistent with portfolio narrative
 
+### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
+
+- CD8.TEX visually more abundant in non-MPR and pCR than MPR on UMAP split
+- IMPORTANT: non-MPR has 42 patients vs 10 MPR and 11 pCR, absolute cell counts are not directly comparable. Proportional analysis (UCell, next scripts) required before biological conclusions.
+- Apparent higher CD8.TEX in pCR vs MPR suggests pCR may harbor more reactivatable exhausted CD8, consistent with complete tumor clearance (pCR = 0% residual tumor)
+- Portfolio GSE207422: CD8_Exhausted_Terminal enriched in MPR (OR=3.36): different tool (manual annotation vs ProjecTILs), different dataset (n=8 patients vs n=63), different patient proportions (GSE207422: MPR > non-MPR cells; GSE243013: non-MPR >> MPR), and different annotation granularity. Visual impression ≠ statistical enrichment.
+Discordance to be resolved by proportional analysis and UCell scoring.
+
 ## Methodological Notes
 
 ### Automated annotation : iterative approach
 Three automated annotation methods were tested for global TME annotation:
 
 1. **Azimuth** (Hao et al., *bioRxiv* 2022), initially planned as primary tool. 
-   Installation failed on Windows due to heavy genomic dependencies 
-   (BSgenome.Hsapiens.UCSC.hg38, EnsDb.Hsapiens.v86). Documented as Windows limitation.
+Installation failed on Windows due to heavy genomic dependencies (BSgenome.Hsapiens.UCSC.hg38, EnsDb.Hsapiens.v86). Documented as Windows limitation.
 
 2. **sctype** (Ianevski et al., *Nat Commun* 2022), selected as lightweight alternative. 
-   Lung tissue reference insufficiently granular for TME immune subtype resolution. 
-   Useful for macrophage/myeloid validation only.
+Lung tissue reference insufficiently granular for TME immune subtype resolution. 
+Useful for macrophage/myeloid validation only.
 
 3. **Azimuth** via WSL/VS Code, reinstalled under Ubuntu 24.04 LTS to bypass. 
 Windows dependency constraints. lungref reference (584,884 cells) loaded successfully. 
 RunAzimuth() blocked by insufficient local RAM (16GB), server execution pending.
 
-Manual annotation (top50 markers per cluster) remains the primary reference, 
-validated by SingleR (HumanPrimaryCellAtlas) and partially by sctype (myeloid clusters). 
+Manual annotation (top50 markers per cluster) remains the primary reference, validated by SingleR (HumanPrimaryCellAtlas) and partially by sctype (myeloid clusters). 
 Azimuth validation pending server execution.
 
 ---
