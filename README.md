@@ -53,7 +53,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - Robust state annotation on reference atlas (`ProjecTILs`)
 - Functional module scoring: exhaustion, cytotoxicity, memory (`UCell`)
 - TCR integration: clonotype expansion, repertoire diversity (`scRepertoire`)
-- MPR vs. non-MPR comparison of CD8 state composition
+- MPR vs. non-MPR, pCR vs MPR, and non_MPR vs pCR comparisons of CD8 state composition
 
 ### Block 4 : Malignant epithelial focus
 - Isolation and sub-clustering of epithelial population
@@ -143,6 +143,55 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
   - STACAS alignment failed (RAM) = direct projection used
   - CD8.TEX enriched in non-MPR, consistent with portfolio narrative
 
+  - **METHODOLOGICAL NOTE**: ProjecTILs was run before canonical marker-based annotation.
+  The recommended workflow is to first identify CD8 clusters by canonical markers, then project only confirmed CD8 cells onto the reference atlas.
+  Running ProjecTILs on the full T cell subset (including CD4, Tregs, NKT, MAIT) caused scGate to incompletely filter non-CD8 populations, resulting in artifactual CD8 labels for non-CD8 clusters.
+  **For future analyses: subset confirmed CD8 clusters first, then run ProjecTILs.**
+  Final annotation relies on canonical markers for non-CD8 clusters.
+
+- Script 07 : CD8 T cells subsetting (corrected workflow)
+  - **METHODOLOGICAL CORRECTION**: Script 03 ran ProjecTILs on full T cell subset (172,110 cells including CD4, Tregs, NKT) before canonical marker annotation.
+  This caused scGate to incompletely filter non-CD8 populations (63% removed) and generated artifactual CD8 labels for non-CD8 clusters.
+  - Corrected workflow: canonical marker annotation (Script 04) performed first to identify confirmed CD8 clusters (1, 2, 5, 6, 10), then ProjecTILs applied to CD8 pure subset only.
+  - CD8 confirmed clusters: 75,622 cells
+  - ElbowPlot inspection = 25 PCs retained (vs 30 for full T cell subset)
+
+- Script 08 : ProjecTILs on confirmed CD8 cells (corrected workflow)
+  - CD8 input: 75,622 cells (clusters 1, 2, 5, 6, 10)
+  - scGate filtering: 18,035/75,622 cells removed (24%) vs 63% in Script 03
+  - Cells projected: 57,587
+  - Runtime: ~42 minutes (15h33 - 16h15)
+  - Note: Script 03 total time ~3h including reference download (~2h) + projection
+
+| CD8 state | Script 03 (T cells full) | Script 08 (CD8 pure) |
+|---|---|---|
+| CD8.EM | 25,575 | 22,459 |
+| CD8.CM | 18,181 | 16,944 |
+| CD8.TEX | 15,115 | 15,675 |
+| CD8.TPEX | 2,011 | 1,821 |
+| CD8.NaiveLike | 1,342 | 446 |
+| CD8.MAIT | 1,273 | 47 |
+| CD8.TEMRA | 157 | 195 |
+
+Key observation: CD8.TEX stable across both attempts (~15,000 cells), robust signal.
+CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08.
+
+- Script 09 : CD8 ProjecTILs barplot (proportions by response)
+  - Chi-2 p < 2.2e-16 : CD8 state distribution highly significantly different across groups
+  - CD8.TEX: non-MPR (~30%) > MPR (~25%) > pCR (~15%): gradient confirmed statistically
+  - CD8.CM: pCR (~40%) ≈ MPR (~35%) > non-MPR (~30%) : memory enriched in responders
+  - CD8.EM: similar across groups (~35-40%) : functional status to be assessed by UCell
+  - CD8.TPEX: visible in pCR only, consistent with reactivation hypothesis
+  - CD8.MAIT: 47 cells (~0.08%), negligible, not visible on barplot. Reduction from 1,273 (Script 03) to 47 (Script 08) confirms cleaner CD8 population
+ - Fisher post-hoc results saved in Results/Tables/Bloc3_CD8_fisher_posthoc.csv
+
+- Script 10 : UCell scoring on CD8 T cells
+**Exhaustion scores (mean), CD8.TEX:**
+  - non-MPR = 0.347 > pCR = 0.249 > MPR = 0.220
+
+**Exhaustion scores (mean), CD8.TPEX:**
+  - non-MPR = 0.268 > pCR = 0.225 > MPR = 0.197
+
 ### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
 
 - CD8.TEX visually more abundant in non-MPR and pCR than MPR on UMAP split
@@ -150,6 +199,30 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - Apparent higher CD8.TEX in pCR vs MPR suggests pCR may harbor more reactivatable exhausted CD8, consistent with complete tumor clearance (pCR = 0% residual tumor)
 - Portfolio GSE207422: CD8_Exhausted_Terminal enriched in MPR (OR=3.36): different tool (manual annotation vs ProjecTILs), different dataset (n=8 patients vs n=63), different patient proportions (GSE207422: MPR > non-MPR cells; GSE243013: non-MPR >> MPR), and different annotation granularity. Visual impression ≠ statistical enrichment.
 Discordance to be resolved by proportional analysis and UCell scoring.
+
+### Preliminary observations : CD8 T cell states (Bloc 3, Script 08, corrected workflow)
+- CD8.TEX enriched in non-MPR (visual), consistent with portfolio (OR=3.36, GSE207422)
+- CD8.TPEX enriched in pCR vs MPR, suggests reactivation of exhausted precursors
+- CD8.TEX > in MPR than pCR; MPR cells have progressed further toward exhaustion but retain partial function (residual tumor ≤ 10%)
+- Proposed gradient: non-MPR (TEX dominant) to MPR (TEX + TPEX) to pCR (TPEX dominant)
+  Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX state in responders
+  This connects with portfolio finding: CD8_Exhausted_Terminal enriched in MPR (OR=3.36)
+- CD8.EM numerically dominant in non-MPR; NOTE: high EM count does not imply functional efficacy. EM cells in non-MPR may be dysfunctional or evaded by tumor. Functional scoring (UCell, next scripts) required to assess EM functional state.
+- IMPORTANT: all observations are visual/preliminary; statistical proportional
+  analysis and UCell scoring required before biological conclusions.
+- Connection with portfolio (GSE207422): STAT2-high program in non-MPR associated with differentiation blockade toward cytotoxic effector state. High EM count in non-MPR may reflect this blockade; cells stalled in EM state, unable to fully differentiate. Immunosuppressive TME (TREM2+ TAMs, CCR8+ Tregs) compounds CD8 dysfunction. Anti-PD-1 partially relieves this blockade in MPR/pCR.
+
+### Preliminary observations : UCell CD8 scoring (Script 10)
+- pCR shows higher exhaustion scores than MPR in both TEX and TPEX = pCR cells were exposed to stronger antigenic pressure initially; but their reactivation capacity was superior, enabling complete tumor clearance
+- CD8.EM in non-MPR more exhausted (0.128) than MPR (0.107) and pCR (0.106) = confirms EM dysfunction in non-responders, consistent with STAT2-mediated differentiation blockade identified in portfolio (GSE207422)
+- TPEX retain higher cytotoxicity score than TEX across all groups = TPEX preserve more residual function, consistent with reactivable precursor state
+- Memory score highest in CD8.NaiveLike
+
+**Hypotheses to test in next blocs:**
+- H1 (CollecTRI): pCR T cells have superior intrinsic reactivation capacity
+- H2 (CellChat): immunosuppressive TME composition determines reactivation failure
+- H3: interaction between intrinsic T cell state and TME context
+
 
 ## Methodological Notes
 

@@ -1,0 +1,17 @@
+cluster,manual_annotation,manual_confidence,ProjecTILs,final_annotation,final_confidence,notes
+0,CD4 T cells (naive/central memory),high,CD8.CM,CD4 T cells (naive/central memory),high,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+1,CD8 T cells (effector memory/GZMK+),high,CD8.EM,CD8 T cells (effector memory/GZMK+),high,Manual + ProjecTILs concordant
+2,CD8 T cells (exhausted/cytotoxic TRM),high,CD8.TEX,CD8 T cells (exhausted/cytotoxic TRM),high,Manual + ProjecTILs concordant
+3,Tregs (tumor-infiltrating),high,CD8.CM,Tregs (tumor-infiltrating),high,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+4,CD4 Tfh / exhausted CD4,medium,CD8.CM,CD4 Tfh / exhausted CD4,medium,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+5,CD8 T cells (TRM/transitional exhausted),high,CD8.EM,CD8 T cells (TRM/transitional exhausted),high,Manual + ProjecTILs concordant
+6,CD8 T cells (TRM/quiescent),high,CD8.CM,CD8 T cells (TRM/quiescent),medium,Manual annotation — ProjecTILs partial concordance
+7,NKT / gamma-delta T cells,high,CD8.CM,NKT / gamma-delta T cells,high,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+8,CD4 T cells (naive/resting),high,CD8.CM,CD4 T cells (naive/resting),high,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+9,CD4 T cells (activated/metabolically active),medium,CD8.CM,CD4 T cells (activated/metabolically active),medium,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+10,Proliferating T cells (cycling),high,CD8.TEX,Proliferating T cells (cycling),high,Manual annotation — ProjecTILs partial concordance
+11,MAIT cells,high,CD8.MAIT,MAIT cells,high,Manual + ProjecTILs concordant
+12,IFN-stimulated T cells (ISG-high),high,CD8.EM,IFN-stimulated T cells (ISG-high),high,Manual annotation — ProjecTILs partial concordance
+13,gamma-delta T cells / innate T cells,medium,CD8.CM,gamma-delta T cells / innate T cells,medium,Manual annotation — ProjecTILs label artifactual (non-CD8 passed scGate filter)
+14,B cells (contamination - to exclude),high,CD8.EM,EXCLUDE — B cells contamination,high,B cells contamination — exclude from CD8 analyses
+15,Artifact (2 cells - to exclude),high,,EXCLUDE — Artifact (2 cells),high,Artifact — 2 cells only — exclude

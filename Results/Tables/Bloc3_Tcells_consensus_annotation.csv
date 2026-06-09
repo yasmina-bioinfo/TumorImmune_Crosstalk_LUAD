@@ -1,0 +1,17 @@
+cluster,manual_annotation,manual_confidence,ProjecTILs,final_annotation,final_confidence,notes
+0,CD4 T cells (naive/central memory),high,CD8.CM,,,
+1,CD8 T cells (effector memory/GZMK+),high,CD8.EM,,,
+2,CD8 T cells (exhausted/cytotoxic TRM),high,CD8.TEX,,,
+3,Tregs (tumor-infiltrating),high,CD8.CM,,,
+4,CD4 Tfh / exhausted CD4,medium,CD8.CM,,,
+5,CD8 T cells (TRM/transitional exhausted),high,CD8.EM,,,
+6,CD8 T cells (TRM/quiescent),high,CD8.CM,,,
+7,NKT / gamma-delta T cells,high,CD8.CM,,,
+8,CD4 T cells (naive/resting),high,CD8.CM,,,
+9,CD4 T cells (activated/metabolically active),medium,CD8.CM,,,
+10,Proliferating T cells (cycling),high,CD8.TEX,,,
+11,MAIT cells,high,CD8.MAIT,,,
+12,IFN-stimulated T cells (ISG-high),high,CD8.EM,,,
+13,gamma-delta T cells / innate T cells,medium,CD8.CM,,,
+14,B cells (contamination - to exclude),high,CD8.EM,,,B cells contamination — exclude from CD8 analyses
+15,Artifact (2 cells - to exclude),high,,,,Artifact — 2 cells only — exclude

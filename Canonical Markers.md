@@ -14,14 +14,50 @@
 - Note: GZMK+ distinct from GZMB+ exhausted
 - Note: absence of PDCD1/LAG3/HAVCR2 distinguishes from exhausted
 
+## CD8 T cell states (ProjecTILs human reference)
+
+### CD8.TEX : Terminal Exhaustion
+- PDCD1 (PD-1), LAG3, HAVCR2 (TIM-3), TIGIT, ENTPD1, CTLA4 : exhaustion checkpoints
+- VCAM1, ZEB2, NFIL3, RBPJ : exhaustion transcriptional program
+- ITGA1, ITGAE (CD103), CXCR6, ZNF683 : tissue residency (TRM)
+- GZMB, PRF1, FASLG : residual cytotoxicity
+- Note: UCell exhaustion score non-MPR (0.347) > pCR (0.249) > MPR (0.220)
+
+### CD8.TPEX : Precursor Exhaustion
+- TCF7, SLAMF6, TOX, PDCD1 : precursor exhaustion signature
+- Note: retains higher cytotoxicity than TEX : reactivable by anti-PD-1
+- Note: UCell exhaustion score non-MPR (0.268) > pCR (0.225) > MPR (0.197)
+
+### CD8.EM : Effector Memory
+- GZMK, EOMES, KLRG1, CCL4, CCL4L2 : effector memory markers
+- Note: GZMK+ distinct from GZMB+ exhausted
+- Note: EM in non-MPR more exhausted (UCell 0.128) than MPR (0.107) and pCR (0.106)
+
+### CD8.CM : Central Memory
+- CCR7, SELL (CD62L), IL7R, TCF7, LEF1 : central memory markers
+- Note: dominant in MPR and pCR responders
+
+### CD8.NaiveLike
+- CCR7, SELL, IL7R, KLF2 : naive/quiescent signature
+- Note: highest Memory UCell score among all CD8 states 
+
+### CD8.MAIT : Mucosal-Associated Invariant T cells
+- TRAV1-2, KLRB1 (CD161), DPP4 (CD26), SLC4A10
+- Note: innate-like T cells, recognize bacterial antigens via MR1
+- Note: reduced from 1,273 (Script 03) to 47 (Script 08) : confirms CD8 pure subset
+
+### CD8.TEMRA : Terminally Differentiated Effector
+- KLRG1, CX3CR1, GZMB, PRF1 : terminal effector markers
+- Note: rare population (195 cells)
+
 ### CD4 T cells
 - CD4, CD3D, CD3E, IL7R, TCF7
 
 ### Naive / Memory activated CD4 T cells (Cluster 1)
-- TCF7, LEF1 — naive/stem-like signature
-- SATB1 — transcriptional regulator of T cells
-- CD40LG — CD4 T helper marker
-- KLRB1 — NKT or activated CD4 T cells
+- TCF7, LEF1 : naive/stem-like signature
+- SATB1 : transcriptional regulator of T cells
+- CD40LG : CD4 T helper marker
+- KLRB1 : NKT or activated CD4 T cells
 
 ### Naive / Resting CD4 T cells (Cluster 10)
 - IL7R, CD28, ITK, CAMK4, RORA, STAT4

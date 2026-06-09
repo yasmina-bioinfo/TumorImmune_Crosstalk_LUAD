@@ -1,0 +1,17 @@
+cluster,manual_annotation,manual_confidence
+0,CD4 T cells (naive/central memory),high
+1,CD8 T cells (effector memory/GZMK+),high
+2,CD8 T cells (exhausted/cytotoxic TRM),high
+3,Tregs (tumor-infiltrating),high
+4,CD4 Tfh / exhausted CD4,medium
+5,CD8 T cells (TRM/transitional exhausted),high
+6,CD8 T cells (TRM/quiescent),high
+7,NKT / gamma-delta T cells,high
+8,CD4 T cells (naive/resting),high
+9,CD4 T cells (activated/metabolically active),medium
+10,Proliferating T cells (cycling),high
+11,MAIT cells,high
+12,IFN-stimulated T cells (ISG-high),high
+13,gamma-delta T cells / innate T cells,medium
+14,B cells (contamination - to exclude),high
+15,Artifact (2 cells - to exclude),high
