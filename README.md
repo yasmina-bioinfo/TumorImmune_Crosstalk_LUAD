@@ -179,18 +179,41 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 - Script 09 : CD8 ProjecTILs barplot (proportions by response)
   - Chi-2 p < 2.2e-16 : CD8 state distribution highly significantly different across groups
   - CD8.TEX: non-MPR (~30%) > MPR (~25%) > pCR (~15%): gradient confirmed statistically
-  - CD8.CM: pCR (~40%) ≈ MPR (~35%) > non-MPR (~30%) : memory enriched in responders
+  - CD8.CM: pCR (~40%) = MPR (~35%) > non-MPR (~30%) : memory enriched in responders
   - CD8.EM: similar across groups (~35-40%) : functional status to be assessed by UCell
   - CD8.TPEX: visible in pCR only, consistent with reactivation hypothesis
   - CD8.MAIT: 47 cells (~0.08%), negligible, not visible on barplot. Reduction from 1,273 (Script 03) to 47 (Script 08) confirms cleaner CD8 population
- - Fisher post-hoc results saved in Results/Tables/Bloc3_CD8_fisher_posthoc.csv
+  - Fisher post-hoc results saved in Results/Tables/Bloc3_CD8_fisher_posthoc.csv
 
 - Script 10 : UCell scoring on CD8 T cells
-**Exhaustion scores (mean), CD8.TEX:**
-  - non-MPR = 0.347 > pCR = 0.249 > MPR = 0.220
+  **Exhaustion scores (mean), CD8.TEX:**
+    - non-MPR = 0.347 > pCR = 0.249 > MPR = 0.220
 
-**Exhaustion scores (mean), CD8.TPEX:**
-  - non-MPR = 0.268 > pCR = 0.225 > MPR = 0.197
+  **Exhaustion scores (mean), CD8.TPEX:**
+    - non-MPR = 0.268 > pCR = 0.225 > MPR = 0.197
+
+- Script 11: scRepertoire TCR analysis (WSL, R 4.6.0)
+  - NOTE: scRepertoire requires gsl >= R 4.5.0 — not available on Windows R 4.4
+  Installed and run in WSL environment
+  - TCR file: GSE243013_T_with_TCR_annotation.csv.gz (434,458 cells)
+  - Matched to CD8 object: cells with TCR data in our CD8 subset (57,587 cells)
+
+  **Clonotype expansion by CD8 state:**
+    - CD8.TEX: 85.4% expanded, highest, confirms tumor-reactive identity
+    - CD8.TPEX: 79.4% expanded, also tumor-reactive
+    - CD8.EM: 70.8% expanded
+    - CD8.NaiveLike: 16.5% expanded, coherent with naive/quiescent state
+
+  **Clonotype expansion by pathological response:**
+    - MPR: ~70% expanded
+    - non-MPR: ~73% expanded
+    - pCR: ~65% expanded, more non-expanded clones, higher polyclonality
+
+  **Clonal diversity (mean per patient):**
+    - MPR: 0.490 ± 0.184
+    - pCR: 0.458 ± 0.118
+    - non-MPR: 0.438 ± 0.168
+    - Responders show higher clonal diversity than non-responders
 
 ### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
 
@@ -222,6 +245,11 @@ Discordance to be resolved by proportional analysis and UCell scoring.
 - H1 (CollecTRI): pCR T cells have superior intrinsic reactivation capacity
 - H2 (CellChat): immunosuppressive TME composition determines reactivation failure
 - H3: interaction between intrinsic T cell state and TME context
+
+### Preliminary observations : scRepertoire (Script 11)
+- CD8.TEX high expansion (85%) confirms antigen-specific tumor-reactive identity despite terminal exhaustion: these cells have been activated and expanded
+- pCR shows more non-expanded clones than MPR/non-MPR,consistent with higher clonal diversity, polyclonal response may enable complete tumor clearance
+- Clonal diversity gradient: MPR > pCR > non-MPR: responders maintain broader TCR repertoire
 
 
 ## Methodological Notes
