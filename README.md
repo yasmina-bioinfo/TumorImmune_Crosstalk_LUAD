@@ -193,7 +193,7 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
     - non-MPR = 0.268 > pCR = 0.225 > MPR = 0.197
 
 - Script 11: scRepertoire TCR analysis (WSL, R 4.6.0)
-  - NOTE: scRepertoire requires gsl >= R 4.5.0 — not available on Windows R 4.4
+  - NOTE: scRepertoire requires gsl >= R 4.5.0, not available on Windows R 4.4
   Installed and run in WSL environment
   - TCR file: GSE243013_T_with_TCR_annotation.csv.gz (434,458 cells)
   - Matched to CD8 object: cells with TCR data in our CD8 subset (57,587 cells)
@@ -214,6 +214,22 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
     - pCR: 0.458 ± 0.118
     - non-MPR: 0.438 ± 0.168
     - Responders show higher clonal diversity than non-responders
+
+- Script 12 : CollecTRI TF activity on CD8 T cells
+  - Tool: decoupleR run_ulm + CollecTRI network (43,159 interactions, 1,186 TFs)
+  - RAM constraint: full CD8 object (57,587 cells) requires 14.6 GiB
+  Solution: restricted to CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state
+  Total analyzed: ~21,821 cells, set.seed(42) for reproducibility
+  - CollecTRI network saved locally from RStudio (OmnipathR issues in WSL)
+  - Top 20 TFs by variance: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC, RFX5, NFYC,
+  NFKB, RLF, DMTF1, RELA, CIITA, NFYB, MLXIP, JUN, HOPX, NFKB1, DAXX, TBX21
+  - See TF_biological_roles.md for full biological annotation of each TF
+
+  **TFs common with portfolio (GSE207422 DoRothEA analysis):**
+  - ELK4 : enriched in MPR CD8.TEX (confirms portfolio finding)
+  - TBX21 : present in top 20 (discordance with portfolio, see below)
+  - STAT2, STAT1, ELK1, IRF7 : present in CollecTRI but not in top 20 by variance
+
 
 ### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
 
@@ -251,6 +267,30 @@ Discordance to be resolved by proportional analysis and UCell scoring.
 - pCR shows more non-expanded clones than MPR/non-MPR,consistent with higher clonal diversity, polyclonal response may enable complete tumor clearance
 - Clonal diversity gradient: MPR > pCR > non-MPR: responders maintain broader TCR repertoire
 
+### Preliminary observations : CollecTRI (Script 12)
+
+Heatmap observations (TFs ordered by activity strength per state x condition):
+
+| State | pCR | MPR | non-MPR |
+|---|---|---|---|
+| CD8.EM | NFYB, NFYC, HSF2, DAXX, CIITA, DMTF1, ELK4, RLF | DAXX, ELK4 (~2), RLF | CIITA, RFXAP, DAXX, RFXANK, RFX5, NFYB |
+| CD8.TEX | MLXIP (~1), HOPX (~1.5) | TBX21 (~1.5), RFXANK, RFX5, RFXAP | TBX21, RFXANK, RFX5, CIITA, RFXAP, NFKB1 |
+| CD8.TPEX | HSF2, NFYC, MLXIP, HOPX, HSF1, DMTF1, JUN, RELA | JUN, NFKB, ELK4, RLF, DMTF1, RELA, NFKB1, MYC | MYC, NFKB1, NFKB, RELA, HSF2, HSF1, NFYB, NFYC, DMTF1 |
+
+Violin observations (key TFs):
+- STAT2: non-MPR highest in CD8.TEX and CD8.TPEX, confirms STAT2-high IFN program (same as portfolio)
+- STAT1: non-MPR > MPR ≈ pCR in TEX and TPEX, co-activated with STAT2
+- ELK4: MPR dominant in CD8.TEX, confirms portfolio finding
+- ELK1: pCR > MPR in TEX; pCR > non-MPR in TPEX
+- TBX21: non-MPR dominant in TEX, discordance with portfolio (MPR enriched)
+  Possible explanations: different tool (DoRothEA vs CollecTRI), different dataset, or TBX21 activates different programs depending on TME context
+- IRF7: similar across all three groups in TEX and TPEX
+
+**Key biological interpretation:**
+- STAT2/STAT1-high program in non-MPR CD8.TEX and CD8.TPEX confirmed across two independent cohorts and two different TF inference tools, robust signal
+- ELK4 enriched in MPR CD8.TEX confirmed, cytotoxic effector engagement
+- pCR CD8.TPEX shows richest transcriptional program (HSF2, NFYC, JUN, RELA) consistent with superior reactivation capacity
+- TBX21 discordance to be resolved by CollecTRI analysis on full CD8 object on compute server
 
 ## Methodological Notes
 
