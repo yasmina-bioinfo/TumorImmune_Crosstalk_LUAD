@@ -1,0 +1,9 @@
+cluster	annotation
+0	TAMs Patrouilleurs & Chimiotactiques (CX3CR1+/CCL4+)
+1	TAMs M2 Métaboliques / Lipidiques (APOE+/CCL18+)
+2	TAMs Angiogéniques & Hypoxiques (EREG+/TIMP1+)
+3	TAMs de Réponse au Stress & Survie (HSP+/SERPINH1+)
+4	TAMs Prolifératifs / En Division (MKI67+/TOP2A+)
+5	TAMs stimulés par l'Interféron / Hyper-Engagés (CXCL9+/CD274+)
+6	Doublets Lymphocytes / Contamination (CD3E+/IGKV4-1+)
+7	Monocytes Inflammatoires Récemment Recrutés (CCR2+/S100A+)
