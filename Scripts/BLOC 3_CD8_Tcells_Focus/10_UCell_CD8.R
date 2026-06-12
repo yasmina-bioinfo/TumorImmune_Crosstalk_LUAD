@@ -61,7 +61,7 @@ plot_list <- lapply(score_cols, function(score) {
           features  = score,
           group.by  = "pathological_response",
           pt.size   = 0,
-          cols      = c("MPR" = "#E41A1C", "non-MPR" = "#377EB8", "pCR" = "#4DAF4A")) +
+          cols      = c("MPR" = "#4393C3", "non-MPR" = "#D73027", "pCR" = "#1A7A1A")) +
     theme_bw() +
     theme(legend.position = "none",
           axis.title.x    = element_blank())
