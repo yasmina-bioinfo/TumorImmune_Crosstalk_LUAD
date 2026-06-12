@@ -291,6 +291,8 @@ Violin observations (key TFs):
 - ELK4 enriched in MPR CD8.TEX confirmed, cytotoxic effector engagement
 - pCR CD8.TPEX shows richest transcriptional program (HSF2, NFYC, JUN, RELA) consistent with superior reactivation capacity
 - TBX21 discordance to be resolved by CollecTRI analysis on full CD8 object on compute server
+The apparent discordance in TBX21 activity between cohorts is likely explained by differences in clinical group granularity rather than a biological contradiction. In GSE207422, the MPR category (≤10% residual tumor) may have included "near-pCR" patients with near-complete responses, in whom TBX21 co-activation with ELK4 represented a coordinated cytotoxic effector program. In GSE243013, where pCR is separated from MPR, the MPR category is more homogeneous. TBX21 activity in non-MPR CD8.TEX without ELK4 co-activation, may reflect an abortive cytotoxic program: TBX21 activation insufficient to drive full effector differentiation in the absence of its co-activator. This interpretation suggests that ELK4 may be the key discriminating TF between functional and dysfunctional cytotoxic programs, with TBX21 as a necessary but insufficient partner.
+Additionally, the smaller and imbalanced patient cohort in GSE207422 (MPR n=3, non-MPR n=10) may have introduced sampling bias in TF activity estimates. With only 3 MPR patients, the TBX21 signal may have been driven by one or two outlier patients with atypically high TBX21 activity, rather than reflecting a true MPR-specific program.
 
 ## Methodological Notes
 
@@ -319,13 +321,13 @@ Azimuth validation pending server execution.
 TumorImmune_Crosstalk_LUAD/
 ├── README.md
 ├── Scripts/
-│   ├── BLOC 0_Data acquisition.R
-│   ├── BLOC 1_QC and preprocessing.R
-│   ├── BLOC 2_Global_TME_Annotation.R
-│   ├── 03_CD8_ProjecTILs_UCell_TCR.R
-│   ├── 04_Epithelial_CopyKAT_UCell.R
-│   ├── 05_CellChat_MPR_NMPR.R
-│   └── 06_TF_activity_CollecTRI.R
+│   ├── BLOC 0_Data acquisition
+│   ├── BLOC 1_QC and preprocessing
+│   ├── BLOC 2_Global_TME_Annotation
+│   ├── BLOC 3_CD8_Tcells_Focus
+│   ├── 
+│   ├── 
+│   └── 
 ├── Data/
 │   └── metadata_LUAD.csv
 ├── Figures/
