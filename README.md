@@ -230,6 +230,39 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - TBX21 : present in top 20 (discordance with portfolio, see below)
   - STAT2, STAT1, ELK1, IRF7 : present in CollecTRI but not in top 20 by variance
 
+### Bloc 4 : Immunosuppressive TME compartment / TAMs and malignant epithelial cells
+
+## Bloc 4A : GSE243013
+- Script 01 : TAMs subsetting and ElbowPlot
+  - Subset from cluster 7 (M2-like/immunosuppressive) of global TME annotation
+  - 14,901 cells extracted
+  - Normalization + HVG (2000) + Scaling + PCA (30 PCs)
+  - ElbowPlot inspection, 20 PCs retained
+
+- Script 02 : Harmony + Clustering + UMAP (TAMs)
+  - dims = 1:20 based on ElbowPlot inspection (Script 01)
+  - Resolution = 0.1 , 8 clusters identified
+  NOTE: resolution 0.4 gave 19 clusters (over-fragmentation)
+  resolution 0.1 gives 8 biologically meaningful TAM subtypes
+  - Harmony batch correction by sampleID
+
+- Script 03 : FindAllMarkers TAMs
+  - Top 20 markers per cluster (vs top 50 for TME, TAMs more homogeneous)
+  - Wilcoxon test, min.pct = 0.25, logFC ≥ 0.25, only.pos = TRUE
+  - Output: Results/Markers/ (à préciser selon ton dossier)
+  - See TAM_markers_biological_roles.md for full annotation
+
+- Script 04 : TAMs final annotation + UMAP + Barplot
+  - 7 TAM subtypes annotated (cluster 6 excluded : lymphocyte contamination)
+  - Chi-2 p < 2.2e-16, TAM subtype distribution highly significantly different across groups
+
+   **Key observations:**
+     - Stress-response TAMs (MARCO+/PPARG+/HSP-high): enriched in non-MPR, consistent with hypoxic/metabolically stressed immunosuppressive TME
+     - Tissue-resident M2-like TAMs: enriched in non-MPR, chronic anti-inflammatory program blocking CD8 T cell function
+     - IFN-stimulated TAMs (PD-L1+/IDO1+): enriched in non-MPR, direct CD8 suppression via PD-L1/PD-1 axis and tryptophan depletion (IDO1) = triple TAM-mediated immunosuppression in non-MPR supports H2
+
+
+
 
 ### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
 
@@ -293,6 +326,13 @@ Violin observations (key TFs):
 - TBX21 discordance to be resolved by CollecTRI analysis on full CD8 object on compute server
 The apparent discordance in TBX21 activity between cohorts is likely explained by differences in clinical group granularity rather than a biological contradiction. In GSE207422, the MPR category (≤10% residual tumor) may have included "near-pCR" patients with near-complete responses, in whom TBX21 co-activation with ELK4 represented a coordinated cytotoxic effector program. In GSE243013, where pCR is separated from MPR, the MPR category is more homogeneous. TBX21 activity in non-MPR CD8.TEX without ELK4 co-activation, may reflect an abortive cytotoxic program: TBX21 activation insufficient to drive full effector differentiation in the absence of its co-activator. This interpretation suggests that ELK4 may be the key discriminating TF between functional and dysfunctional cytotoxic programs, with TBX21 as a necessary but insufficient partner.
 Additionally, the smaller and imbalanced patient cohort in GSE207422 (MPR n=3, non-MPR n=10) may have introduced sampling bias in TF activity estimates. With only 3 MPR patients, the TBX21 signal may have been driven by one or two outlier patients with atypically high TBX21 activity, rather than reflecting a true MPR-specific program.
+
+### Preliminary observations : TAMs (Bloc 4A)
+**Unexpected observation : LAMs (TREM2+/APOE+) enriched in MPR:**
+- Hypotheses:
+  1. Dual role of TREM2+ LAMs : may facilitate tissue remodeling and antigen presentation post-chemotherapy, paradoxically supporting partial response
+  2. Intra-MPR heterogeneity: MPR may include near-pCR patients with distinct immune profiles driving LAM enrichment
+  3. Chemotherapy-induced recruitment — neoadjuvant chemotherapy induces tumor cell death, recruiting LAMs as part of treatment response, not necessarily as immunosuppressors in this context = To be resolved by patient-level pseudobulk analysis
 
 ## Methodological Notes
 
