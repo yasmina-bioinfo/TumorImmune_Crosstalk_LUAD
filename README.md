@@ -1,10 +1,24 @@
 # TumorImmune_Crosstalk_LUAD
 
-> **How does tumor cell plasticity shape CD8 T cell functional states and their response to anti-PD-1 in lung adenocarcinoma?**
+## Publication status 
+> **Preprint in preparation** : Multi-cohort single-cell analysis of tumor immune crosstalk and anti-PD-1 response in NSCLC.
+> Targer: bioRxiv : manuscript in preparation.
 
-This project investigates the crosstalk between malignant epithelial cells and CD8 T cells in the tumor microenvironment (TME) of lung adenocarcinoma (LUAD), using neoadjuvant chemo-immunotherapy data with matched pathological response (MPR vs. non-MPR; MPR vs pCR and non-MPR vs pCR).
+> **How does tumor cell plasticity and heterogeneity shape CD8 T cell functional states and their response to anti-PD-1 in lung adenocarcinoma?**
 
-This work is an extension to validate findings from [CD8_NSCLC_scRNAseq](https://github.com/yasmina-bioinfo/CD8_NSCLC_scRNAseq) in an independent, larger cohort with paired TCR sequencing.
+This project investigates the crosstalk between malignant epithelial cells and CD8 T cells in the tumor microenvironment (TME) of lung 
+adenocarcinoma (LUAD), using neoadjuvant chemo-immunotherapy data with matched pathological response (MPR vs. non-MPR; MPR vs pCR and non-MPR 
+vs pCR).
+Although histological subtype was not explicitly reported by Hu et al. 2023, the presence of AT2 epithelial cells (Tumor_epithelial_AT2) in the 
+TME annotation is consistent with a predominantly LUAD composition, as AT2 cells represent the recognized cell of origin of lung adenocarcinoma 
+(Sainz de Aja et al. 2021; Xing et al. 2021). KRT5 and TP63 expression, canonical squamous markers, was restricted to the basal epithelial 
+cluster and absent in AT2 cells, further supporting an adenocarcinoma histology. Cross-cohort comparison was therefore restricted to LUAD 
+patients in GSE243013 (n=63), excluding LUSC and other NSCLC subtypes, to minimize histological confounding. LUAD and LUSC exhibit distinct 
+tumor immune microenvironments, with LUAD showing higher CD8 T cell infiltration and exhaustion signatures, ensuring that the observed CD8 
+exhaustion and TAM immunosuppressive signals reflect LUAD-specific biology.
+
+This work is an extension to validate findings from [CD8_NSCLC_scRNAseq](https://github.com/yasmina-bioinfo/CD8_NSCLC_scRNAseq) in an 
+independent, larger cohort with paired TCR sequencing.
 
 ---
 
@@ -47,30 +61,29 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 
 ### Block 2 : Global TME annotation
 - Cluster marker identification (top markers per cluster)
-- Manual annotation + automated validation (`SingleR`)
+- Manual annotation + automated validation (`SingleR`, `sctype`)
+- Azimuth annotation pending (RAM constraint, server execution required)
 
 ### Block 3 : CD8 T cell focus
 - Robust state annotation on reference atlas (`ProjecTILs`)
 - Functional module scoring: exhaustion, cytotoxicity, memory (`UCell`)
 - TCR integration: clonotype expansion, repertoire diversity (`scRepertoire`)
+- TF activity inference: top 20 TFs by variance across CD8 states (`CollecTRI/decoupleR`)
 - MPR vs. non-MPR, pCR vs MPR, and non_MPR vs pCR comparisons of CD8 state composition
+- Cross-cohort validation: ProjecTILs and CollecTRI applied to GSE207422 CD8 T cells (planned)
 
-### Block 4 : Malignant epithelial focus
-- Isolation and sub-clustering of epithelial population
-- Malignancy confirmation (`CopyKAT`)
-- Functional scoring: EMT, IFN stress, proliferation (`UCell`)
-- MPR vs. non-MPR comparison of tumor cell programs
+### Block 4 : Immunosuppressive TME Compartment 
+- TAM subtype annotation and reclustering (GSE243013 + GSE207422)
+- Functional scoring: M2, M1, SPP1, IFN signatures (`UCell`)
+- Patient-level pseudobulk analysis MPR vs pCR (`UCell`)
+- TF activity inference on TAMs (`CollecTRI`) in PROGRESS 
+- Malignancy epithelial analysis : CopyKAT, UCell, CollecTRI (GSE207422 only)
 
 ### Block 5 : TME intercellular communication
-- CellChat object stratified by MPR vs. non-MPR (`CellChat`)
+- CellChat object stratified by MPR vs. non-MPR vs. pCR (`CellChat`)
 - Global signaling network comparison
-- Focus on epithelial ↔ CD8 ligand-receptor axes
-
-### Block 6 : Transcription factor activity
-- TF activity inference on CD8 and epithelial compartments separately
-- Network: CollecTRI (successor to DoRothEA, 12-source curated GRN)
-- Method: `run_ulm` via `decoupleR`
-- Differential TF activity: MPR vs. non-MPR
+- Focus on TAM - CD8 and epithelial - CD8 ligand -receptor axes
+- NicheNet ligand-receptor prediction, PLANNED
 
 ---
 
@@ -136,6 +149,11 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
   - Fisher post-hoc: MPR vs non-MPR, pCR vs non-MPR, MPR vs pCR; post-hoc pairwise comparisons saved in Results/Tables/Bloc2_fisher_posthoc.csv
 
 ### Bloc 3 : T cells analysis
+
+**Methodological update (Bloc 3):** ProjecTILs and CollecTRI applied to GSE207422 for cross-dataset validation of CD8 exhaustion states and transcription factor activity in anti-PD-1 response [PENDING]
+
+> Note: Bloc 3 scripts without a dataset suffix correspond to GSE243013 (discovery cohort). 
+> GSE207422 (validation cohort) cross-validation scripts are explicitly labelled `Bloc3_GSE207422_`.
 
 #### Script 01: T cells subsetting (clusters 1,2,3,4,5,9,10,11,17) : 172,110 cells
   ElbowPlot inspection = 30 PCs retained
@@ -237,12 +255,9 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - TBX21 : present in top 20 (discordance with portfolio, see below)
   - STAT2, STAT1, ELK1, IRF7 : present in CollecTRI but not in top 20 by variance
 
-### Bloc 4 : Immunosuppressive TME compartment / TAMs and malignant epithelial cells
+**Methodological update (Bloc 3):** ProjecTILs and CollecTRI applied to GSE207422 for cross-dataset validation of CD8 exhaustion states and transcription factor activity in anti-PD-1 response [PENDING]
 
-**Preprint in preparation:** 
-> Results from this bloc contribute to a multi-cohort 
-> single-cell analysis integrating GSE243013 (n=63 LUAD) and GSE207422 (n=13 NSCLC). 
-> Manuscript in preparation for bioRxiv submission.
+### Bloc 4 : Immunosuppressive TME compartment / TAMs and malignant epithelial cells
 
   ### Bloc 4A : GSE243013
 #### Script 01 : TAMs subsetting and ElbowPlot
