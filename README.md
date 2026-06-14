@@ -273,6 +273,14 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
      - Tissue-resident M2-like TAMs: enriched in non-MPR, chronic anti-inflammatory program blocking CD8 T cell function
      - IFN-stimulated TAMs (PD-L1+/IDO1+): enriched in non-MPR, direct CD8 suppression via PD-L1/PD-1 axis and tryptophan depletion (IDO1) = triple TAM-mediated immunosuppression in non-MPR supports H2
 
+#### Script 05 — UCell scoring on TAMs (GSE243013)
+- Input: Bloc4A_04_seu_TAMs_annotated.rds (7 TAM subtypes)
+- Signatures: M2_immunosuppressive (MRC1, CD163, TGFB1, IL10, VEGFA, CD274, IDO1, CSF1R), M1_inflammatory (TNF, IL1B, IL6, CXCL10, NOS2), SPP1_signature (SPP1, GPNMB, APOE, TREM2),IFN_response (ISG15, IFIT1, IFIT3, CXCL9, CXCL10)
+- Pairwise Wilcoxon tests with Bonferroni correction (3 comparisons per signature)
+  Bonferroni threshold: p < 0.0167
+  References: Wilcoxon 1945; Jaakkola et al. 2017 (PMC6979262)
+- Short labels used for violin subtype readability
+
 ### Bloc 4B : GSE207422 TAMs
 
 #### Script 01 : TAMs extraction + UMAP + Barplot (initial annotation)
@@ -310,30 +318,29 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 - Final: 9 TAM subtypes analyzed (T cell contamination excluded)
 - Chi-2 p < 2.2e-16
 
+#### Script 05 : UCell scoring on TAMs combined (post-reclustering)
+- Input: Bloc4B_04_seu_TAMs_combined.rds (9 TAM subtypes)
+- Signatures: M2_immunosuppressive (MRC1, CD163, TGFB1, IL10, VEGFA, CD274, IDO1, CSF1R),
+  M1_inflammatory (TNF, IL1B, IL6, CXCL10, NOS2),
+  SPP1_signature (SPP1, GPNMB, APOE, TREM2),
+  IFN_response (ISG15, IFIT1, IFIT3, CXCL9, CXCL10)
+- Wilcoxon test computed manually on cell-level scores (sapply)
+  NOTE: stat_compare_means (ggpubr) tested but returns p=1 on aggregated data
+  Solution: manual Wilcoxon + geom_text annotation on barplot
+- References: Chen et al. 2021 (PMC8053174), Italiani & Boraschi 2019 (PMC6543837)
+
+#### Script 06 : Pseudobulk UCell scores MPR vs pCR (patient-level)
+- Input: Bloc4A_05_seu_TAMs_UCell.rds
+- Subset: MPR (n=10 patients, 867 cells) and pCR (n=11 patients, 1019 cells)
+  NOTE: non-MPR excluded, focus on MPR vs pCR to test intermediate state hypothesis
+- Pseudobulk: mean UCell score per patient per signature
+  NOTE: aggregation to patient-level avoids pseudo-replication
+- Wilcoxon rank-sum test MPR vs pCR (patient-level)
+  References: Wilcoxon 1945; Jaakkola et al. 2017 (PMC6979262)
+
 ---
 
-**Preliminary observations — Bloc 4B TAMs GSE207422**
-
-Barplot combined annotation (top to bottom by legend):
-- TAM_like_IFN: MPR > NMPR
-- TAM_like_lipid: NMPR > MPR = expected 
-- TAM_like_M2: MPR > NMPR
-- TAM_like_monocyte: NMPR > MPR 
-- TAM_like_MRC1: MPR > NMPR
-- TAM_like_regulatory: NMPR > MPR = expected
-- TAM_like_resident_M2: MPR > NMPR
-- TAM_like_SPP1: NMPR > MPR = expected
-- TAM_like_stress: NMPR > MPR = expected
-
-UCell observations (Script 02 — TAM_like not yet subclustered):
-- NMPR globally higher than MPR across all 4 signatures = expected
-- M2_immunosuppressive: NMPR > MPR = expected
-- M1_inflammatory: MPR > NMPR
-- SPP1_signature: NMPR > MPR = expected
-- IFN_response: MPR > NMPR
-
-
-### Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
+## Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
 
 - CD8.TEX visually more abundant in non-MPR and pCR than MPR on UMAP split
 - IMPORTANT: non-MPR has 42 patients vs 10 MPR and 11 pCR, absolute cell counts are not directly comparable. Proportional analysis (UCell, next scripts) required before biological conclusions.
@@ -341,7 +348,7 @@ UCell observations (Script 02 — TAM_like not yet subclustered):
 - Portfolio GSE207422: CD8_Exhausted_Terminal enriched in MPR (OR=3.36): different tool (manual annotation vs ProjecTILs), different dataset (n=8 patients vs n=63), different patient proportions (GSE207422: MPR > non-MPR cells; GSE243013: non-MPR >> MPR), and different annotation granularity. Visual impression ≠ statistical enrichment.
 Discordance to be resolved by proportional analysis and UCell scoring.
 
-### Preliminary observations : CD8 T cell states (Bloc 3, Script 08, corrected workflow)
+## Preliminary observations : CD8 T cell states (Bloc 3, Script 08, corrected workflow)
 - CD8.TEX enriched in non-MPR (visual), consistent with portfolio (OR=3.36, GSE207422)
 - CD8.TPEX enriched in pCR vs MPR, suggests reactivation of exhausted precursors
 - CD8.TEX > in MPR than pCR; MPR cells have progressed further toward exhaustion but retain partial function (residual tumor ≤ 10%)
@@ -353,7 +360,7 @@ Discordance to be resolved by proportional analysis and UCell scoring.
   analysis and UCell scoring required before biological conclusions.
 - Connection with portfolio (GSE207422): STAT2-high program in non-MPR associated with differentiation blockade toward cytotoxic effector state. High EM count in non-MPR may reflect this blockade; cells stalled in EM state, unable to fully differentiate. Immunosuppressive TME (TREM2+ TAMs, CCR8+ Tregs) compounds CD8 dysfunction. Anti-PD-1 partially relieves this blockade in MPR/pCR.
 
-### Preliminary observations : UCell CD8 scoring (Script 10)
+## Preliminary observations : UCell CD8 scoring (Script 10)
 - pCR shows higher exhaustion scores than MPR in both TEX and TPEX = pCR cells were exposed to stronger antigenic pressure initially; but their reactivation capacity was superior, enabling complete tumor clearance
 - CD8.EM in non-MPR more exhausted (0.128) than MPR (0.107) and pCR (0.106) = confirms EM dysfunction in non-responders, consistent with STAT2-mediated differentiation blockade identified in portfolio (GSE207422)
 - TPEX retain higher cytotoxicity score than TEX across all groups = TPEX preserve more residual function, consistent with reactivable precursor state
@@ -364,12 +371,12 @@ Discordance to be resolved by proportional analysis and UCell scoring.
 - H2 (CellChat): immunosuppressive TME composition determines reactivation failure
 - H3: interaction between intrinsic T cell state and TME context
 
-### Preliminary observations : scRepertoire (Script 11)
+## Preliminary observations : scRepertoire (Script 11)
 - CD8.TEX high expansion (85%) confirms antigen-specific tumor-reactive identity despite terminal exhaustion: these cells have been activated and expanded
 - pCR shows more non-expanded clones than MPR/non-MPR,consistent with higher clonal diversity, polyclonal response may enable complete tumor clearance
 - Clonal diversity gradient: MPR > pCR > non-MPR: responders maintain broader TCR repertoire
 
-### Preliminary observations : CollecTRI (Script 12)
+## Preliminary observations : CollecTRI (Script 12)
 
 Heatmap observations (TFs ordered by activity strength per state x condition):
 
@@ -396,22 +403,102 @@ Violin observations (key TFs):
 The apparent discordance in TBX21 activity between cohorts is likely explained by differences in clinical group granularity rather than a biological contradiction. In GSE207422, the MPR category (≤10% residual tumor) may have included "near-pCR" patients with near-complete responses, in whom TBX21 co-activation with ELK4 represented a coordinated cytotoxic effector program. In GSE243013, where pCR is separated from MPR, the MPR category is more homogeneous. TBX21 activity in non-MPR CD8.TEX without ELK4 co-activation, may reflect an abortive cytotoxic program: TBX21 activation insufficient to drive full effector differentiation in the absence of its co-activator. This interpretation suggests that ELK4 may be the key discriminating TF between functional and dysfunctional cytotoxic programs, with TBX21 as a necessary but insufficient partner.
 Additionally, the smaller and imbalanced patient cohort in GSE207422 (MPR n=3, non-MPR n=10) may have introduced sampling bias in TF activity estimates. With only 3 MPR patients, the TBX21 signal may have been driven by one or two outlier patients with atypically high TBX21 activity, rather than reflecting a true MPR-specific program.
 
-### Preliminary observations : TAMs (Bloc 4A)
+## Preliminary observations : TAMs (Bloc 4A)
 **Unexpected observation : LAMs (TREM2+/APOE+) enriched in MPR:**
 - Hypotheses:
   1. Dual role of TREM2+ LAMs : may facilitate tissue remodeling and antigen presentation post-chemotherapy, paradoxically supporting partial response
   2. Intra-MPR heterogeneity: MPR may include near-pCR patients with distinct immune profiles driving LAM enrichment
   3. Chemotherapy-induced recruitment, neoadjuvant chemotherapy induces tumor cell death, recruiting LAMs as part of treatment response, not necessarily as immunosuppressors in this context = To be resolved by patient-level pseudobulk analysis
 
-### Preliminary observations : TAMs (Bloc 4B)
+## Preliminary observations : TAMs UCell (Bloc 4B GSE207422)
+
+**Barplot combined annotation : Script 04 (top to bottom by legend):**
+- TAM_like_IFN: MPR > NMPR, unexpected; dual role hypothesis: CXCL9/10/11 may favor CD8 T cell recruitment in MPR rather than suppression
+- TAM_like_lipid: NMPR > MPR : expected, supports H2
+- TAM_like_M2: MPR > NMPR
+- TAM_like_monocyte: NMPR > MPR : expected, supports H2
+- TAM_like_MRC1: MPR > NMPR
+- TAM_like_regulatory: NMPR > MPR : expected, supports H2
+- TAM_like_resident_M2: MPR > NMPR : discordant with GSE243013 (non-MPR); may reflect patient composition differences (NSCLC mixed vs LUAD only) and intra-MPR heterogeneity
+- TAM_like_SPP1: NMPR > MPR : expected, supports H2
+- TAM_like_stress: NMPR > MPR : expected, supports H2
+
+**UCell Script 02 : initial (TAM_like not yet subclustered):**
+- NMPR globally higher than MPR across all 4 signatures
+- M2_immunosuppressive: NMPR > MPR : expected, supports H2
+- M1_inflammatory: MPR > NMPR
+- SPP1_signature: NMPR > MPR : expected, supports H2
+- IFN_response: MPR > NMPR
+
+**UCell Script 05 : combined (9 TAM subtypes, Wilcoxon on cell-level scores):**
+
+Barplot mean scores MPR vs NMPR:
+- M2_immunosuppressive: NMPR > MPR, p < 0.0001 : expected, supports H2
+- M1_inflammatory: MPR ≈ NMPR, p = 0.2848 : ns
+- SPP1_signature: NMPR > MPR, p < 0.0001 : expected, supports H2
+- IFN_response: MPR > NMPR, p = 3e-04 : expected, supports H2
+
+Violin by TAM subtype:
+- M2_immunosuppressive: TAM_like_stress highest, then TAM_like_SPP1, TAM_like_IFN
+- M1_inflammatory: TAM_like_stress highest, then TAM_like_SPP1, TAM_like_IFN
+- SPP1_signature: TAM_like_IFN highest, then TAM_like_MRC1, TAM_like_SPP1
+- IFN_response: TAM_like_IFN highest (expected, supports H2), then TAM_like_stress, TAM_like_lipid
+
+NOTE: M1 non-significant consistent with limited statistical power (MPR n=3, NMPR n=10)
+M2 and SPP1 significant despite low N , robust immunosuppressive signal in NMPR (expected, supports H2)
+
+**Key biological interpretation:**
 - NMPR-enriched subtypes (lipid, monocyte, regulatory, SPP1, stress) confirm immunosuppressive TAM niche in non-responders : supports H2 
-- TAM_like_IFN enriched in MPR, unexpected; dual role hypothesis: CXCL9/10/11 may favor CD8 T cell recruitment in MPR rather than suppression
-- Intra-MPR TAM heterogeneity mirrors intra-MPR CD8 heterogeneity (TBX21 discordance) = MPR as a biologically unstable intermediate state
+- Intra-MPR TAM heterogeneity mirrors intra-MPR CD8_Exhausted_Terminal heterogeneity = MPR as a biologically unstable intermediate state
 - Two divergent trajectories from MPR:
-  1. Relapse: residual immunosuppressive TAMs reconstitute immune barriers post-treatment combined with progressive CD8 exhaustion = resistance
-  2. Deepening response toward pCR: pro-immunogenic TAMs (IFN, monocyte) dominate combined with CD8 TPEX plasticity, complete tumor elimination
-- TAM_like_resident_M2 discordant between GSE207422 (MPR) and GSE243013 (non-MPR); may reflect differences in patient composition (NSCLC mixed vs LUAD only) and intra-MPR heterogeneity
+  1. Relapse: residual immunosuppressive TAMs reconstitute immune barriers post-treatment
+     combined with progressive CD8 exhaustion = resistance
+  2. Deepening response toward pCR: pro-immunogenic TAMs (IFN, monocyte) dominate combined with CD8 TPEX plasticity = complete tumor elimination
 - Longitudinal single-cell profiling required to formally test relapse hypothesis
+
+## Preliminary observations : TAMs UCell (Bloc 4A TAMs GSE243013)
+
+Barplot mean scores : pairwise Wilcoxon (MPR vs non-MPR / MPR vs pCR / non-MPR vs pCR):
+- M2_immunosuppressive: non-MPR > pCR > MPR
+  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.0035  | non-MPR/pCR p = 0.0013 
+- M1_inflammatory: non-MPR > MPR > pCR
+  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.0209 (ns Bonferroni) | non-MPR/pCR p < 0.0001 
+- SPP1_signature: non-MPR > MPR > pCR
+  MPR/non-MPR p < 0.0001  | MPR/pCR p < 0.0001  | non-MPR/pCR p < 0.0001 
+- IFN_response: non-MPR dominant; MPR ≈ pCR
+  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.7829 (ns) | non-MPR/pCR p < 0.0001 
+
+Violin by TAM subtype (key observations):
+- M2_immunosuppressive: Resident M2 highest, then Classical monocyte, IFN-stimulated, Monocyte FCN1+, LAMs
+- M1_inflammatory: IFN-stimulated highest, then Proliferating
+- SPP1_signature: all clusters present; Proliferating highest, then LAMs, Resident M2
+- IFN_response: IFN-stimulated highest , then Proliferating, Classical monocyte
+
+NOTE: IFN-stimulated TAMs score high on both M1 (via CXCL10) and IFN_response
+- hybrid pro-inflammatory/immunosuppressive profile,  intra-cluster heterogeneity
+- CXCL10 present in both M1 signature and IFN-stimulated TAMs annotation
+- reflects TME biology, not a signature artifact
+
+Key biological interpretation:
+- All signatures show gradient non-MPR > MPR > pCR; MPR systematically intermediate = quantitative confirmation of MPR as biologically unstable intermediate state
+- Exception: IFN_response, MPR ≈ pCR, both significantly lower than non-MPR = IFN TAM signal discriminates responders from non-responders, not MPR from pCR
+- M2 pCR > MPR,  hypothesized role of M2 TAMs in tissue remodeling post-complete response rather than immunosuppression
+- Patient-level pseudobulk analysis MPR vs pCR planned (Script 06) to formally test intermediate state hypothesis at individual patient level
+
+## Preliminary observations — Script 06 pseudobulk MPR vs pCR:
+
+Dotplot patient-level (each dot = one patient):
+- IFN_response: pCR more concentrated, MPR homogeneous , p = 0.5116 ns
+- M1_inflammatory: MPR homogeneous, pCR heterogeneous with outliers, p = 0.1517 ns
+- M2_immunosuppressive: pCR dots overlapping + outliers, more dispersed than MPR, p = 0.6539 ns
+- SPP1_signature: large variability in both groups, p = 0.4679 ns
+
+Key biological interpretation:
+- No signature significantly distinguishes MPR from pCR at patient level (all p > 0.05) = TAM signatures alone insufficient to separate partial from complete responders
+- pCR globally more heterogeneous than MPR at patient level = multiple biological pathways may lead to complete response
+- Patient-level overlap between MPR and pCR confirms MPR as biologically unstable intermediate state — some MPR patients biologically resemble pCR
+- Heterogeneity documented here serves as interpretive reference for CollecTRI analysis, discordances in TF activity between MPR and pCR will be interpreted in light of this patient-level heterogeneity
+- Integration of CD8 and TAM signatures at patient level required to formally distinguish biological trajectories leading to MPR vs pCR, planned as perspective
 
 
 ## Methodological Notes
