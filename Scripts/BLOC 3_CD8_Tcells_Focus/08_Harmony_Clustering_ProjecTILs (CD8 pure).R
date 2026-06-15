@@ -82,6 +82,9 @@ print(DimPlot(seu_CD8,
               group.by  = "pathological_response",
               raster    = FALSE) +
         theme_bw() +
+        scale_color_manual(values = c("non-MPR" = "#D73027", 
+                                      "MPR"     = "#4393C3", 
+                                      "pCR"     = "#1A7A1A")) +
         labs(title = "CD8 T cells by pathological response"))
 dev.off()
 
