@@ -152,8 +152,8 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 
 **Methodological update (Bloc 3):** ProjecTILs and CollecTRI applied to GSE207422 for cross-dataset validation of CD8 exhaustion states and transcription factor activity in anti-PD-1 response [IN PROGESS]
 
-> Note: Bloc 3 scripts without a dataset suffix correspond to GSE243013 (discovery cohort). 
-> GSE207422 (validation cohort) cross-validation scripts are explicitly labelled `Bloc3_GSE207422_`.
+> Note: Bloc 3 scripts without a dataset suffix correspond to GSE243013 cohort ( n=63 patients). 
+> GSE207422 cohort (n= 13 patients) cross-validation scripts are explicitly labelled `Bloc3_GSE207422_`.
 
 #### GSE243013
 #### Script 01: T cells subsetting (clusters 1,2,3,4,5,9,10,11,17) : 172,110 cells
@@ -256,6 +256,14 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - TBX21 : present in top 20 (discordance with portfolio, see below)
   - STAT2, STAT1, ELK1, IRF7 : present in CollecTRI but not in top 20 by variance
 
+#### Script 13 : Pseudobulk UCell scores MPR vs pCR / CD8 T cells
+  - Input: Objects/Bloc3_11_seu_CD8_UCell.rds
+  - Patient-level comparison: MPR (n=10) vs pCR (n=11); non-MPR excluded
+  - Pseudobulk: mean UCell score per patient per signature
+  - Wilcoxon rank-sum test (patient-level)
+  - All signatures ns (p>0.05) : Cytotoxicity p=0.5573, Exhaustion p=0.5116, Memory p=0.1734, TPEX p=0.6047
+  - Inter-patient heterogeneity similar between MPR and pCR, contrasts with TAMs where pCR showed greater heterogeneity than MPR (Bloc4A Script 06)
+
 #### GSE207422 
 
 #### Script 01 : ProjecTILs on annotated CD8 object (08_CD8_MPR_NMPR.rds)
@@ -355,13 +363,31 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
      - Tissue-resident M2-like TAMs: enriched in non-MPR, chronic anti-inflammatory program blocking CD8 T cell function
      - IFN-stimulated TAMs (PD-L1+/IDO1+): enriched in non-MPR, direct CD8 suppression via PD-L1/PD-1 axis and tryptophan depletion (IDO1) = triple TAM-mediated immunosuppression in non-MPR supports H2
 
-#### Script 05 — UCell scoring on TAMs (GSE243013)
+#### Script 05 : UCell scoring on TAMs (GSE243013)
 - Input: Bloc4A_04_seu_TAMs_annotated.rds (7 TAM subtypes)
 - Signatures: M2_immunosuppressive (MRC1, CD163, TGFB1, IL10, VEGFA, CD274, IDO1, CSF1R), M1_inflammatory (TNF, IL1B, IL6, CXCL10, NOS2), SPP1_signature (SPP1, GPNMB, APOE, TREM2),IFN_response (ISG15, IFIT1, IFIT3, CXCL9, CXCL10)
 - Pairwise Wilcoxon tests with Bonferroni correction (3 comparisons per signature)
   Bonferroni threshold: p < 0.0167
   References: Wilcoxon 1945; Jaakkola et al. 2017 (PMC6979262)
 - Short labels used for violin subtype readability
+
+#### Script 06 : Pseudobulk UCell scores MPR vs pCR (patient-level)
+- Input: Bloc4A_05_seu_TAMs_UCell.rds
+- Subset: MPR (n=10 patients, 867 cells) and pCR (n=11 patients, 1019 cells)
+  NOTE: non-MPR excluded, focus on MPR vs pCR to test intermediate state hypothesis
+- Pseudobulk: mean UCell score per patient per signature
+  NOTE: aggregation to patient-level avoids pseudo-replication
+- Wilcoxon rank-sum test MPR vs pCR (patient-level)
+  References: Wilcoxon 1945; Jaakkola et al. 2017 (PMC6979262)
+
+#### Script 07 : CollecTRI TF activity on TAMs (GSE243013)
+  - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
+  - All 7 TAM subtypes included, max 10,000 cells/subtype, set.seed(42)
+  - Top 20 TFs by variance across cells
+  - Short labels applied for readability (consistent with Script 05)
+  - Key TFs selected based on M1/M2/IFN/SPP1 UCell signature biological rationale
+  - Output: 3 heatmaps (MPR/non-MPR/pCR) + key TFs violin
+  - Objects saved: Bloc4A_07_seu_TAMs_TF.rds
 
 ### Bloc 4B : GSE207422 TAMs
 
@@ -411,14 +437,7 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   Solution: manual Wilcoxon + geom_text annotation on barplot
 - References: Chen et al. 2021 (PMC8053174), Italiani & Boraschi 2019 (PMC6543837)
 
-#### Script 06 : Pseudobulk UCell scores MPR vs pCR (patient-level)
-- Input: Bloc4A_05_seu_TAMs_UCell.rds
-- Subset: MPR (n=10 patients, 867 cells) and pCR (n=11 patients, 1019 cells)
-  NOTE: non-MPR excluded, focus on MPR vs pCR to test intermediate state hypothesis
-- Pseudobulk: mean UCell score per patient per signature
-  NOTE: aggregation to patient-level avoids pseudo-replication
-- Wilcoxon rank-sum test MPR vs pCR (patient-level)
-  References: Wilcoxon 1945; Jaakkola et al. 2017 (PMC6979262)
+
 
 ---
 
@@ -516,13 +535,22 @@ Violin observations (key TFs):
 The apparent discordance in TBX21 activity between cohorts is likely explained by differences in clinical group granularity rather than a biological contradiction. In GSE207422, the MPR category (≤10% residual tumor) may have included "near-pCR" patients with near-complete responses, in whom TBX21 co-activation with ELK4 represented a coordinated cytotoxic effector program. In GSE243013, where pCR is separated from MPR, the MPR category is more homogeneous. TBX21 activity in non-MPR CD8.TEX without ELK4 co-activation, may reflect an abortive cytotoxic program: TBX21 activation insufficient to drive full effector differentiation in the absence of its co-activator. This interpretation suggests that ELK4 may be the key discriminating TF between functional and dysfunctional cytotoxic programs, with TBX21 as a necessary but insufficient partner.
 Additionally, the smaller and imbalanced patient cohort in GSE207422 (MPR n=3, non-MPR n=10) may have introduced sampling bias in TF activity estimates. With only 3 MPR patients, the TBX21 signal may have been driven by one or two outlier patients with atypically high TBX21 activity, rather than reflecting a true MPR-specific program.
 
+## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
+
+All UCell signatures showed no significant difference between MPR and pCR at patient level (Cytotoxicity p=0.5573, Exhaustion p=0.5116, Memory p=0.1734, TPEX p=0.6047). Inter-patient heterogeneity appeared similar between the two groups, contrasting with TAMs where pCR showed greater heterogeneity than MPR (Bloc4A Script 06). This pattern may suggest biological similarity between MPR 
+and pCR at the CD8 level, though this interpretation requires caution given the small sample size (n=10 vs n=11).
+
+**Perspectives:**
+- TAM-CD8 interaction analysis (CellChat/NicheNet) may help resolve whether the immunosuppressive TAM context differentially constrains CD8 function in MPR vs pCR; planned in subsequent blocs
+- Larger balanced cohort with sufficient statistical power would be required to formally test CD8-level differences between MPR and pCR at patient level
+- Spatial transcriptomics could resolve TAM/CD8 co-localization patterns in the TME to complement these transcriptomic observations
+
 ## Preliminary observations : TAMs (Bloc 4A)
 **Unexpected observation : LAMs (TREM2+/APOE+) enriched in MPR:**
 - Hypotheses:
   1. Dual role of TREM2+ LAMs : may facilitate tissue remodeling and antigen presentation post-chemotherapy, paradoxically supporting partial response
   2. Intra-MPR heterogeneity: MPR may include near-pCR patients with distinct immune profiles driving LAM enrichment
   3. Chemotherapy-induced recruitment, neoadjuvant chemotherapy induces tumor cell death, recruiting LAMs as part of treatment response, not necessarily as immunosuppressors in this context = To be resolved by patient-level pseudobulk analysis
-
 
 ## Preliminary observations : TAMs UCell (Bloc 4B GSE207422)
 
@@ -599,7 +627,7 @@ Key biological interpretation:
 - M2 pCR > MPR,  hypothesized role of M2 TAMs in tissue remodeling post-complete response rather than immunosuppression
 - Patient-level pseudobulk analysis MPR vs pCR planned (Script 06) to formally test intermediate state hypothesis at individual patient level
 
-## Preliminary observations — Script 06 pseudobulk MPR vs pCR:
+## Preliminary observations : Script 06 pseudobulk MPR vs pCR:
 
 Dotplot patient-level (each dot = one patient):
 - IFN_response: pCR more concentrated, MPR homogeneous , p = 0.5116 ns
@@ -613,6 +641,20 @@ Key biological interpretation:
 - Patient-level overlap between MPR and pCR confirms MPR as biologically unstable intermediate state — some MPR patients biologically resemble pCR
 - Heterogeneity documented here serves as interpretive reference for CollecTRI analysis, discordances in TF activity between MPR and pCR will be interpreted in light of this patient-level heterogeneity
 - Integration of CD8 and TAM signatures at patient level required to formally distinguish biological trajectories leading to MPR vs pCR, planned as perspective
+
+## Preliminary observations : CollecTRI TAMs GSE243013 (Bloc4A Script 07)
+
+**STAT1 dominant in IFN-stimulated TAMs across all three response groups** , constitutive IFN program, not discriminating between response groups.
+
+**ELK4 absent in Classical-Mono non-MPR but present in MPR and pCR** , potentially discriminating signal, paralleling ELK4 enrichment in MPR CD8.TEX.
+
+**STAT1/STAT2/IRF7 enriched in non-MPR TAMs** , IFN-driven program consistent with IFN-stimulated TAMs (PD-L1+/IDO1+) UCell enrichment in non-MPR (Bloc4A Script 05).
+
+**MYC enriched in non-MPR Proliferating and Stress-response TAMs**, chronic proliferation without productive anti-tumor function.
+
+**pCR TAMs show broader MHC II program** (CIITA/RFX5/RFXANK/RFXAP) in Monocyte FCN1+ and Classical-Mono, potentially superior antigen presentation capacity.
+
+**TFEB near-zero, MITF no differential signal** , SPP1/LAM TF program not captured by CollecTRI in this analysis; biological interpretation limited for these TFs.
 
 
 ## Methodological Notes

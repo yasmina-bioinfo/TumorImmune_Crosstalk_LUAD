@@ -130,4 +130,8 @@ print(summary_scores)
 fwrite(summary_scores, file.path(OUT_TAB, "Bloc3_UCell_scores_summary.csv"))
 message("Saved: Bloc3_UCell_scores_summary.csv")
 
+# 8) Save CD8 object with UCell scores
+message("Saving CD8 UCell object...")
+saveRDS(seu_CD8, file.path(DATA_DIR, "Objects/Bloc3_11_seu_CD8_UCell.rds"))
+message("Saved: Objects/Bloc3_11_seu_CD8_UCell.rds")
 message("DONE Bloc3 Script 10")
