@@ -173,13 +173,10 @@ pheatmap(tf_heatmap,
 dev.off()
 message("Saved: Bloc3_CollecTRI_heatmap.png")
 
-# 9) Violin plot, key TFs from portfolio (STAT2, ELK4, ELK1, TBX21)
-# Focus on CD8.TEX and CD8.TPEX, most relevant for narrative
+# 9) Violin plot: Top 6 TFs by variance (objective selection, no confirmation bias)
 message("Generating violin plots for key TFs...")
-
-key_tfs <- c("STAT2", "ELK4", "ELK1", "TBX21", "IRF7", "STAT1")
-key_tfs_present <- key_tfs[key_tfs %in% unique(tf_acts$source)]
-message("Key TFs present: ", paste(key_tfs_present, collapse = ", "))
+key_tfs_present <- tf_var$source[1:6]
+message("Top 10 TFs: ", paste(key_tfs_present, collapse = ", "))
 
 tf_key <- tf_scores %>%
   filter(source %in% key_tfs_present) %>%
@@ -193,8 +190,8 @@ plot_list <- lapply(key_tfs_present, function(tf) {
     ggplot(aes(x = response, y = score, fill = response)) +
     geom_violin(trim = TRUE) +
     geom_boxplot(width = 0.1, fill = "white", outlier.size = 0.3) +
-    scale_fill_manual(values = c("MPR"     = "#D73027",
-                                 "non-MPR" = "#4393C3",
+    scale_fill_manual(values = c("MPR"     = "#4393C3",
+                                 "non-MPR" = "#D73027",
                                  "pCR"     = "#1A7A1A")) +
     facet_wrap(~cd8_state) +
     theme_bw() +

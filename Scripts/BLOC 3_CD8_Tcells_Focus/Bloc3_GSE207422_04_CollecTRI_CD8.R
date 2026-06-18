@@ -162,13 +162,10 @@ pheatmap(tf_heatmap,
 dev.off()
 message("Saved: Bloc3_GSE207422_CollecTRI_heatmap.png")
 
-# 9) Violin plot
-# Focus on CD8.TEX and CD8.TPEX, most relevant for narrative
+# 9) Violin plot : Top 6 TFs by variance (objective selection, no confirmation bias)
 message("Generating violin plots for key TFs...")
-
-key_tfs <- c("STAT2", "ELK4", "ELK1", "TBX21", "IRF7", "STAT1")
-key_tfs_present <- key_tfs[key_tfs %in% unique(tf_acts$source)]
-message("Key TFs present: ", paste(key_tfs_present, collapse = ", "))
+key_tfs_present <- tf_var$source[1:6]
+message("Key TFs: ", paste(key_tfs_present, collapse = ", "))
 
 tf_key <- tf_scores %>%
   filter(source %in% key_tfs_present) %>%

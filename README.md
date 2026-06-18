@@ -243,18 +243,14 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 
 #### Script 12 : CollecTRI TF activity on CD8 T cells
   - Tool: decoupleR run_ulm + CollecTRI network (43,159 interactions, 1,186 TFs)
-  - RAM constraint: full CD8 object (57,587 cells) requires 14.6 GiB
-  Solution: restricted to CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state
-  Total analyzed: ~21,821 cells, set.seed(42) for reproducibility
-  - CollecTRI network saved locally from RStudio (OmnipathR issues in WSL)
+  - RAM constraint: restricted to CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state
+  - Total analyzed: ~21,821 cells, set.seed(42) for reproducibility
   - Top 20 TFs by variance: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC, RFX5, NFYC,
-  NFKB, RLF, DMTF1, RELA, CIITA, NFYB, MLXIP, JUN, HOPX, NFKB1, DAXX, TBX21
-  - See TF_biological_roles.md for full biological annotation of each TF
-
-  **TFs common with portfolio (GSE207422 DoRothEA analysis):**
-  - ELK4 : enriched in MPR CD8.TEX (confirms portfolio finding)
-  - TBX21 : present in top 20 (discordance with portfolio, see below)
-  - STAT2, STAT1, ELK1, IRF7 : present in CollecTRI but not in top 20 by variance
+    NFKB, RLF, DMTF1, RELA, CIITA, NFYB, MLXIP, JUN, HOPX, NFKB1, DAXX, TBX21
+  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias) Top 6: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
+  - ELK4: rank 5/772 , enriched in MPR CD8.TEX
+  - TBX21: rank 20/772 , discordance with GSE207422 explained by absence of ELK4 co-activation in non-MPR (abortive cytotoxic program)
+  - STAT2: rank 59/772 , not in top 20 by CollecTRI variance IFN program confirmed by UCell IFN_response scores cross-dataset.
 
 #### Script 13 : Pseudobulk UCell scores MPR vs pCR / CD8 T cells
   - Input: Objects/Bloc3_11_seu_CD8_UCell.rds
@@ -298,41 +294,29 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - CD8.TPEX MPR : higher TPEX_UCell than NMPR; preserved plasticity in responders 
   - Simultaneous elevation of TEX and TPEX scores in MPR confirms reactivation hypothesis across both datasets
 
-#### Script 04 : CollecTRI TF activity on CD8 T cells (GSE207422 cross-validation)
+#### Script 04 : CollecTRI TF activity on CD8 T cells (GSE207422)
   - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
   - Subset: CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state, set.seed(42)
-  - Top 20 TFs by variance across cells
+  - Top 20 TFs by variance: MYC, NFKB, JUN, SP1, HSF1, E2F4, E2F1, STAT1,RFXAP, RFXANK, ELK4, RFX5, HSF2, ABL1, SRSF2, TFDP1, NFYC, ZBTB4, CIITA, DOT1L
+  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias) Top 6: MYC, NFKB, JUN, SP1, HSF1, E2F4
+  - ELK4: rank 11/719, present in top 20, signal weaker than GSE243013
+  - STAT2: absent from top 20 in both datasets by CollecTRI variance
+  - MYC enriched NMPR TEX and TPEX chronic proliferation program, consistent with GSE243013
+  - HSF1 enriched NMPR stress response program, consistent with GSE243013
 
-  **Heatmap observations by condition:**
-
-  NMPR:
-  - CD8.EM : ZBTB4 ~1.5 dominant
-  - CD8.TEX : CIITA, RFXAP, RFX5, RFXANK very active + DOT1L and STAT1 equally elevated
-  - CD8.TPEX : SRSF2, MYC, TFDP1, E2F1, E2F4, HSF1, SP1, JUN, NFKB, HSF2 + ABL1, DOT1L, STAT1 ~1 = diffuse/abortive activation program , chronic activation without cytotoxic engagement
-
-  MPR:
-  - CD8.EM : ZBTB4 present but lower than NMPR
-  - CD8.TEX : ELK4 ~1, NFYC ~1, ABL1 ~1
-  - CD8.TPEX : ELK4 ~1 dominant, HSF1/HSF2/ABL1/NFYC ~0.5 =coordinated program, ELK4 dominant in both TEX and TPEX, consistent with cytotoxic engagement
-
-  **Violin plots (key TFs, CD8.TEX and CD8.TPEX):**
-  - STAT2 : NMPR > MPR in TEX and TPEX = confirms GSE243013
-  - STAT1 : NMPR > MPR in TEX and TPEX = confirms GSE243013
-  - ELK4 : MPR > NMPR in TEX and TPEX = most robust cross-dataset signal
-  - ELK1 : MPR slightly > NMPR in TEX and TPEX
-  - TBX21 : MPR > NMPR, particularly in TPEX , consistent with portfolio, discordance specific to GSE243013 CD8.TEX (pCR heterogeneity hypothesis)
-  - IRF7 : MPR slightly > NMPR
-
-  **Cross-dataset consensus (GSE207422 + GSE243013):**
-  - ELK4 enriched in MPR CD8.TEX : confirmed across all datasets and tools 
-  - STAT2/STAT1 enriched in NMPR CD8.TEX and CD8.TPEX : confirmed 
-  - TBX21 MPR signal : confirmed in GSE207422 (TEX + TPEX), discordance 
-    remains specific to GSE243013 CD8.TEX
-  - NMPR TPEX : rich proliferation/stress program (MYC, E2F1/E2F4, HSF1/HSF2) 
-    without cytotoxic coordination : abortive activation
-  - MPR TPEX : ELK4-dominated coordinated program : reactivation capacity
+  **Cross-dataset consensus (CollecTRI, objective Top 6 by variance):**
+  - MYC enriched non-MPR/NMPR CD8 : confirmed both datasets 
+  - HSF1/HSF2 enriched non-MPR/NMPR : confirmed both datasets 
+  - ELK4 enriched MPR CD8.TEX : rank 5 GSE243013, rank 11 GSE207422,consistent signal 
+  - STAT2/STAT1 : not in top 6 objective CollecTRI in either dataset IFN program confirmed by UCell IFN_response scores and DoRothEA preliminary analysis
+  - Previous heatmap observations (NMPR TPEX abortive program, MPR ELK4-coordinated program) reflect scale=row normalized visualization, to be interpreted as subtype-specific patterns, not absolute inter-condition differences
 
 ### Bloc 4 : Immunosuppressive TME compartment / TAMs and malignant epithelial cells
+
+**Methodological note (Bloc 4 CollecTRI):** Following correction applied to 
+Bloc 3 CollecTRI CD8 analysis, violin plots for TAM CollecTRI will display 
+Top 6 TFs by cross-cell variance (objective selection, no confirmationbias). 
+Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly. [PENDING]
 
   ### Bloc 4A : GSE243013
 #### Script 01 : TAMs subsetting and ElbowPlot
@@ -437,102 +421,87 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   Solution: manual Wilcoxon + geom_text annotation on barplot
 - References: Chen et al. 2021 (PMC8053174), Italiani & Boraschi 2019 (PMC6543837)
 
+## Preliminary observations : CollecTRI TAMs (Bloc 4) [PENDING]
 
+CollecTRI TAM analysis will be updated with objective Top 6 TF selection 
+by variance, consistent with Bloc 3 CD8 methodology. Scripts Bloc4A_07 
+and Bloc4B_06 pending correction.
 
 ---
 
-## Preliminary observations : TME composition (Bloc 2 barplot) and CD8 states analysis (in progress, Bloc 3)
+## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
 
-- CD8.TEX visually more abundant in non-MPR and pCR than MPR on UMAP split
-- IMPORTANT: non-MPR has 42 patients vs 10 MPR and 11 pCR, absolute cell counts are not directly comparable. Proportional analysis (UCell, next scripts) required before biological conclusions.
-- Apparent higher CD8.TEX in pCR vs MPR suggests pCR may harbor more reactivatable exhausted CD8, consistent with complete tumor clearance (pCR = 0% residual tumor)
-- Portfolio GSE207422: CD8_Exhausted_Terminal enriched in MPR (OR=3.36): different tool (manual annotation vs ProjecTILs), different dataset (n=8 patients vs n=63), different patient proportions (GSE207422: MPR > non-MPR cells; GSE243013: non-MPR >> MPR), and different annotation granularity. Visual impression ≠ statistical enrichment.
-Discordance to be resolved by proportional analysis and UCell scoring.
+- CD8.TEX gradient: non-MPR > MPR > pCR (visual UMAP), confirmed statistically by ProjecTILs barplot (Chi-2 p<2.2e-16)
+- non-MPR dominance (n=42) requires proportional analysis, absolute counts not comparable
+- GSE207422 preliminary analysis identified CD8_Exhausted_Terminal enriched in MPR (OR=3.36, different annotation tool). Current harmonized analysis applies identical tools (ProjecTILs, UCell, CollecTRI) to both datasets for direct cross-dataset comparison.
 
-## Preliminary observations : CD8 T cell states (Bloc 3, Script 08, corrected workflow)
-- CD8.TEX enriched in non-MPR (visual), consistent with portfolio (OR=3.36, GSE207422)
-- CD8.TPEX enriched in pCR vs MPR, suggests reactivation of exhausted precursors
-- CD8.TEX > in MPR than pCR; MPR cells have progressed further toward exhaustion but retain partial function (residual tumor ≤ 10%)
-- Proposed gradient: non-MPR (TEX dominant) to MPR (TEX + TPEX) to pCR (TPEX dominant)
-  Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX state in responders
-  This connects with portfolio finding: CD8_Exhausted_Terminal enriched in MPR (OR=3.36)
-- CD8.EM numerically dominant in non-MPR; NOTE: high EM count does not imply functional efficacy. EM cells in non-MPR may be dysfunctional or evaded by tumor. Functional scoring (UCell, next scripts) required to assess EM functional state.
-- IMPORTANT: all observations are visual/preliminary; statistical proportional
-  analysis and UCell scoring required before biological conclusions.
-- Connection with portfolio (GSE207422): STAT2-high program in non-MPR associated with differentiation blockade toward cytotoxic effector state. High EM count in non-MPR may reflect this blockade; cells stalled in EM state, unable to fully differentiate. Immunosuppressive TME (TREM2+ TAMs, CCR8+ Tregs) compounds CD8 dysfunction. Anti-PD-1 partially relieves this blockade in MPR/pCR.
+## Preliminary observations : CD8 T cell states (Bloc 3)
 
-## Preliminary observations : UCell CD8 scoring (Script 10)
-- pCR shows higher exhaustion scores than MPR in both TEX and TPEX = pCR cells were exposed to stronger antigenic pressure initially; but their reactivation capacity was superior, enabling complete tumor clearance
-- CD8.EM in non-MPR more exhausted (0.128) than MPR (0.107) and pCR (0.106) = confirms EM dysfunction in non-responders, consistent with STAT2-mediated differentiation blockade identified in portfolio (GSE207422)
-- TPEX retain higher cytotoxicity score than TEX across all groups = TPEX preserve more residual function, consistent with reactivable precursor state
-- Memory score highest in CD8.NaiveLike
+- CD8.TEX gradient confirmed: non-MPR (~30%) > MPR (~25%) > pCR (~15%)
+- CD8.TPEX enriched in pCR, consistent with reactivation of precursor-exhausted cells
+- CD8.EM similar across groups, functional status assessed by UCell (Script 10)
+- Proposed gradient: non-MPR (TEX dominant) → MPR (TEX + TPEX) → pCR (TPEX dominant)
+Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
-**Hypotheses to test in next blocs:**
-- H1 (CollecTRI): pCR T cells have superior intrinsic reactivation capacity
-- H2 (CellChat): immunosuppressive TME composition determines reactivation failure
-- H3: interaction between intrinsic T cell state and TME context
+## Preliminary observations : UCell CD8 scoring (bloc 3)
 
-## Preliminary observations : scRepertoire (Script 11)
-- CD8.TEX high expansion (85%) confirms antigen-specific tumor-reactive identity despite terminal exhaustion: these cells have been activated and expanded
-- pCR shows more non-expanded clones than MPR/non-MPR,consistent with higher clonal diversity, polyclonal response may enable complete tumor clearance
-- Clonal diversity gradient: MPR > pCR > non-MPR: responders maintain broader TCR repertoire
+- Exhaustion gradient confirmed: non-MPR (0.347) > pCR (0.249) > MPR (0.220) in CD8.TEX
+- CD8.EM exhaustion: non-MPR (0.128) > MPR (0.107) ≈ pCR (0.106), EM dysfunction in non-responders
+- CD8.TPEX retains higher cytotoxicity than CD8.TEX across all groups,preserved precursor function
+- Memory score highest in CD8.NaiveLike = expected
 
-## Preliminary observations : GSE207422 CD8 cross-validation (Bloc 3, Scripts 01-03)
+**Hypotheses:**
+- H1 (CollecTRI): superior intrinsic CD8 reactivation capacity in responders
+- H2 (CellChat/NicheNet): immunosuppressive TME determines reactivation failure
+- H3: interaction between CD8 intrinsic state and TME context
 
-**ProjecTILs (Script 01):**
+## Preliminary observations : TCR analysis (Bloc 3, GSE243013)
+
+- CD8.TEX 85.4% expanded, confirms tumor-reactive identity
+- Clonal diversity: MPR (0.490) > pCR (0.458) > non-MPR (0.438), responders maintain broader TCR repertoire
+- pCR more polyclonal, broader anti-tumor response
+
+## Preliminary observations : GSE207422 CD8 cross-validation (Bloc 3)
+
+**ProjecTILs:**
 - 7 CD8 states identified, consistent with GSE243013
-- - CD8.TEX dominant in both MPR and NMPR (MPR ~55% ≈ NMPR ~54%), no clear gradient between response groups, in contrast to GSE243013 (non-MPR ~30% > MPR ~25% > pCR ~15%)
-- Qualitative differences within CD8.TEX between MPR and NMPR to be assessed by TF activity analysis (CollecTRI, Script 04)
-- CD8.TPEX slightly enriched in MPR , consistent with reactivation hypothesis
-- CD8.TEMRA enriched in NMPR , terminal differentiation, non-reactivable state
+- CD8.TEX dominant MPR ~55% ≈ NMPR ~54% , no gradient (absent pCR group, n=13)
+- CD8.TPEX slightly enriched MPR, CD8.TEMRA enriched NMPR
 
-**Barplot proportions (Script 02):**
-- Chi-2 p = 4.37e-13 : significant despite subtler proportional differences
-- Higher p-value vs GSE243013 (p < 2.2e-16) reflects smaller cohort (n=13) and absence of pCR group
-- Statistical differences driven by minority states (TPEX, TEMRA, CM) rather than TEX proportions
+**UCell scoring:**
+- Exhaustion NMPR > MPR, Cytotoxicity MPR > NMPR 
+- TPEX_UCell MPR > NMPR, Memory_UCell NMPR > MPR (anergy interpretation)
+- CD8.TEX MPR : simultaneous high exhaustion + cytotoxicity, intra-TEX heterogeneity confirmed 
 
-**UCell scoring (Script 03):**
-- Exhaustion : NMPR > MPR across all CD8 states, consistent with GSE243013
-- Cytotoxicity : MPR slightly higher , residual effector capacity preserved 
-- TPEX_UCell : MPR > NMPR , precursor program more active in responders 
-- Memory_UCell : NMPR > MPR , interpreted as quiescence/anergy rather than functional memory in non-responders
-- Focus CD8.TEX + CD8.TPEX : simultaneous elevation of exhaustion AND cytotoxicity scores in MPR confirms intra-TEX heterogeneity(co-expression exhaustion/effector)
-- CD8.TPEX MPR shows higher TPEX_UCell than NMPR : preserved plasticity in responders
-- Key argument: if TEX scores were high but TPEX scores low in MPR, the heterogeneity/plasticity hypothesis would fail. 
-Both elevated simultaneously in MPR = hypothesis confirmed across both datasets 
+**Cross-dataset consensus:**
+- TPEX more active in responders, TEMRA enriched non-responders
+- Intra-TEX heterogeneity confirmed both datasets
+- Memory_UCell higher non-responders, consistent with anergy/quiescence
 
-**Cross-dataset consensus (GSE207422 + GSE243013):**
-- TPEX enriched/more active in responders : confirmed 
-- TEMRA enriched in non-responders : confirmed 
-- Intra-TEX heterogeneity (exhaustion + cytotoxicity co-expression) : confirmed 
-- Memory_UCell higher in non-responders : new observation, consistent with anergy/quiescence interpretation
-- TEX proportions : divergent between datasets , biological interpretation requires CollecTRI TF analysis (Script 04, pending)
+## Preliminary observations : CollecTRI CD8 (Bloc 3)
 
-## Preliminary observations : CollecTRI (Script 12)
+**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses, confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
 
-Heatmap observations (TFs ordered by activity strength per state x condition):
+**GSE243013 Top 6:** HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
+- ELK4 rank 5/772 , enriched MPR CD8.TEX
+- TBX21 rank 20/772 , borderline, not retained
+- STAT2 rank 59/772 , not in Top 20, not objectively discriminating by CollecTRI
+- MYC/HSF1/HSF2 — enriched non-MPR 
 
-| State | pCR | MPR | non-MPR |
-|---|---|---|---|
-| CD8.EM | NFYB, NFYC, HSF2, DAXX, CIITA, DMTF1, ELK4, RLF | DAXX, ELK4 (~2), RLF | CIITA, RFXAP, DAXX, RFXANK, RFX5, NFYB |
-| CD8.TEX | MLXIP (~1), HOPX (~1.5) | TBX21 (~1.5), RFXANK, RFX5, RFXAP | TBX21, RFXANK, RFX5, CIITA, RFXAP, NFKB1 |
-| CD8.TPEX | HSF2, NFYC, MLXIP, HOPX, HSF1, DMTF1, JUN, RELA | JUN, NFKB, ELK4, RLF, DMTF1, RELA, NFKB1, MYC | MYC, NFKB1, NFKB, RELA, HSF2, HSF1, NFYB, NFYC, DMTF1 |
+**GSE207422 Top 6:** MYC, NFKB, JUN, SP1, HSF1, E2F4
+- ELK4 rank 11/719 , Top 20, weaker signal than GSE243013
+- TBX21 and STAT2 , absent Top 20 both datasets by CollecTRI
 
-Violin observations (key TFs):
-- STAT2: non-MPR highest in CD8.TEX and CD8.TPEX, confirms STAT2-high IFN program (same as portfolio)
-- STAT1: non-MPR > MPR ≈ pCR in TEX and TPEX, co-activated with STAT2
-- ELK4: MPR dominant in CD8.TEX, confirms portfolio finding
-- ELK1: pCR > MPR in TEX; pCR > non-MPR in TPEX
-- TBX21: non-MPR dominant in TEX, discordance with portfolio (MPR enriched)
-  Possible explanations: different tool (DoRothEA vs CollecTRI), different dataset, or TBX21 activates different programs depending on TME context
-- IRF7: similar across all three groups in TEX and TPEX
+**Cross-dataset consensus (CollecTRI objective):**
+- ELK4 enriched MPR CD8.TEX , most robust CollecTRI signal 
+- MYC/HSF1/HSF2 enriched non-responders , chronic stress/proliferation 
+- STAT2/TBX21 : DoRothEA preliminary only , IFN program confirmed by UCell 
 
-**Key biological interpretation:**
-- STAT2/STAT1-high program in non-MPR CD8.TEX and CD8.TPEX confirmed across two independent cohorts and two different TF inference tools, robust signal
-- ELK4 enriched in MPR CD8.TEX confirmed, cytotoxic effector engagement
-- pCR CD8.TPEX shows richest transcriptional program (HSF2, NFYC, JUN, RELA) consistent with superior reactivation capacity
-- TBX21 : non-MPR dominant in GSE243013 CD8.TEX vs MPR in GSE207422. Most plausible explanation: TBX21 activation in non-MPR CD8.TEX occurs in the absence of ELK4 co-activation, potentially representing an abortive cytotoxic program; TBX21 alone being insufficient to drive full effector differentiation without its co-factor. ELK4 may be the key discriminating TF between functional and dysfunctional cytotoxic programs, with TBX21 as a necessary but insufficient partner.
-Note: the small GSE207422 cohort (MPR n=3) may have introduced sampling bias in TF activity estimates, which could partially contribute to the observed discordance.
+**Biological interpretation:**
+- Non-responders : chronic stress/proliferation program (MYC/HSF) without 
+  cytotoxic coordination , activation without productive anti-tumor function
+- Responders : ELK4-driven cytotoxic program in CD8.TEX, coordinated effector engagement under anti-PD-1
+- IFN program in non-responders confirmed by UCell independently of CollecTRI
 
 ## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
 
@@ -544,116 +513,56 @@ and pCR at the CD8 level, though this interpretation requires caution given the 
 - Larger balanced cohort with sufficient statistical power would be required to formally test CD8-level differences between MPR and pCR at patient level
 - Spatial transcriptomics could resolve TAM/CD8 co-localization patterns in the TME to complement these transcriptomic observations
 
-## Preliminary observations : TAMs (Bloc 4A)
-**Unexpected observation : LAMs (TREM2+/APOE+) enriched in MPR:**
-- Hypotheses:
-  1. Dual role of TREM2+ LAMs : may facilitate tissue remodeling and antigen presentation post-chemotherapy, paradoxically supporting partial response
-  2. Intra-MPR heterogeneity: MPR may include near-pCR patients with distinct immune profiles driving LAM enrichment
-  3. Chemotherapy-induced recruitment, neoadjuvant chemotherapy induces tumor cell death, recruiting LAMs as part of treatment response, not necessarily as immunosuppressors in this context = To be resolved by patient-level pseudobulk analysis
+## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc 3, GSE243013)
 
-## Preliminary observations : TAMs UCell (Bloc 4B GSE207422)
+- All UCell signatures ns (Cytotoxicity p=0.558, Exhaustion p=0.512, Memory p=0.173, TPEX p=0.605)
+- Inter-patient heterogeneity similar between MPR and pCR  may reflect biological similarity at CD8 level (n=10 vs n=11, interpret with caution)
+- MPR vs pCR distinction may be driven by TAM compartment rather than CD8 intrinsic state, to be explored via CellChat/NicheNet (Bloc 5)
 
-**Barplot combined annotation : Script 04 (top to bottom by legend):**
-- TAM_like_IFN: MPR > NMPR, unexpected; dual role hypothesis: CXCL9/10/11 may favor CD8 T cell recruitment in MPR rather than suppression
-- TAM_like_lipid: NMPR > MPR : expected, supports H2
-- TAM_like_M2: MPR > NMPR
-- TAM_like_monocyte: NMPR > MPR : expected, supports H2
-- TAM_like_MRC1: MPR > NMPR
-- TAM_like_regulatory: NMPR > MPR : expected, supports H2
-- TAM_like_resident_M2: MPR > NMPR : discordant with GSE243013 (non-MPR); may reflect patient composition differences (NSCLC mixed vs LUAD only) and intra-MPR heterogeneity
-- TAM_like_SPP1: NMPR > MPR : expected, supports H2
-- TAM_like_stress: NMPR > MPR : expected, supports H2
+## Preliminary observations : TAMs UCell (Bloc 4, GSE207422)
 
-**UCell Script 02 : initial (TAM_like not yet subclustered):**
-- NMPR globally higher than MPR across all 4 signatures
-- M2_immunosuppressive: NMPR > MPR : expected, supports H2
-- M1_inflammatory: MPR > NMPR
-- SPP1_signature: NMPR > MPR : expected, supports H2
-- IFN_response: MPR > NMPR
+**UCell scores (9 subtypes combined):**
+- M2_immunosuppressive: NMPR > MPR, p<0.0001 
+- SPP1_signature: NMPR > MPR, p<0.0001 
+- IFN_response: MPR > NMPR, p=3e-04 
+- M1_inflammatory: ns (p=0.2848) limited power (MPR n=3)
 
-**UCell Script 05 : combined (9 TAM subtypes, Wilcoxon on cell-level scores):**
+**Key subtype enrichments:**
+- NMPR: TAM_like_lipid, monocyte, regulatory, SPP1, stress-immunosuppressive niche
+- MPR: TAM_like_IFN, dual role hypothesis (CXCL9/10 pro-immunogenic vs suppressive)
+- TAM_like_resident_M2 MPR > NMPR, discordant with GSE243013, may reflect NSCLC vs LUAD composition differences
 
-Barplot mean scores MPR vs NMPR:
-- M2_immunosuppressive: NMPR > MPR, p < 0.0001 : expected, supports H2
-- M1_inflammatory: MPR ≈ NMPR, p = 0.2848 : ns
-- SPP1_signature: NMPR > MPR, p < 0.0001 : expected, supports H2
-- IFN_response: MPR > NMPR, p = 3e-04 : expected, supports H2
+**Biological interpretation:**
+- NMPR immunosuppressive TAM niche confirmed, supports H2
+- MPR as biologically unstable intermediate, two divergent trajectories:
+  1. Relapse: residual immunosuppressive TAMs + progressive CD8 exhaustion
+  2. Deepening toward pCR: pro-immunogenic TAMs + CD8 TPEX plasticity
 
-Violin by TAM subtype:
-- M2_immunosuppressive: TAM_like_stress highest, then TAM_like_SPP1, TAM_like_IFN
-- M1_inflammatory: TAM_like_stress highest, then TAM_like_SPP1, TAM_like_IFN
-- SPP1_signature: TAM_like_IFN highest, then TAM_like_MRC1, TAM_like_SPP1
-- IFN_response: TAM_like_IFN highest (expected, supports H2), then TAM_like_stress, TAM_like_lipid
+## Preliminary observations : TAMs UCell (Bloc 4, GSE243013)
 
-NOTE: M1 non-significant consistent with limited statistical power (MPR n=3, NMPR n=10)
-M2 and SPP1 significant despite low N , robust immunosuppressive signal in NMPR (expected, supports H2)
+**UCell scores pairwise Wilcoxon Bonferroni (p<0.0167):**
+- M2_immunosuppressive: non-MPR > pCR > MPR, all pairs p<0.005 
+- SPP1_signature: non-MPR > MPR > pCR , all pairs p<0.0001 
+- IFN_response: non-MPR dominant; MPR ≈ pCR (p=0.783 ns) 
+- M1_inflammatory: non-MPR > MPR > pCR , MPR/pCR ns Bonferroni
 
-**Key biological interpretation:**
-- NMPR-enriched subtypes (lipid, monocyte, regulatory, SPP1, stress) confirm immunosuppressive TAM niche in non-responders : supports H2 
-- Intra-MPR TAM heterogeneity mirrors intra-MPR CD8_Exhausted_Terminal heterogeneity = MPR as a biologically unstable intermediate state
-- Two divergent trajectories from MPR:
-  1. Relapse: residual immunosuppressive TAMs reconstitute immune barriers post-treatment
-     combined with progressive CD8 exhaustion = resistance
-  2. Deepening response toward pCR: pro-immunogenic TAMs (IFN, monocyte) dominate combined with CD8 TPEX plasticity = complete tumor elimination
-- Longitudinal single-cell profiling required to formally test relapse hypothesis
+**Key observations:**
+- Gradient non-MPR > MPR > pCR confirmed all signatures , MPR as biologically unstable intermediate state 
+- IFN_response exception: discriminates responders from non-responders, not MPR from pCR
+- IFN-stimulated TAMs: hybrid M1/immunosuppressive profile, TME biology, 
+not artifact
 
-## Preliminary observations : TAMs UCell (Bloc 4A TAMs GSE243013)
+**Biological interpretation:**
+- Non-MPR: triple immunosuppression (M2 + SPP1 + IFN TAMs)
+- pCR more heterogeneous than MPR at patient level, multiple pathways to complete response
 
-Barplot mean scores : pairwise Wilcoxon (MPR vs non-MPR / MPR vs pCR / non-MPR vs pCR):
-- M2_immunosuppressive: non-MPR > pCR > MPR
-  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.0035  | non-MPR/pCR p = 0.0013 
-- M1_inflammatory: non-MPR > MPR > pCR
-  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.0209 (ns Bonferroni) | non-MPR/pCR p < 0.0001 
-- SPP1_signature: non-MPR > MPR > pCR
-  MPR/non-MPR p < 0.0001  | MPR/pCR p < 0.0001  | non-MPR/pCR p < 0.0001 
-- IFN_response: non-MPR dominant; MPR ≈ pCR
-  MPR/non-MPR p < 0.0001  | MPR/pCR p = 0.7829 (ns) | non-MPR/pCR p < 0.0001 
+## Preliminary observations : Pseudobulk TAMs MPR vs pCR (Bloc 4, GSE243013)
 
-Violin by TAM subtype (key observations):
-- M2_immunosuppressive: Resident M2 highest, then Classical monocyte, IFN-stimulated, Monocyte FCN1+, LAMs
-- M1_inflammatory: IFN-stimulated highest, then Proliferating
-- SPP1_signature: all clusters present; Proliferating highest, then LAMs, Resident M2
-- IFN_response: IFN-stimulated highest , then Proliferating, Classical monocyte
+- All signatures ns (IFN p=0.512, M1 p=0.152, M2 p=0.654, SPP1 p=0.468)
+- pCR more heterogeneous than MPR at patient level, Case 1 (insufficient power) vs CD8 pseudobulk where heterogeneity similar, Case 2 (biological similarity)
+- TAM signatures alone insufficient to separate MPR from pCR
+- Integration of CD8 + TAM signatures required planned via CellChat/NicheNet
 
-NOTE: IFN-stimulated TAMs score high on both M1 (via CXCL10) and IFN_response
-- hybrid pro-inflammatory/immunosuppressive profile,  intra-cluster heterogeneity
-- CXCL10 present in both M1 signature and IFN-stimulated TAMs annotation
-- reflects TME biology, not a signature artifact
-
-Key biological interpretation:
-- All signatures show gradient non-MPR > MPR > pCR; MPR systematically intermediate = quantitative confirmation of MPR as biologically unstable intermediate state
-- Exception: IFN_response, MPR ≈ pCR, both significantly lower than non-MPR = IFN TAM signal discriminates responders from non-responders, not MPR from pCR
-- M2 pCR > MPR,  hypothesized role of M2 TAMs in tissue remodeling post-complete response rather than immunosuppression
-- Patient-level pseudobulk analysis MPR vs pCR planned (Script 06) to formally test intermediate state hypothesis at individual patient level
-
-## Preliminary observations : Script 06 pseudobulk MPR vs pCR:
-
-Dotplot patient-level (each dot = one patient):
-- IFN_response: pCR more concentrated, MPR homogeneous , p = 0.5116 ns
-- M1_inflammatory: MPR homogeneous, pCR heterogeneous with outliers, p = 0.1517 ns
-- M2_immunosuppressive: pCR dots overlapping + outliers, more dispersed than MPR, p = 0.6539 ns
-- SPP1_signature: large variability in both groups, p = 0.4679 ns
-
-Key biological interpretation:
-- No signature significantly distinguishes MPR from pCR at patient level (all p > 0.05) = TAM signatures alone insufficient to separate partial from complete responders
-- pCR globally more heterogeneous than MPR at patient level = multiple biological pathways may lead to complete response
-- Patient-level overlap between MPR and pCR confirms MPR as biologically unstable intermediate state — some MPR patients biologically resemble pCR
-- Heterogeneity documented here serves as interpretive reference for CollecTRI analysis, discordances in TF activity between MPR and pCR will be interpreted in light of this patient-level heterogeneity
-- Integration of CD8 and TAM signatures at patient level required to formally distinguish biological trajectories leading to MPR vs pCR, planned as perspective
-
-## Preliminary observations : CollecTRI TAMs GSE243013 (Bloc4A Script 07)
-
-**STAT1 dominant in IFN-stimulated TAMs across all three response groups** , constitutive IFN program, not discriminating between response groups.
-
-**ELK4 absent in Classical-Mono non-MPR but present in MPR and pCR** , potentially discriminating signal, paralleling ELK4 enrichment in MPR CD8.TEX.
-
-**STAT1/STAT2/IRF7 enriched in non-MPR TAMs** , IFN-driven program consistent with IFN-stimulated TAMs (PD-L1+/IDO1+) UCell enrichment in non-MPR (Bloc4A Script 05).
-
-**MYC enriched in non-MPR Proliferating and Stress-response TAMs**, chronic proliferation without productive anti-tumor function.
-
-**pCR TAMs show broader MHC II program** (CIITA/RFX5/RFXANK/RFXAP) in Monocyte FCN1+ and Classical-Mono, potentially superior antigen presentation capacity.
-
-**TFEB near-zero, MITF no differential signal** , SPP1/LAM TF program not captured by CollecTRI in this analysis; biological interpretation limited for these TFs.
 
 
 ## Methodological Notes

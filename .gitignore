@@ -7,3 +7,7 @@ lungref.SeuratData_2.0.0.tar.gz
 *.rds
 ProjecTILs_references/omnipathr-log/
 omnipathr-log
+.RDataTmp2
+.RData
+.RDataTmp*
+*.RData
