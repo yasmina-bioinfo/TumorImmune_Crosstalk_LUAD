@@ -115,6 +115,9 @@ fwrite(as.data.frame(tf_summary),
 message("Saved: Bloc4A_CollecTRI_TF_activity.csv")
 
 # 7) Build heatmap matrix , one per response group
+
+green_palette <- colorRampPalette(c("white", "#006400"))(100) 
+
 for (resp in c("MPR", "non-MPR", "pCR")) {
   
   tf_heatmap_resp <- tf_summary %>%
@@ -148,19 +151,12 @@ for (resp in c("MPR", "non-MPR", "pCR")) {
 }
 message("Saved: Bloc4A_CollecTRI_heatmap.png")
 
-# 9) Violin plots — key TFs relevant to TAM biology
-# M2/immunosuppression : STAT3, STAT6, IRF4, PPARG
-# M1/inflammation      : IRF5, RELA, NFKB1
-# IFN response         : STAT1, STAT2, IRF7
-# SPP1/LAMs            : MITF, TFEB
+# 9) Violin plots
 message("Generating violin plots for key TFs...")
 
-key_tfs <- c("STAT1", "STAT2", "STAT3", "STAT6",
-             "IRF4", "IRF5", "IRF7",
-             "PPARG", "RELA", "NFKB1",
-             "MITF", "TFEB")
-key_tfs_present <- key_tfs[key_tfs %in% unique(tf_acts$source)]
-message("Key TFs present: ", paste(key_tfs_present, collapse = ", "))
+# Top 6 TFs by variance: objective selection, no confirmation bias
+key_tfs_present <- tf_var$source[1:6]
+message("Top 6 TFs: ", paste(key_tfs_present, collapse = ", "))
 
 tf_key <- tf_scores %>%
   filter(source %in% key_tfs_present) %>%
@@ -179,7 +175,7 @@ plot_list <- lapply(key_tfs_present, function(tf) {
     theme_bw() +
     theme(legend.position = "none",
           axis.title.x    = element_blank(),
-          axis.text.x     = element_text(angle = 45, hjust = 1, size = 9)) +
+          axis.text.x     = element_text(angle = 45, hjust = 1, size = 11)) +
     labs(title = tf, y = "TF activity (ULM score)")
 })
 

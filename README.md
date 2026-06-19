@@ -316,7 +316,7 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 **Methodological note (Bloc 4 CollecTRI):** Following correction applied to 
 Bloc 3 CollecTRI CD8 analysis, violin plots for TAM CollecTRI will display 
 Top 6 TFs by cross-cell variance (objective selection, no confirmationbias). 
-Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly. [PENDING]
+Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly. 
 
   ### Bloc 4A : GSE243013
 #### Script 01 : TAMs subsetting and ElbowPlot
@@ -369,7 +369,8 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly. [PENDING]
   - All 7 TAM subtypes included, max 10,000 cells/subtype, set.seed(42)
   - Top 20 TFs by variance across cells
   - Short labels applied for readability (consistent with Script 05)
-  - Key TFs selected based on M1/M2/IFN/SPP1 UCell signature biological rationale
+  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias)
+    Top 6: RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1
   - Output: 3 heatmaps (MPR/non-MPR/pCR) + key TFs violin
   - Objects saved: Bloc4A_07_seu_TAMs_TF.rds
 
@@ -421,12 +422,17 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly. [PENDING]
   Solution: manual Wilcoxon + geom_text annotation on barplot
 - References: Chen et al. 2021 (PMC8053174), Italiani & Boraschi 2019 (PMC6543837)
 
+#### Script 06 : CollecTRI TF activity on TAMs (GSE207422)
+  - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
+  - All 9 TAM subtypes included, max 10,000 cells/subtype, set.seed(42)
+  - Top 20 TFs by variance across cells
+  - Short labels applied for readability (consistent with Bloc4B UCell script)
+  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias)
+  Top 6: RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA
+  - Output: 2 heatmaps (MPR/NMPR) + key TFs violin
+  - Objects saved: Bloc4B_06_seu_TAMs_TF.rds
+
 ## Preliminary observations : CollecTRI TAMs (Bloc 4) [PENDING]
-
-CollecTRI TAM analysis will be updated with objective Top 6 TF selection 
-by variance, consistent with Bloc 3 CD8 methodology. Scripts Bloc4A_07 
-and Bloc4B_06 pending correction.
-
 ---
 
 ## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
@@ -480,7 +486,7 @@ Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
 ## Preliminary observations : CollecTRI CD8 (Bloc 3)
 
-**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses, confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
+**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses, confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.Heatmaps row-scaled (z-score), subtype-specific patterns; absolute differences shown in violin plots (Top 6 by variance)
 
 **GSE243013 Top 6:** HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
 - ELK4 rank 5/772 , enriched MPR CD8.TEX
@@ -556,14 +562,30 @@ not artifact
 - Non-MPR: triple immunosuppression (M2 + SPP1 + IFN TAMs)
 - pCR more heterogeneous than MPR at patient level, multiple pathways to complete response
 
-## Preliminary observations : Pseudobulk TAMs MPR vs pCR (Bloc 4, GSE243013)
+## Preliminary observations : Pseudobulk UCell_TAMs MPR vs pCR (Bloc 4, GSE243013)
 
 - All signatures ns (IFN p=0.512, M1 p=0.152, M2 p=0.654, SPP1 p=0.468)
 - pCR more heterogeneous than MPR at patient level, Case 1 (insufficient power) vs CD8 pseudobulk where heterogeneity similar, Case 2 (biological similarity)
 - TAM signatures alone insufficient to separate MPR from pCR
 - Integration of CD8 + TAM signatures required planned via CellChat/NicheNet
 
+## Preliminary observations : CollecTRI TAMs (Bloc 4)
 
+**Methodological note:** Violin plots display Top 6 TFs by cross-cell variance (objective selection, consistent with Bloc 3 CD8 methodology).
+
+**GSE243013 Top 6:** RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1
+- MHC II program (RFXAP/RFXANK) enriched MPR and pCR > non-MPR 
+- CIITA slightly enriched MPR 
+- HSF1/RELA enriched non-MPR : chronic stress/inflammation
+
+**GSE207422 Top 6:** RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA
+- MHC II program (RFXAP/RFXANK/RFX5/CIITA) enriched MPR > NMPR
+- RELA/REL similar between groups, NMPR shows wider distribution suggesting inter-patient heterogeneity in NF-κB activation
+
+**Cross-dataset consensus (CollecTRI objective):**
+- MHC II program enriched in responders both datasets : most robust TAM CollecTRI signal
+- HSF1 enriched non-responders both datasets : chronic stress program
+- Differences between conditions better captured by UCell than CollecTRI (variance dominated by subtype-specific patterns)
 
 ## Methodological Notes
 
