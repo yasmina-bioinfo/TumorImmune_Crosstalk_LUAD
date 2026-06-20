@@ -650,7 +650,7 @@ GSE243013 :
 GSE207422 :
 - IFN-stimulated MPR : IRF1, STAT1, IRF5, REL, strong IFN program
 - MRC1+ M2-like MPR : MHC II dominant , consistent with GSE243013
-- SPP1+ immunosuppressive NMPR : highly active, heterogeneous : complex immunosuppressive program ✅
+- SPP1+ immunosuppressive NMPR : highly active, heterogeneous : complex immunosuppressive program
 - Monocyte-derived NMPR : HIF1A dominant , consistent with GSE243013
 - Stress-response : active both conditions, constitutive
 
