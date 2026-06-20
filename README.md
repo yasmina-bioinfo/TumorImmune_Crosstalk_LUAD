@@ -77,7 +77,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - Functional scoring: M2, M1, SPP1, IFN signatures (`UCell`)
 - Patient-level pseudobulk analysis MPR vs pCR (`UCell`)
 - TF activity inference on TAMs (`CollecTRI`) in PROGRESS 
-- Malignancy epithelial analysis : CopyKAT, SCEVAN, CytoTRACE,UCell, CollecTRI (GSE207422 only)
+- Malignancy epithelial analysis : CopyKAT, SCEVAN, CytoTRACE 2, UCell, CollecTRI (GSE207422 only)
 
 ### Block 5 : TME intercellular communication
 - CellChat object stratified by MPR vs. non-MPR vs. pCR (`CellChat`)
@@ -732,3 +732,6 @@ The present project extends this work by:
 MSc Biology, University of Geneva | Mandela Washington Fellow 2025, Arizona State University
 [GitHub](https://github.com/yasmina-bioinfo)
 
+
+ 
+ 
