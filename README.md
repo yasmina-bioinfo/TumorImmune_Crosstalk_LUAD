@@ -77,7 +77,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 - Functional scoring: M2, M1, SPP1, IFN signatures (`UCell`)
 - Patient-level pseudobulk analysis MPR vs pCR (`UCell`)
 - TF activity inference on TAMs (`CollecTRI`) in PROGRESS 
-- Malignancy epithelial analysis : CopyKAT, UCell, CollecTRI (GSE207422 only)
+- Malignancy epithelial analysis : CopyKAT, SCEVAN, CytoTRACE,UCell, CollecTRI (GSE207422 only)
 
 ### Block 5 : TME intercellular communication
 - CellChat object stratified by MPR vs. non-MPR vs. pCR (`CellChat`)
@@ -103,7 +103,8 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 | SingleR | Automated annotation | Aran et al., *Nat Immunol* 2019 |
 | sctype | Automated cell type annotation | Ianevski et al., *Nature Communications* 2022 |
 | Azimuth | Reference-based annotation (not installable on Windows — replaced by sctype) |  Hao et al., *bioRxiv* 2022 |
-
+| SCEVAN | CNV inference (malignant vs normal epithelial) | De Falco et al., Nature Communications 2023 |
+| CytoTRACE 2 | Differentiation potency inference (epithelial cells) | Kang et al., Nature 2024 |
 ---
 
 ## Progress
@@ -241,16 +242,22 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - non-MPR: 0.438 ± 0.168
   - Responders show higher clonal diversity than non-responders
 
-#### Script 12 : CollecTRI TF activity on CD8 T cells
+#### Script 12 : CollecTRI TF activity on CD8 T cells (GSE243013)
   - Tool: decoupleR run_ulm + CollecTRI network (43,159 interactions, 1,186 TFs)
   - RAM constraint: restricted to CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state
   - Total analyzed: ~21,821 cells, set.seed(42) for reproducibility
-  - Top 20 TFs by variance: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC, RFX5, NFYC,
-    NFKB, RLF, DMTF1, RELA, CIITA, NFYB, MLXIP, JUN, HOPX, NFKB1, DAXX, TBX21
-  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias) Top 6: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
-  - ELK4: rank 5/772 , enriched in MPR CD8.TEX
-  - TBX21: rank 20/772 , discordance with GSE207422 explained by absence of ELK4 co-activation in non-MPR (abortive cytotoxic program)
-  - STAT2: rank 59/772 , not in top 20 by CollecTRI variance IFN program confirmed by UCell IFN_response scores cross-dataset.
+  - Top 20 TFs by variance: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC, RFX5, NFYC, NFKB, RLF, DMTF1, RELA, CIITA, NFYB, MLXIP, JUN, HOPX, NFKB1, DAXX, TBX21
+  - Violin plots: Top 6 by variance (objective, no confirmation bias) Top 6: HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
+    - ELK4 rank 5/772, enriched MPR CD8.TEX 
+    - TBX21 rank 20/772 , present MPR TEX WITH ELK4 (functional) and non-MPR TEX WITHOUT ELK4 (abortive)
+    - STAT2 rank 59/772 , not in Top 20, IFN program confirmed by UCell only
+
+  **Heatmap state-specific observations:**
+  - CD8.TEX non-MPR : TBX21 dominant WITHOUT ELK4 → abortive cytotoxic program
+  - CD8.TPEX non-MPR : MYC, NFKB1, RELA, HSF1/2 → chronic proliferation
+  - CD8.TEX MPR : TBX21 + ELK4 + MHC II program → functional cytotoxic program
+  - CD8.TPEX MPR : ELK4 dominant, TBX21 quasi-absent → pure reactivation program
+  - CD8.TEX pCR : HOPX dominant, ELK4 absent → post-response quiescence
 
 #### Script 13 : Pseudobulk UCell scores MPR vs pCR / CD8 T cells
   - Input: Objects/Bloc3_11_seu_CD8_UCell.rds
@@ -297,19 +304,17 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 #### Script 04 : CollecTRI TF activity on CD8 T cells (GSE207422)
   - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
   - Subset: CD8.TEX, CD8.TPEX, CD8.EM, max 10,000 cells/state, set.seed(42)
-  - Top 20 TFs by variance: MYC, NFKB, JUN, SP1, HSF1, E2F4, E2F1, STAT1,RFXAP, RFXANK, ELK4, RFX5, HSF2, ABL1, SRSF2, TFDP1, NFYC, ZBTB4, CIITA, DOT1L
-  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias) Top 6: MYC, NFKB, JUN, SP1, HSF1, E2F4
-  - ELK4: rank 11/719, present in top 20, signal weaker than GSE243013
-  - STAT2: absent from top 20 in both datasets by CollecTRI variance
-  - MYC enriched NMPR TEX and TPEX chronic proliferation program, consistent with GSE243013
-  - HSF1 enriched NMPR stress response program, consistent with GSE243013
+  - Top 20 TFs by variance: MYC, NFKB, JUN, SP1, HSF1, E2F4, E2F1, STAT1, RFXAP, RFXANK, ELK4, RFX5, HSF2, ABL1, SRSF2, TFDP1, NFYC, ZBTB4, CIITA, DOT1L
+  - Violin plots: Top 6 by variance (objective, no confirmation bias)
+    Top 6: MYC, NFKB, JUN, SP1, HSF1, E2F4
+    - ELK4 rank 11/719 — present Top 20, signal weaker than GSE243013
+    - STAT2 absent Top 20 both datasets : IFN program confirmed by UCell only
 
-  **Cross-dataset consensus (CollecTRI, objective Top 6 by variance):**
-  - MYC enriched non-MPR/NMPR CD8 : confirmed both datasets 
-  - HSF1/HSF2 enriched non-MPR/NMPR : confirmed both datasets 
-  - ELK4 enriched MPR CD8.TEX : rank 5 GSE243013, rank 11 GSE207422,consistent signal 
-  - STAT2/STAT1 : not in top 6 objective CollecTRI in either dataset IFN program confirmed by UCell IFN_response scores and DoRothEA preliminary analysis
-  - Previous heatmap observations (NMPR TPEX abortive program, MPR ELK4-coordinated program) reflect scale=row normalized visualization, to be interpreted as subtype-specific patterns, not absolute inter-condition differences
+  **Heatmap state-specific observations:**
+  - CD8.TEX NMPR : MHC II program (RFXAP/RFXANK/RFX5/CIITA) + STAT1 dominant
+  - CD8.TPEX NMPR : MYC, E2F1, E2F4, SRSF2, TFDP1 → chronic proliferation 
+  - CD8.TEX MPR : ELK4 dominant + NFYC + ABL1 + DOT1L
+  - CD8.TPEX MPR : ELK4 + ABL1 + NFYC → ELK4-driven reactivation 
 
 ### Bloc 4 : Immunosuppressive TME compartment / TAMs and malignant epithelial cells
 
@@ -366,13 +371,27 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
 
 #### Script 07 : CollecTRI TF activity on TAMs (GSE243013)
   - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
-  - All 7 TAM subtypes included, max 10,000 cells/subtype, set.seed(42)
+  - All 7 TAM subtypes included in full (range: 248–4,316 cells/subtype, set.seed(42))
   - Top 20 TFs by variance across cells
   - Short labels applied for readability (consistent with Script 05)
-  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias)
+  - Violin plots: Top 6 by variance (objective, no confirmation bias)
     Top 6: RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1
   - Output: 3 heatmaps (MPR/non-MPR/pCR) + key TFs violin
   - Objects saved: Bloc4A_07_seu_TAMs_TF.rds
+
+  **Heatmap state-specific observations:**
+  - IFN-stimulated : STAT1 constitutive all conditions : not discriminating
+  - Resident M2 MPR : ELK4 dominant : pro-immunogenic signal
+  - Resident M2 non-MPR : HIF1A, NFKB, stress program dominant
+  - Resident M2 pCR : ELK4 + DMTF1
+  - Monocyte FCN1+ : HIF1A enriched non-MPR : hypoxic adaptation
+  - Stress-response non-MPR : MYC + HSF1/HSF2 dominant 
+  - Proliferating MPR/non-MPR : KAT6B dominant : chromatin remodeling
+  - Proliferating pCR : MYC very strong
+  - Classical-Mono MPR : ELK4 + MHC II dominant 
+  - Classical-Mono pCR : ELK4 + MHC II present but weaker
+  - LAMs MPR : KAT6B + AEBP1
+  - LAMs non-MPR : MHC II + KAT6B + AEBP1 : heterogeneous
 
 ### Bloc 4B : GSE207422 TAMs
 
@@ -413,10 +432,7 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
 
 #### Script 05 : UCell scoring on TAMs combined (post-reclustering)
 - Input: Bloc4B_04_seu_TAMs_combined.rds (9 TAM subtypes)
-- Signatures: M2_immunosuppressive (MRC1, CD163, TGFB1, IL10, VEGFA, CD274, IDO1, CSF1R),
-  M1_inflammatory (TNF, IL1B, IL6, CXCL10, NOS2),
-  SPP1_signature (SPP1, GPNMB, APOE, TREM2),
-  IFN_response (ISG15, IFIT1, IFIT3, CXCL9, CXCL10)
+- Signatures: M2_immunosuppressive (MRC1, CD163, TGFB1, IL10, VEGFA, CD274, IDO1, CSF1R), M1_inflammatory (TNF, IL1B, IL6, CXCL10, NOS2),SPP1_signature (SPP1, GPNMB, APOE, TREM2), IFN_response (ISG15, IFIT1, IFIT3, CXCL9, CXCL10)
 - Wilcoxon test computed manually on cell-level scores (sapply)
   NOTE: stat_compare_means (ggpubr) tested but returns p=1 on aggregated data
   Solution: manual Wilcoxon + geom_text annotation on barplot
@@ -424,15 +440,39 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
 
 #### Script 06 : CollecTRI TF activity on TAMs (GSE207422)
   - Tool: decoupleR run_ulm + CollecTRI network (local CSV)
-  - All 9 TAM subtypes included, max 10,000 cells/subtype, set.seed(42)
+  - All 9 TAM subtypes included in full (range: 171–5,229 cells/subtype, set.seed(42))
   - Top 20 TFs by variance across cells
   - Short labels applied for readability (consistent with Bloc4B UCell script)
-  - Violin plots: Top 6 TFs by variance (objective selection, no confirmation bias)
-  Top 6: RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA
+  - Violin plots: Top 6 by variance (objective, no confirmation bias)
+    Top 6: RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA
   - Output: 2 heatmaps (MPR/NMPR) + key TFs violin
   - Objects saved: Bloc4B_06_seu_TAMs_TF.rds
 
-## Preliminary observations : CollecTRI TAMs (Bloc 4) [PENDING]
+  **Heatmap state-specific observations:**
+  - IFN-stimulated MPR : IRF1, STAT1, IRF5, REL dominant : strong IFN program
+  - MRC1+ M2-like MPR : MHC II dominant (CIITA, RFX5, RFXANK, RFXAP) 
+  - SPP1+ immunosuppressive NMPR : highly active, heterogeneous : complex immunosuppressive program 
+  - Monocyte-derived NMPR : HIF1A dominant : hypoxic adaptation 
+  - Stress-response : active both conditions : constitutive program
+
+#### Script 08 : CNV inference on epithelial cells
+
+**CopyKAT attempt (Bloc4B_08_CopyKAT.R):**
+- Tool: CopyKAT v1.2.5 (Gao et al., Nature Genetics 2021)
+- Normal reference: Ciliated_epithelial (565 cells)
+- Parameters: win.size=25 then win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1
+- RAM constraint: process killed at step 4/7 despite WSL 13GB allocation and win.size reduction. Google Colab (12GB) also insufficient.
+- Script retained for methodological transparency
+
+**SCEVAN (Bloc4B_08_SCEVAN.R), final analysis:** [pending] 
+- Tool: SCEVAN v1.0.3 (De Falco et al., Nature Communications 2023)
+- Normal reference: Ciliated_epithelial (565 cells)
+- After internal QC: 8,405 cells and 8,162 genes retained
+- No downsampling performed: all epithelial cells analyzed in full
+- par_cores=1, SUBCLONES=FALSE
+- Output: UMAP + barplot CNV class + predictions CSV
+- Objects saved: Bloc4B_08_seu_Epithelial_SCEVAN.rds
+
 ---
 
 ## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
@@ -486,28 +526,42 @@ Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
 ## Preliminary observations : CollecTRI CD8 (Bloc 3)
 
-**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses, confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.Heatmaps row-scaled (z-score), subtype-specific patterns; absolute differences shown in violin plots (Top 6 by variance)
+**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses — confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
 
-**GSE243013 Top 6:** HSF1, HSF2, RFXAP, RFXANK, ELK4, MYC
-- ELK4 rank 5/772 , enriched MPR CD8.TEX
-- TBX21 rank 20/772 , borderline, not retained
-- STAT2 rank 59/772 , not in Top 20, not objectively discriminating by CollecTRI
-- MYC/HSF1/HSF2 — enriched non-MPR 
+**Visualization approach:** Heatmaps row-scaled (z-score) show state-specific TF patterns within each CD8 state per condition. Violin plots (Top 6 by variance, absolute scores) show global MPR vs non-MPR differences. The two are complementary.
 
-**GSE207422 Top 6:** MYC, NFKB, JUN, SP1, HSF1, E2F4
-- ELK4 rank 11/719 , Top 20, weaker signal than GSE243013
-- TBX21 and STAT2 , absent Top 20 both datasets by CollecTRI
+**Two complementary visualizations:**
+- **Violin plots (Top 6 by variance, absolute scores)** — global MPR vs non-MPR comparison across CD8.TEX and CD8.TPEX
+- **Heatmaps (scale=row, Top 20 by variance)** — state-specific TF patterns within each CD8 state per condition
 
-**Cross-dataset consensus (CollecTRI objective):**
-- ELK4 enriched MPR CD8.TEX , most robust CollecTRI signal 
-- MYC/HSF1/HSF2 enriched non-responders , chronic stress/proliferation 
-- STAT2/TBX21 : DoRothEA preliminary only , IFN program confirmed by UCell 
+**Violin plots — cross-dataset consensus (objective Top 6):**
+- ELK4 enriched MPR CD8.TEX = cross-dataset
+- MYC/HSF1/HSF2 enriched non-responders = cross-dataset
+- STAT2/TBX21 : not in objective Top 6 : DoRothEA preliminary only
 
-**Biological interpretation:**
-- Non-responders : chronic stress/proliferation program (MYC/HSF) without 
-  cytotoxic coordination , activation without productive anti-tumor function
-- Responders : ELK4-driven cytotoxic program in CD8.TEX, coordinated effector engagement under anti-PD-1
-- IFN program in non-responders confirmed by UCell independently of CollecTRI
+**Heatmap observations , state-specific patterns:**
+
+GSE243013 :
+- CD8.EM non-MPR : MHC II program dominant (CIITA, RFXAP, RFX5, RFXANK)
+- CD8.TEX non-MPR : TBX21 dominant WITHOUT ELK4 → abortive cytotoxic program
+- CD8.TPEX non-MPR : MYC, NFKB1, RELA, HSF1/2 → chronic proliferation without cytotoxic engagement
+- CD8.TEX MPR : MHC II (RFXAP/RFXANK/RFX5) + TBX21 + ELK4 → functional cytotoxic program
+- CD8.TPEX MPR : ELK4 dominant, TBX21 quasi-absent → pure reactivation program
+- CD8.TEX pCR : HOPX dominant, ELK4 absent → post-response quiescence
+- CD8.EM pCR : most transcriptionally diverse state — nearly all 20 TFs active → polyfonctional memory surveillance
+
+GSE207422 :
+- CD8.TEX NMPR : MHC II (RFXAP/RFXANK/RFX5/CIITA) + STAT1 + ZBTB4
+- CD8.TPEX NMPR : MYC, E2F1, E2F4, SRSF2, TFDP1 → chronic proliferation = consistent with GSE243013
+- CD8.TEX MPR : ELK4 dominant + NFYC + ABL1 + DOT1L
+- CD8.TPEX MPR : ELK4 + HSF1 + ABL1 + NFYC → ELK4-driven reactivation = consistent
+
+**Cross-dataset conclusion (violin + heatmap combined):**
+- ELK4 most robust discriminating TF in MPR , dominant in TPEX MPR both datasets, present in TEX MPR GSE207422
+- TBX21 in non-MPR CD8.TEX WITHOUT ELK4 = abortive cytotoxic program; TBX21 in MPR CD8.TEX WITH ELK4 = functional cytotoxic program
+- ABL1 and NFYC as consistent ELK4 co-activators in MPR TEX/TPEX (GSE207422) and MPR TPEX (GSE243013)
+- non-MPR TPEX : chronic proliferation program (MYC/E2F/HSF) without cytotoxic coordination — confirmed cross-dataset
+- pCR CD8.TEX : HOPX-dominant quiescence — post-complete response state
 
 ## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
 
@@ -571,40 +625,62 @@ not artifact
 
 ## Preliminary observations : CollecTRI TAMs (Bloc 4)
 
-**Methodological note:** Violin plots display Top 6 TFs by cross-cell variance (objective selection, consistent with Bloc 3 CD8 methodology).
+**Two complementary visualizations:**
+- **Violin plots (Top 6 by variance, absolute scores)** : global MPR vs non-MPR comparison
+- **Heatmaps (scale=row, Top 20 by variance)** , subtype-specific TF patterns per condition
 
-**GSE243013 Top 6:** RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1
-- MHC II program (RFXAP/RFXANK) enriched MPR and pCR > non-MPR 
-- CIITA slightly enriched MPR 
-- HSF1/RELA enriched non-MPR : chronic stress/inflammation
-
-**GSE207422 Top 6:** RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA
-- MHC II program (RFXAP/RFXANK/RFX5/CIITA) enriched MPR > NMPR
-- RELA/REL similar between groups, NMPR shows wider distribution suggesting inter-patient heterogeneity in NF-κB activation
-
-**Cross-dataset consensus (CollecTRI objective):**
-- MHC II program enriched in responders both datasets : most robust TAM CollecTRI signal
+**Violin plots , cross-dataset consensus (objective Top 6):**
+- MHC II program (RFXAP/RFXANK/RFX5/CIITA) enriched responders both datasets 
 - HSF1 enriched non-responders both datasets : chronic stress program
-- Differences between conditions better captured by UCell than CollecTRI (variance dominated by subtype-specific patterns)
+- RELA/REL similar between groups — NMPR wider distribution (inter-patient heterogeneity)
+
+**Heatmap observations , subtype-specific patterns:**
+
+GSE243013 :
+- Resident M2 MPR : ELK4 dominant : pro-immunogenic signal 
+- Resident M2 non-MPR : HIF1A, NFKB : hypoxic/inflammatory stress
+- Resident M2 pCR : ELK4 + DMTF1
+- Monocyte FCN1+ non-MPR : HIF1A dominant — hypoxic adaptation
+- Stress-response non-MPR : MYC + HSF1/HSF2 : chronic proliferation 
+- Proliferating pCR : MYC very strong
+- Classical-Mono MPR : ELK4 + MHC II dominant 
+- Classical-Mono pCR : ELK4 + MHC II present but weaker
+- IFN-stimulated : STAT1 constitutive all conditions, not discriminating
+
+GSE207422 :
+- IFN-stimulated MPR : IRF1, STAT1, IRF5, REL, strong IFN program
+- MRC1+ M2-like MPR : MHC II dominant , consistent with GSE243013
+- SPP1+ immunosuppressive NMPR : highly active, heterogeneous : complex immunosuppressive program ✅
+- Monocyte-derived NMPR : HIF1A dominant , consistent with GSE243013
+- Stress-response : active both conditions, constitutive
+
+**Cross-dataset consensus (violin + heatmap combined):**
+- MHC II enriched MPR TAMs : Resident M2 GSE243013, MRC1+ M2-like GSE207422 
+- ELK4 enriched MPR Resident M2 and Classical-Mono GSE243013 : absent GSE207422
+  (possible LUAD vs NSCLC histological difference)
+- HIF1A enriched non-responder Monocyte TAMs both datasets 
+- MYC/HSF enriched non-responder Stress-response TAMs GSE243013 
+- SPP1+ immunosuppressive NMPR most transcriptionally active GSE207422 
+- IFN-stimulated STAT1 constitutive both datasets — not discriminating
 
 ## Methodological Notes
 
-### Automated annotation : iterative approach
-Three automated annotation methods were tested for global TME annotation:
+### TME annotation : iterative approach
+Three automated methods tested for global TME annotation:
 
-1. **Azimuth** (Hao et al., *bioRxiv* 2022), initially planned as primary tool. 
-Installation failed on Windows due to heavy genomic dependencies (BSgenome.Hsapiens.UCSC.hg38, EnsDb.Hsapiens.v86). Documented as Windows limitation.
+1. **Azimuth** (Hao et al., Nature Biotechnology 2024) — installation failed on 
+   Windows (heavy genomic dependencies). Attempted via WSL/Ubuntu 24.04 — 
+   RunAzimuth() blocked by RAM constraints (16GB). Server execution pending.
 
-2. **sctype** (Ianevski et al., *Nat Commun* 2022), selected as lightweight alternative. 
-Lung tissue reference insufficiently granular for TME immune subtype resolution. 
-Useful for macrophage/myeloid validation only.
+2. **SingleR** (HumanPrimaryCellAtlas reference) — applied successfully, 
+   used for cross-validation of manual annotation.
 
-3. **Azimuth** via WSL/VS Code, reinstalled under Ubuntu 24.04 LTS to bypass. 
-Windows dependency constraints. lungref reference (584,884 cells) loaded successfully. 
-RunAzimuth() blocked by insufficient local RAM (16GB), server execution pending.
+3. **scType** (Ianevski et al., Nature Communications 2022) — lung tissue 
+   reference insufficient granularity for immune subtypes. 
+   Used for myeloid cluster validation only.
 
-Manual annotation (top50 markers per cluster) remains the primary reference, validated by SingleR (HumanPrimaryCellAtlas) and partially by sctype (myeloid clusters). 
-Azimuth validation pending server execution.
+**Final annotation:** manual (top 50 markers/cluster),cross-validated by SingleR. 
+Azimuth validation pending.
 
 ---
 
@@ -614,37 +690,45 @@ Azimuth validation pending server execution.
 TumorImmune_Crosstalk_LUAD/
 ├── README.md
 ├── Scripts/
-│   ├── BLOC 0_Data acquisition
-│   ├── BLOC 1_QC and preprocessing
-│   ├── BLOC 2_Global_TME_Annotation
-│   ├── BLOC 3_CD8_Tcells_Focus
-│   ├── BLOC 4_Immunosuppressive_TME_Compartment
-│   ├   └── BLOC 4A_GSE243013
-│   │   └── BLOC 4B_GSE207422
-│   └── 
+│   ├── BLOC 0_Data_acquisition/
+│   ├── BLOC 1_QC_and_preprocessing/
+│   ├── BLOC 2_Global_TME_Annotation/
+│   ├── BLOC 3_CD8_Tcells_Focus/
+│   └── BLOC 4_Immunosuppressive_TME_Compartment/
+│       ├── BLOC 4A_GSE243013/
+│       └── BLOC 4B_GSE207422/
 ├── Data/
+│   ├── collectri_network.csv
 │   └── metadata_LUAD.csv
-├── Figures/
-└── Results/
+├── Objects/
+├── Results/
+│   ├── Figures/
+│   └── Tables/
+├── session_info.txt
+└──session_info_linux.txt
+ 
+```
 ```
 
 ---
 
 ## Relationship to prior work
 
-This project is a direct continuation of [CD8_NSCLC_scRNAseq](https://github.com/yasmina-bioinfo/CD8_NSCLC_scRNAseq), which characterized CD8 T cell heterogeneity across two NSCLC datasets (GSE131907, GSE207422) and identified a CD8_Exhausted_Terminal enrichment in MPR patients (OR = 3.36, p_adj < 0.001) with  and a STAT2-high exhaustion program in non-MPR patients.
+This project is a direct continuation of [CD8_NSCLC_scRNAseq](https://github.com/yasmina-bioinfo/CD8_NSCLC_scRNAseq), which characterized CD8 T cell heterogeneity across two NSCLC datasets (GSE131907, GSE207422) and identified a CD8_Exhausted_Terminal enrichment in MPR patients (OR=3.36, p_adj<0.001) and a STAT2-high exhaustion program in non-MPR patients using DoRothEA.
 
 The present project extends this work by:
-- Validating CD8 exhaustion findings in a larger independent cohort (n = 63 LUAD vs. n = 13)
-- Adding the malignant epithelial compartment to investigate tumor-immune crosstalk
-- Incorporating paired TCR sequencing to validate T cell state annotations
+- Validating CD8 exhaustion findings in a larger independent cohort (GSE243013, n=63 LUAD vs n=13)
+- Expanding the analysis to the TAM and malignant epithelial compartments
+- Incorporating paired TCR sequencing to validate CD8 state tumor-reactivity
 - Upgrading TF inference from DoRothEA to CollecTRI for improved regulon coverage
-- Testing whether the STAT2-high (non-MPR) and ELK4/ELK1/TBX21-high (MPR) transcriptional programs identified in GSE207422 are reproducible in GSE243013
+- Objectively identifying ELK4 as the most robust cross-dataset TF signal in MPR CD8.TEX by variance-based selection, STAT2 identified by DoRothEA was not reproduced by CollecTRI objective ranking, suggesting tool-specific sensitivity differences
+- Adding TAM and epithelial compartment analyses absent from the prior work
 
 ---
 
 ## Author
 
-**Myriam Yasmina Soumahoro**   
+**Myriam Yasmina Soumahoro**
+MSc Biology, University of Geneva | Mandela Washington Fellow 2025, Arizona State University
 [GitHub](https://github.com/yasmina-bioinfo)
-test
+

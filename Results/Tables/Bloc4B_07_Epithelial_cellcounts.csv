@@ -1,0 +1,11 @@
+cell_type,response,n_cells
+Ciliated_epithelial,MPR,333
+Tumor_epithelial,MPR,0
+Tumor_epithelial_AT2,MPR,294
+Tumor_epithelial_basal,MPR,985
+Tumor_epithelial_EMT,MPR,0
+Ciliated_epithelial,NMPR,232
+Tumor_epithelial,NMPR,3371
+Tumor_epithelial_AT2,NMPR,1460
+Tumor_epithelial_basal,NMPR,562
+Tumor_epithelial_EMT,NMPR,1707
