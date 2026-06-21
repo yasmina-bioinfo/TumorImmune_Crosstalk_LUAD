@@ -393,7 +393,7 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
   - LAMs MPR : KAT6B + AEBP1
   - LAMs non-MPR : MHC II + KAT6B + AEBP1 : heterogeneous
 
-### Bloc 4B : GSE207422 TAMs
+### Bloc 4B : GSE207422 TAMs and Epithelial cells
 
 #### Script 01 : TAMs extraction + UMAP + Barplot (initial annotation)
 - TAM populations extracted from TME object (04_TME_MPR_NMPR.rds)
@@ -457,21 +457,42 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
 
 #### Script 08 : CNV inference on epithelial cells
 
-**CopyKAT attempt (Bloc4B_08_CopyKAT.R):**
+**CopyKAT, first attempt (Bloc4B_08_CopyKAT.R):**
 - Tool: CopyKAT v1.2.5 (Gao et al., Nature Genetics 2021)
 - Normal reference: Ciliated_epithelial (565 cells)
-- Parameters: win.size=25 then win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1
-- RAM constraint: process killed at step 4/7 despite WSL 13GB allocation and win.size reduction. Google Colab (12GB) also insufficient.
+- Full epithelial object (8,944 cells), win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1
+- RAM constraint: process killed at step 4/7 despite WSL 13GB and win.size reduction. 
+Kaggle: R package installation blocked (no internet access). 
+Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 - Script retained for methodological transparency
 
-**SCEVAN (Bloc4B_08_SCEVAN.R), final analysis:** [pending] 
+**CopyKAT by cell type (Scripts 08d-08h),  RAM solution:**
+- Same tool and parameters
+- Solution: analyzed separately by epithelial subtype + Ciliated reference
+  Each run: 1,700–4,000 cells, RAM manageable (6–8GB peak)
+- win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1, plot.genes=FALSE
+
+**SCEVAN (Scripts 08a-08c), cross-validation:**
 - Tool: SCEVAN v1.0.3 (De Falco et al., Nature Communications 2023)
 - Normal reference: Ciliated_epithelial (565 cells)
+- MPR and NMPR analyzed separately, par_cores=1, SUBCLONES=FALSE, ClonalCN=FALSE
 - After internal QC: 8,405 cells and 8,162 genes retained
-- No downsampling performed: all epithelial cells analyzed in full
-- par_cores=1, SUBCLONES=FALSE
-- Output: UMAP + barplot CNV class + predictions CSV
-- Objects saved: Bloc4B_08_seu_Epithelial_SCEVAN.rds
+
+**SCEVAN vs CopyKAT — comparison by cell type (tumor cells only, Ciliated excluded):**
+
+| Cell type | SCEVAN tumor | SCEVAN normal | CopyKAT aneuploid | CopyKAT diploid |
+|-----------|-------------|---------------|-------------------|-----------------|
+| Tumor_epithelial | 3,359 (99%) | 10 (0.3%) | 3,369 (99%) | 0 |
+| Tumor_epithelial_AT2 | 0 (0%) | 1,661 (95%) | 1,642 (94%) | 4 (0.2%) |
+| Tumor_epithelial_basal | 533 (35%) | 689 (45%) | 744 (49%) | 460 (30%) |
+| Tumor_epithelial_EMT | 0 (0%) | 1,600 (94%) | 643 (38%) | 940 (55%) |
+
+**Key observations:**
+- Tumor_epithelial : strong concordance between tools (99% aneuploid/tumor)
+- AT2 : discordant, CopyKAT identifies 94% aneuploid, SCEVAN classifies as normal
+  CopyKAT more sensitive for subtle CNV in AT2 cells
+- Basal : partial concordance, both tools identify mixed malignant/normal population
+- EMT : discordant, SCEVAN 0% tumor vs CopyKAT 38% aneuploid. Majority diploid confirmed by both tools but quantitative difference is biologically significant. Whether EMT resistance is driven by epigenetic reprogramming alone or combined with subtle genomic alterations remains to be resolved, with implications for therapeutic targeting strategies.
 
 ---
 
