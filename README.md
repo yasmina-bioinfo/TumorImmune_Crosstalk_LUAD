@@ -102,7 +102,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 | CollecTRI | TF regulon network | Müller-Dott et al., *Nucleic Acids Research* 2023 |
 | SingleR | Automated annotation | Aran et al., *Nat Immunol* 2019 |
 | sctype | Automated cell type annotation | Ianevski et al., *Nature Communications* 2022 |
-| Azimuth | Reference-based annotation (not installable on Windows — replaced by sctype) |  Hao et al., *bioRxiv* 2022 |
+| Azimuth | Reference-based annotation (not installable on Windows, replaced by sctype) |  Hao et al., *bioRxiv* 2022 |
 | SCEVAN | CNV inference (malignant vs normal epithelial) | De Falco et al., Nature Communications 2023 |
 | CytoTRACE 2 | Differentiation potency inference (epithelial cells) | Kang et al., Nature 2024 |
 ---
@@ -279,7 +279,7 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 #### Script 02 : CD8 ProjecTILs barplot (proportions by response)
   - Chi-2 p = 4.37e-13 : CD8 state distribution significantly different between MPR and NMPR
   - CD8.TEX : MPR (~55%) ≈ NMPR (~54%) , no major proportional difference
-  - CD8.TEMRA : enriched in NMPR — terminal differentiation, non-reactivable
+  - CD8.TEMRA : enriched in NMPR, terminal differentiation, non-reactivable
   - CD8.TPEX : slightly enriched in MPR , reactivation capacity
   - Note: higher p-value vs GSE243013 (p < 2.2e-16) reflects smaller cohort (n=13) and subtler proportional differences
 
@@ -288,7 +288,7 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - NMPR > MPR : deeper exhaustion in non-responders, consistent with GSE243013
 
   **Cytotoxicity scores:**
-  - MPR slightly higher , residual effector capacity preserved ✅
+  - MPR slightly higher , residual effector capacity preserved
 
   **TPEX_UCell scores:**
   - MPR > NMPR : precursor program more active in responders
