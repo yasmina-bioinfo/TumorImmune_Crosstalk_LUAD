@@ -1,26 +1,26 @@
+# R workspace
 .RData
 .RDataTmp
-.Rhistory
-Data/
-Objects/
-lungref.SeuratData_2.0.0.tar.gz
-*.rds
-ProjecTILs_references/omnipathr-log/
-omnipathr-log
 .RDataTmp2
-.RData
 .RDataTmp*
 *.RData
-Bloc4B_GSE207422_Epithelial_copykat_raw_results_bin_by_cell.txt
-Bloc4B_GSE207422_Epithelial_copykat_raw_results_gene_by_cell.txt
+.Rhistory
+
+# Large data files
+Data/
+Objects/
+*.rds
+lungref.SeuratData_2.0.0.tar.gz
+ProjecTILs_references/
+omnipathr-log/
+
+# CopyKAT large outputs
 *copykat_raw_results*
 *copykat_bin_by_cell_heatmap*
+*copykat_gene_by_cell*
+*copykat_final_results_bin_by_cell*
+*copykat_prediction.txt
+
+# SCEVAN large outputs
 scevan_log.txt
-Results/Figures/BLOC4B_Epithelial_TAMs/SCEVAN_MPR/
-Results/Figures/BLOC4B_Epithelial_TAMs/SCEVAN_NMPR/
-Results/Figures/BLOC4B_Epithelial_TAMs/output/
-*copykat_final_results_bin_by_cell*
-*copykat_prediction.txt
-*copykat_final_results_bin_by_cell*
-*copykat_prediction.txt
-*copykat_raw_results*
+Results/Figures/BLOC4B_Epithelial_TAMs/output/*.log

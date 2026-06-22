@@ -56,6 +56,29 @@ predictions <- data.frame(
   scevan_class = results$class,
   response     = "NMPR"
 )
+
+# 6) Barplot SCEVAN NMPR
+library(ggplot2)
+
+bar_df <- predictions %>%
+  filter(scevan_class != "filtered") %>%
+  group_by(scevan_class) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(prop = n / sum(n),
+         response = "NMPR")
+
+p <- ggplot(bar_df, aes(x = response, y = prop, fill = scevan_class)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("tumor" = "#E63946", "normal" = "#457B9D")) +
+  labs(title = "Malignant vs normal epithelial cells — NMPR (SCEVAN)",
+       x = "", y = "Proportion") +
+  theme_classic()
+
+ggsave(file.path(OUT_FIG, "SCEVAN_NMPR", "Bloc4B_08_Barplot_SCEVAN_NMPR.png"), 
+       p, width = 5, height = 5, dpi = 150)
+message("Barplot SCEVAN NMPR saved.")
+
 print(table(predictions$scevan_class))
 fwrite(predictions, file.path(OUT_TAB, "Bloc4B_08_SCEVAN_predictions_NMPR.csv"))
 message("Saved: Bloc4B_08_SCEVAN_predictions_NMPR.csv")
