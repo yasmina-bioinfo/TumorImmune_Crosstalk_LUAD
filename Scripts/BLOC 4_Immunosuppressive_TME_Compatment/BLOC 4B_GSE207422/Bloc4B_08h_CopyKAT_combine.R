@@ -1,109 +1,102 @@
 #!/usr/bin/env Rscript
 # ============================================================
-# GSE207422 : Bloc4B Script 08h: CopyKAT , Combine predictions and visualize
-# Combines all CopyKAT predictions by cell type, filters Ciliated
-# Input:  Objects/Bloc4B_07_seu_Epithelial.rds
-#         Results/Tables/Bloc4B_08d_CopyKAT_EMT_predictions.csv
-#         Results/Tables/Bloc4B_08e_CopyKAT_AT2_predictions.csv
-#         Results/Tables/Bloc4B_08f_CopyKAT_basal_predictions.csv
-#         Results/Tables/Bloc4B_08g_CopyKAT_Tumor_epithelial_predictions.csv
-# Output: Results/Figures/BLOC4B_Epithelial_TAMs/Bloc4B_08h_UMAP_CopyKAT.png
-#         Results/Figures/BLOC4B_Epithelial_TAMs/Bloc4B_08h_Barplot_CopyKAT.png
-#         Results/Tables/Bloc4B_08h_CopyKAT_predictions_combined.csv
-#         Objects/Bloc4B_08h_seu_Epithelial_CopyKAT.rds
+# GSE207422 : Bloc4B Script 08h: CopyKAT combine
+# Combines predictions from all epithelial subtypes MPR + NMPR
+# Produces: Barplot NMPR, Barplot MPR+NMPR, UMAP MPR+NMPR
+# Input:  Results/Tables/Bloc4B_08*_CopyKAT_*_predictions.csv
+# Output: Results/Figures/BLOC4B_Epithelial_TAMs/
 # Reference: Gao et al., Nature Genetics 2021
 # ============================================================
 
 suppressPackageStartupMessages({
   library(Seurat)
-  library(ggplot2)
   library(dplyr)
+  library(ggplot2)
   library(data.table)
 })
 
 DATA_DIR <- "/mnt/c/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
-IN_OBJ   <- file.path(DATA_DIR, "Objects/Bloc4B_07_seu_Epithelial.rds")
-OUT_FIG  <- file.path(DATA_DIR, "Results/Figures/BLOC4B_Epithelial_TAMs")
 OUT_TAB  <- file.path(DATA_DIR, "Results/Tables")
-OUT_OBJ  <- file.path(DATA_DIR, "Objects")
+OUT_FIG  <- file.path(DATA_DIR, "Results/Figures/BLOC4B_Epithelial_TAMs")
 
-# 1) Load epithelial object
-message("Loading epithelial object...")
-seu_Epi <- readRDS(IN_OBJ)
-message("Total cells: ", ncol(seu_Epi))
+# 0) Ciliated barcodes for filtering
+message("Loading Seurat object to extract ciliated barcodes...")
+seu_Epi <- readRDS(file.path(DATA_DIR, "Objects/Bloc4B_07_seu_Epithelial.rds"))
+ciliated_barcodes <- colnames(seu_Epi)[seu_Epi$TME_cell_type == "Ciliated_epithelial"]
+message("Ciliated barcodes to exclude: ", length(ciliated_barcodes))
 
-# 2) Load all predictions
-pred_EMT   <- fread(file.path(OUT_TAB, "Bloc4B_08d_CopyKAT_EMT_predictions.csv"))
-pred_AT2   <- fread(file.path(OUT_TAB, "Bloc4B_08e_CopyKAT_AT2_predictions.csv"))
-pred_basal <- fread(file.path(OUT_TAB, "Bloc4B_08f_CopyKAT_basal_predictions.csv"))
-pred_tumor <- fread(file.path(OUT_TAB, "Bloc4B_08g_CopyKAT_epithelial_predictions.csv"))
+# 1) Load and combine all NMPR predictions
+message("Loading NMPR predictions...")
+pred_AT2   <- fread(file.path(OUT_TAB, "Bloc4B_08e_CopyKAT_AT2_NMPR_predictions.csv"))
+pred_Basal <- fread(file.path(OUT_TAB, "Bloc4B_08f_CopyKAT_Basal_NMPR_predictions.csv"))
+pred_EMT   <- fread(file.path(OUT_TAB, "Bloc4B_08d_CopyKAT_EMT_NMPR_predictions.csv"))
+pred_Tumor <- fread(file.path(OUT_TAB, "Bloc4B_08g_CopyKAT_TumorEpi_NMPR_predictions.csv"))
 
-# Add missing columns to EMT and Tumor_epithelial
-pred_EMT$cell_type <- "Tumor_epithelial_EMT"
-pred_EMT$response  <- "NMPR"
-pred_tumor$cell_type <- "Tumor_epithelial"
-pred_tumor$response  <- "NMPR"
+pred_NMPR <- bind_rows(pred_AT2, pred_Basal, pred_EMT, pred_Tumor) %>%
+  filter(response == "NMPR") %>%
+  filter(!cell.names %in% ciliated_barcodes)
 
-# 3) Combine and filter Ciliated
-pred_all <- rbind(pred_EMT, pred_AT2, pred_basal, pred_tumor) %>%
-  filter(cell_type != "Ciliated_epithelial")
+message("NMPR cells after filtering: ", nrow(pred_NMPR))
+print(table(pred_NMPR$copykat.pred))
+fwrite(pred_NMPR, file.path(OUT_TAB, "Bloc4B_08h_CopyKAT_predictions_NMPR_combined.csv"))
 
-# 4) Save combined predictions
-fwrite(pred_all, file.path(OUT_TAB, "Bloc4B_08h_CopyKAT_predictions_combined.csv"))
-message("Saved: Bloc4B_08h_CopyKAT_predictions_combined.csv")
+# 2) Load MPR predictions
+pred_MPR <- fread(file.path(OUT_TAB, "Bloc4B_08_CopyKAT_predictions_MPR.csv")) %>%
+  filter(!cell.names %in% ciliated_barcodes)
+message("MPR cells after filtering: ", nrow(pred_MPR))
 
-# 5) Add to Seurat object
-seu_Epi$copykat_pred <- pred_all$copykat.pred[match(
-  colnames(seu_Epi), pred_all$cell.names)]
-message("Predictions added to Seurat object")
-message("By cell type:")
-print(table(seu_Epi$copykat_pred, seu_Epi$TME_cell_type))
+# 3) Barplot NMPR only
+bar_nmpr <- pred_NMPR %>%
+  filter(!is.na(copykat.pred)) %>%
+  group_by(copykat.pred) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(prop = n / sum(n), response = "NMPR")
 
-# 6) UMAP by CopyKAT prediction
-png(file.path(OUT_FIG, "Bloc4B_08h_UMAP_CopyKAT.png"),
-    width = 10, height = 7, units = "in", res = 300)
-print(DimPlot(seu_Epi,
-              reduction = "umap",
-              group.by  = "copykat_pred",
-              raster    = FALSE) +
-        scale_color_manual(values = c("aneuploid"    = "#D73027",
-                                      "diploid"      = "#4393C3",
-                                      "not.defined"  = "grey80")) +
-        theme_bw() +
-        theme(legend.text = element_text(size = 12)) +
-        labs(title = "CopyKAT predictions — Epithelial cells GSE207422"))
-dev.off()
-message("Saved: Bloc4B_08h_UMAP_CopyKAT.png")
+p_nmpr <- ggplot(bar_nmpr, aes(x = response, y = prop, fill = copykat.pred)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("aneuploid" = "#E63946", "diploid" = "#457B9D", "not.defined" = "grey80")) +
+  labs(title = "Malignant vs normal epithelial cells — NMPR (CopyKAT)",
+       x = "", y = "Proportion") +
+  theme_classic()
+ggsave(file.path(OUT_FIG, "CopyKAT_NMPR", "CopyKAT_NMPR_Barplot.png"),
+       p_nmpr, width = 5, height = 5, dpi = 150)
+message("Saved: CopyKAT_NMPR_Barplot.png")
 
-# 7) Barplot by response
-df_bar <- pred_all %>%
-  filter(copykat.pred %in% c("aneuploid", "diploid")) %>%
+# 4) Barplot MPR + NMPR combiné
+pred_all <- bind_rows(pred_MPR, pred_NMPR)
+
+bar_all <- pred_all %>%
+  filter(!is.na(copykat.pred)) %>%
   group_by(response, copykat.pred) %>%
   summarise(n = n(), .groups = "drop") %>%
   group_by(response) %>%
   mutate(prop = n / sum(n))
 
-png(file.path(OUT_FIG, "Bloc4B_08h_Barplot_CopyKAT_response.png"),
-    width = 8, height = 6, units = "in", res = 300)
-print(ggplot(df_bar, aes(x = response, y = prop, fill = copykat.pred)) +
-        geom_col(width = 0.8, color = "white") +
-        scale_fill_manual(values = c("aneuploid" = "#D73027",
-                                     "diploid"   = "#4393C3")) +
-        scale_y_continuous(labels = function(x) paste0(round(x * 100), "%")) +
-        theme_classic() +
-        theme(axis.title.x = element_blank(),
-              axis.text.x  = element_text(size = 13, face = "bold"),
-              legend.title = element_blank()) +
-        ylab("Proportion") +
-        labs(title = "Malignant vs normal epithelial cells by response — GSE207422 (CopyKAT)"))
-dev.off()
+p_all <- ggplot(bar_all, aes(x = response, y = prop, fill = copykat.pred)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("aneuploid" = "#E63946", "diploid" = "#457B9D", "not.defined" = "grey80")) +
+  labs(title = "Malignant vs normal epithelial cells by response — GSE207422 (CopyKAT)",
+       x = "", y = "Proportion") +
+  theme_classic()
+ggsave(file.path(OUT_FIG, "Bloc4B_08h_Barplot_CopyKAT_response.png"),
+       p_all, width = 7, height = 5, dpi = 150)
 message("Saved: Bloc4B_08h_Barplot_CopyKAT_response.png")
 
-# 8) Save updated object
-saveRDS(seu_Epi, file.path(OUT_OBJ, "Bloc4B_08h_seu_Epithelial_CopyKAT.rds"))
-message("Saved: Objects/Bloc4B_08h_seu_Epithelial_CopyKAT.rds")
+# 5) UMAP MPR + NMPR — exclude cells without CopyKAT prediction
+pred_umap <- pred_all %>%
+  dplyr::select(cell.names, copykat.pred) %>%
+  dplyr::rename(CopyKAT_pred = copykat.pred)
 
-# 9) Session info
-writeLines(capture.output(sessionInfo()),
-           file.path(DATA_DIR, "session_info_linux.txt"))
-message("DONE Bloc4B Script 08h")
+seu_Epi$CopyKAT_pred <- pred_umap$CopyKAT_pred[match(colnames(seu_Epi), pred_umap$cell.names)]
+
+# Keep only cells with a CopyKAT prediction
+seu_sub_umap <- subset(seu_Epi, cells = pred_umap$cell.names)
+
+p_umap <- DimPlot(seu_sub_umap, group.by = "CopyKAT_pred",
+                  cols = c("aneuploid" = "#E63946", "diploid" = "#457B9D", "not.defined" = "grey80")) +
+  ggtitle("CopyKAT predictions — Epithelial cells GSE207422")
+ggsave(file.path(OUT_FIG, "Bloc4B_08h_UMAP_CopyKAT.png"),
+       p_umap, width = 8, height = 6, dpi = 150)
+message("Saved: Bloc4B_08h_UMAP_CopyKAT.png")

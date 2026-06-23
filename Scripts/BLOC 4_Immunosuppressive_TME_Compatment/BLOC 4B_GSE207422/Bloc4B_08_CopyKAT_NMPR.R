@@ -33,7 +33,8 @@ message("NMPR cells: ", sum(seu_sub$PathResponse == "NMPR"))
 message("Ciliated reference: ", sum(seu_sub$TME_cell_type == "Ciliated_epithelial"))
 
 # 2) Count matrix
-count_matrix <- as.matrix(seu_sub[["RNA"]]$counts)
+count_matrix <- seu_sub[["RNA"]]$counts
+count_matrix <- as(count_matrix, "dgCMatrix")
 
 # 3) Normal reference
 normal_cells <- colnames(seu_sub)[seu_sub$TME_cell_type == "Ciliated_epithelial"]

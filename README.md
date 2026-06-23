@@ -24,16 +24,27 @@ independent, larger cohort with paired TCR sequencing.
 
 ## Dataset
 
+## Dataset
+
 | Field | Details |
 |---|---|
 | **Accession** | [GSE243013](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243013) |
 | **Publication** | Liu et al., *Cell* 2025 |
 | **Histology** | LUAD only (n = 63, filtered from 234 NSCLC) |
 | **Modalities** | scRNA-seq + scTCR-seq |
-| **Treatment** | Neoadjuvant chemo + anti-PD-1 |
-| **Response variable** | Pathological response: MPR vs. non-MPR |
+| **Treatment** | Neoadjuvant anti-PD-1 + chemotherapy |
+| **Response variable** | Pathological response: MPR vs. non-MPR vs. pCR |
 | **Timing** | Post-treatment surgical resection |
 
+| Field | Details |
+|---|---|
+| **Accession** | [GSE207422](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE207422) |
+| **Publication** | Hu et al., *Cancer Cell* 2023 |
+| **Histology** | NSCLC (predominantly LUAD, n = 13) |
+| **Modalities** | scRNA-seq |
+| **Treatment** | Neoadjuvant anti-PD-1 + chemotherapy |
+| **Response variable** | Pathological response: MPR vs. NMPR |
+| **Timing** | Post-treatment surgical resection |
 ---
 
 ## Biological question
@@ -461,24 +472,44 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
 - Tool: CopyKAT v1.2.5 (Gao et al., Nature Genetics 2021)
 - Normal reference: Ciliated_epithelial (565 cells)
 - Full epithelial object (8,944 cells), win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1
-- RAM constraint: process killed at step 4/7 despite WSL 13GB and win.size reduction. 
-Kaggle: R package installation blocked (no internet access). 
+- RAM constraint: process killed at step 4/7 despite WSL 13GB and win.size reduction.
+Kaggle: R package installation blocked (no internet access).
 Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 - Script retained for methodological transparency
 
-**CopyKAT by cell type (Scripts 08d-08h),  RAM solution:**
-- Same tool and parameters
-- Solution: analyzed separately by epithelial subtype + Ciliated reference
-  Each run: 1,700–4,000 cells, RAM manageable (6–8GB peak)
-- win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1, plot.genes=FALSE
+**CopyKAT by condition : revised approach (Scripts 08_MPR, 08_NMPR, 08h):**
+- Methodological revision: initial per-subtype runs (Scripts 08d-08g) were replaced by
+  per-condition runs for cross-tool consistency with SCEVAN
+- MPR run: all epithelial MPR cells (1,612 cells) + Ciliated reference
+- NMPR run: per epithelial subtype x NMPR condition due to RAM constraints (7,332 cells total):
+  AT2_NMPR, Basal_NMPR, EMT_NMPR, Tumor_epithelial_NMPR; each run 500-2,000 cells
+- Same parameters: win.size=15, LOW.DR=0.05, UP.DR=0.1, n.cores=1
+- Original per-subtype scripts (08d-08g) retained for methodological transparency
 
-**SCEVAN (Scripts 08a-08c), cross-validation:**
+**SCEVAN (Scripts 08a-08b), cross-validation:**
 - Tool: SCEVAN v1.0.3 (De Falco et al., Nature Communications 2023)
 - Normal reference: Ciliated_epithelial (565 cells)
 - MPR and NMPR analyzed separately, par_cores=1, SUBCLONES=FALSE, ClonalCN=FALSE
 - After internal QC: 8,405 cells and 8,162 genes retained
 
-**SCEVAN vs CopyKAT — comparison by cell type (tumor cells only, Ciliated excluded):**
+**SCEVAN vs CopyKAT : cross-validation by condition (Ciliated cells excluded):**
+
+| Condition | SCEVAN tumor | CopyKAT aneuploid | Concordance |
+|-----------|-------------|-------------------|-------------|
+| MPR | ~32% | ~38% | Consistent |
+| NMPR | ~47% | ~75% | Consistent |
+| MPR vs NMPR | NMPR > MPR | NMPR > MPR | Directional concordance |
+
+**Key observations:**
+- Both tools agree on directional difference: higher tumor/aneuploid fraction in NMPR than MPR, consistent with clinical non-response
+- CopyKAT systematically detects higher aneuploid fractions than SCEVAN, reflecting its higher sensitivity to low-level copy number fluctuations, a known property of the tool
+- SCEVAN proportions (~32% MPR, ~47% NMPR) are more conservative and better aligned with expected residual tumor burden after neoadjuvant treatment
+- MPR CopyKAT run shows higher not.defined fraction (~25%) compared to NMPR, reflecting the global run design vs per-subtype design, a methodological asymmetry documented here
+- UMAP spatial concordance: both tools identify the same tumor cell cluster in the lower UMAP region, confirming localization of malignant epithelial cells
+- CNV clonal profiles (SCEVAN ClonalCNProfile) are identical between MPR and NMPR, suggesting treatment response is not driven by chromosomal architecture differences but by transcriptional and microenvironmental factors
+- EMT and Tumor_epithelial subtypes exclusive to NMPR, transcriptional rather than genomic drivers of non-response
+
+**Previous per-subtype cross-validation (Scripts 08d-08g, retained for transparency):**
 
 | Cell type | SCEVAN tumor | SCEVAN normal | CopyKAT aneuploid | CopyKAT diploid |
 |-----------|-------------|---------------|-------------------|-----------------|
@@ -486,13 +517,6 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 | Tumor_epithelial_AT2 | 0 (0%) | 1,661 (95%) | 1,642 (94%) | 4 (0.2%) |
 | Tumor_epithelial_basal | 533 (35%) | 689 (45%) | 744 (49%) | 460 (30%) |
 | Tumor_epithelial_EMT | 0 (0%) | 1,600 (94%) | 643 (38%) | 940 (55%) |
-
-**Key observations:**
-- Tumor_epithelial : strong concordance between tools (99% aneuploid/tumor)
-- AT2 : discordant, CopyKAT identifies 94% aneuploid, SCEVAN classifies as normal
-  CopyKAT more sensitive for subtle CNV in AT2 cells
-- Basal : partial concordance, both tools identify mixed malignant/normal population
-- EMT : discordant, SCEVAN 0% tumor vs CopyKAT 38% aneuploid. Majority diploid confirmed by both tools but quantitative difference is biologically significant. Whether EMT resistance is driven by epigenetic reprogramming alone or combined with subtle genomic alterations remains to be resolved, with implications for therapeutic targeting strategies.
 
 ---
 
@@ -547,13 +571,13 @@ Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
 ## Preliminary observations : CollecTRI CD8 (Bloc 3)
 
-**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses — confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
+**Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses-confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
 
 **Visualization approach:** Heatmaps row-scaled (z-score) show state-specific TF patterns within each CD8 state per condition. Violin plots (Top 6 by variance, absolute scores) show global MPR vs non-MPR differences. The two are complementary.
 
 **Two complementary visualizations:**
-- **Violin plots (Top 6 by variance, absolute scores)** — global MPR vs non-MPR comparison across CD8.TEX and CD8.TPEX
-- **Heatmaps (scale=row, Top 20 by variance)** — state-specific TF patterns within each CD8 state per condition
+- **Violin plots (Top 6 by variance, absolute scores)** , global MPR vs non-MPR comparison across CD8.TEX and CD8.TPEX
+- **Heatmaps (scale=row, Top 20 by variance)** , state-specific TF patterns within each CD8 state per condition
 
 **Violin plots — cross-dataset consensus (objective Top 6):**
 - ELK4 enriched MPR CD8.TEX = cross-dataset
@@ -569,7 +593,7 @@ GSE243013 :
 - CD8.TEX MPR : MHC II (RFXAP/RFXANK/RFX5) + TBX21 + ELK4 → functional cytotoxic program
 - CD8.TPEX MPR : ELK4 dominant, TBX21 quasi-absent → pure reactivation program
 - CD8.TEX pCR : HOPX dominant, ELK4 absent → post-response quiescence
-- CD8.EM pCR : most transcriptionally diverse state — nearly all 20 TFs active → polyfonctional memory surveillance
+- CD8.EM pCR : most transcriptionally diverse state, nearly all 20 TFs active → polyfonctional memory surveillance
 
 GSE207422 :
 - CD8.TEX NMPR : MHC II (RFXAP/RFXANK/RFX5/CIITA) + STAT1 + ZBTB4
@@ -581,8 +605,8 @@ GSE207422 :
 - ELK4 most robust discriminating TF in MPR , dominant in TPEX MPR both datasets, present in TEX MPR GSE207422
 - TBX21 in non-MPR CD8.TEX WITHOUT ELK4 = abortive cytotoxic program; TBX21 in MPR CD8.TEX WITH ELK4 = functional cytotoxic program
 - ABL1 and NFYC as consistent ELK4 co-activators in MPR TEX/TPEX (GSE207422) and MPR TPEX (GSE243013)
-- non-MPR TPEX : chronic proliferation program (MYC/E2F/HSF) without cytotoxic coordination — confirmed cross-dataset
-- pCR CD8.TEX : HOPX-dominant quiescence — post-complete response state
+- non-MPR TPEX : chronic proliferation program (MYC/E2F/HSF) without cytotoxic coordination : confirmed cross-dataset
+- pCR CD8.TEX : HOPX-dominant quiescence : post-complete response state
 
 ## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
 
@@ -661,7 +685,7 @@ GSE243013 :
 - Resident M2 MPR : ELK4 dominant : pro-immunogenic signal 
 - Resident M2 non-MPR : HIF1A, NFKB : hypoxic/inflammatory stress
 - Resident M2 pCR : ELK4 + DMTF1
-- Monocyte FCN1+ non-MPR : HIF1A dominant — hypoxic adaptation
+- Monocyte FCN1+ non-MPR : HIF1A dominant : hypoxic adaptation
 - Stress-response non-MPR : MYC + HSF1/HSF2 : chronic proliferation 
 - Proliferating pCR : MYC very strong
 - Classical-Mono MPR : ELK4 + MHC II dominant 
@@ -682,7 +706,16 @@ GSE207422 :
 - HIF1A enriched non-responder Monocyte TAMs both datasets 
 - MYC/HSF enriched non-responder Stress-response TAMs GSE243013 
 - SPP1+ immunosuppressive NMPR most transcriptionally active GSE207422 
-- IFN-stimulated STAT1 constitutive both datasets — not discriminating
+- IFN-stimulated STAT1 constitutive both datasets : not discriminating
+
+## Preliminary observations : Epithelial compartment CNV (Bloc 4B, GSE207422)
+
+- Epithelial composition: Basal dominant in MPR (~62%), EMT and Tumor_epithelial exclusive to NMPR, transcriptional rather than genomic drivers of non-response
+- CNV clonal profiles (SCEVAN) identical between MPR and NMPR: treatment response not determined by chromosomal architecture differences
+- Both SCEVAN and CopyKAT confirm higher tumor/aneuploid fraction in NMPR (~47%/~75%) vs MPR (~32%/~38%) : directional concordance between tools
+- EMT cells: maximal discordance between tools (SCEVAN 0% tumor vs CopyKAT 38% aneuploid); whether EMT resistance is driven by subtle genomic alterations or transcriptional reprogramming alone remains unresolved
+- Tumor_epithelial subtype: strong cross-tool concordance (99% tumor/aneuploid both tools)
+- Next steps: CytoTRACE, UCell, CollecTRI on confirmed tumor vs normal epithelial cells per condition to characterize transcriptional state differences driving non-response
 
 ## Methodological Notes
 
@@ -728,7 +761,6 @@ TumorImmune_Crosstalk_LUAD/
 ├── session_info.txt
 └──session_info_linux.txt
  
-```
 ```
 
 ---
