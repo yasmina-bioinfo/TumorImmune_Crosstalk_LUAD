@@ -518,6 +518,17 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 | Tumor_epithelial_basal | 533 (35%) | 689 (45%) | 744 (49%) | 460 (30%) |
 | Tumor_epithelial_EMT | 0 (0%) | 1,600 (94%) | 643 (38%) | 940 (55%) |
 
+#### Script 09a : CytoTRACE2 on epithelial cells (SCEVAN labels)
+- Tool: CytoTRACE2 v1.1.0 (Kang et al., Nature Methods 2025)
+- Input: Bloc4B_07_seu_Epithelial.rds (n=8,944 cells)
+- SCEVAN labels used as annotation (primary CNV tool)
+- 6 groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=1,867), EMT_NMPR (n=1,707), Ciliated (n=565)
+- Parameters: species="human", ncores=1, seed=42, batch_size=3000, smooth_batch_size=1000
+- Batching used to manage RAM constraints (8,944 cells, 24,292 genes)
+- Score range: 0 (differentiated) to 1 (totipotent)
+- Output: Bloc4B_09a_CytoTRACE2_SCEVAN_scores.csv
+          Bloc4B_09a_seu_Epithelial_CytoTRACE2.rds
+
 ---
 
 ## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
@@ -716,6 +727,35 @@ GSE207422 :
 - EMT cells: maximal discordance between tools (SCEVAN 0% tumor vs CopyKAT 38% aneuploid); whether EMT resistance is driven by subtle genomic alterations or transcriptional reprogramming alone remains unresolved
 - Tumor_epithelial subtype: strong cross-tool concordance (99% tumor/aneuploid both tools)
 - Next steps: CytoTRACE, UCell, CollecTRI on confirmed tumor vs normal epithelial cells per condition to characterize transcriptional state differences driving non-response
+
+## Preliminary observations : CytoTRACE2 epithelial differentiation (Bloc 4B, GSE207422 — SCEVAN labels)
+
+**Violin plot observations (CytoTRACE2 Score, 0=differentiated, 1=totipotent) :**
+
+- Ciliated : very low scores (~0.05-0.10), terminally differentiated, expected for mature bronchial cells
+- EMT_NMPR : low scores (~0.10-0.25), majority converging toward differentiation, supports SCEVAN classification (0% tumor); EMT reprogramming appears terminal rather than stem-like
+- normal_MPR : pear-shaped distribution with two subpopulations coexist; one highly differentiated and one less differentiated, suggesting epithelial plasticity in the normal compartment under MPR conditions
+- normal_NMPR : mass concentrated at low scores, uniformly differentiated, transcriptionally static normal epithelial cells in non-responding patients
+- tumor_MPR : compact distribution, high scores (~0.40-0.65), homogeneously stem-like, low differentiation, consistent with a targetable tumor population
+- tumor_NMPR : broad bimodal distribution (~0.15-0.80), high intra-tumoral differentiation heterogeneity, consistent with treatment resistance mechanisms
+
+**Biological interpretation :**
+
+In MPR, a dissociation is observed between tumor and normal compartments : tumor cells are homogeneously stem-like while normal epithelial cells display plasticity, suggesting active epithelial remodeling in the treatment-responsive microenvironment. In NMPR, tumor cells show greater heterogeneity while normal cells are uniformly static, a pattern potentially reflecting impaired epithelial dynamics contributing to non-response. EMT_NMPR low differentiation scores support SCEVAN over CopyKAT for this subtype classification, pending CopyKAT-based CytoTRACE2 cross-validation.
+
+**EMT reclassification (Script 09c):**
+EMT_NMPR cells were reclassified as normal_NMPR based on three converging lines of evidence:
+1. SCEVAN highest specificity (0.75) in published benchmarks vs CopyKAT tendency to overestimate tumor fractions (Lanucara et al., Biomedicines 2024)
+2. CytoTRACE2 low stemness scores for EMT cells under both SCEVAN and CopyKAT labels, consistent with terminally differentiated rather than stem-like state
+3. CopyKAT cross-validation confirming identical low-score distribution for EMT_NMPR
+
+**Final groups for downstream analyses (UCell, CollecTRI):**
+tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated
+
+**Literature support for normal epithelial compartment hypothesis:**
+- Hu et al. 2023 (Genome Medicine, GSE207422): normal epithelial cells expand in MPR TME after neoadjuvant PD-1 + chemotherapy
+- Cui et al. 2025 (Molecular Cancer): neoadjuvant chemoimmunotherapy induces immunosuppressive microenvironment in normal epithelial cells
+- Supports CellChat/NicheNet hypothesis: normal epithelial plasticity in MPR may associate with pro-immunogenic signaling to CD8 and TAMs
 
 ## Methodological Notes
 
