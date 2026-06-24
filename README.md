@@ -528,6 +528,41 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 - Score range: 0 (differentiated) to 1 (totipotent)
 - Output: Bloc4B_09a_CytoTRACE2_SCEVAN_scores.csv
           Bloc4B_09a_seu_Epithelial_CytoTRACE2.rds
+          Bloc4B_09a_UMAP_CytoTRACE2_Score.png
+          Bloc4B_09a_Violin_CytoTRACE2_SCEVAN.png
+
+#### Script 09b : CytoTRACE2 on epithelial cells (CopyKAT labels)
+- Tool: CytoTRACE2 v1.1.0 (Kang et al., Nature Methods 2025)
+- Input: Bloc4B_09a_seu_Epithelial_CytoTRACE2.rds
+- CopyKAT labels used for cross-validation of EMT classification
+- 6 groups: aneuploid_MPR, diploid_MPR, aneuploid_NMPR, diploid_NMPR, EMT_NMPR, Ciliated
+- CytoTRACE2 scores reused from Script 09a, no recomputation
+- Output: Bloc4B_09b_CytoTRACE2_CopyKAT_scores.csv
+          Bloc4B_09b_seu_Epithelial_CytoTRACE2_CopyKAT.rds
+          Bloc4B_09b_UMAP_CytoTRACE2_Score.png
+          Bloc4B_09b_Violin_CytoTRACE2_CopyKAT.png
+
+#### Script 09c : Final epithelial group classification
+- EMT_NMPR reclassified as normal_NMPR based on:
+  1. SCEVAN highest specificity (0.75) among CNV tools (Lanucara et al., Biomedicines 2024)
+  2. CytoTRACE2 low stemness scores under both SCEVAN and CopyKAT labels
+  3. CopyKAT tendency to overestimate tumor fractions in benchmarks
+- Final 5 groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386),normal_NMPR (n=3,574), Ciliated (n=565)
+- Output: Bloc4B_09c_Final_groups.csv
+          Bloc4B_09c_seu_Epithelial_FinalGroups.rds
+          Bloc4B_09c_Violin_CytoTRACE2_FinalGroups.png
+
+#### Script 10 : UCell scoring on epithelial cells
+
+- Tool: UCell v2.x (Andreatta & Carmona, iScience 2021)
+- Input: Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds (n=8,944 cells)
+- 5 final groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=3,574 including reclassified EMT), Ciliated (n=565)
+- 13 signatures: 11 MSigDB Hallmark + 2 custom (HSF1_targets, Antigen_presentation)
+- Signatures imported via msigdbr package (Liberzon et al., Cell Systems 2015)
+- Output: Results/Figures/BLOC4B_Epithelial_TAMs/UCell_Epithelial/
+          Results/Tables/Bloc4B_10_UCell_Epithelial_scores.csv
+          Objects/Bloc4B_10_seu_Epithelial_UCell.rds
+- Figures: 1 dotplot (main figure) + 13 violin plots (supplementary)
 
 ---
 
@@ -756,6 +791,39 @@ tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated
 - Hu et al. 2023 (Genome Medicine, GSE207422): normal epithelial cells expand in MPR TME after neoadjuvant PD-1 + chemotherapy
 - Cui et al. 2025 (Molecular Cancer): neoadjuvant chemoimmunotherapy induces immunosuppressive microenvironment in normal epithelial cells
 - Supports CellChat/NicheNet hypothesis: normal epithelial plasticity in MPR may associate with pro-immunogenic signaling to CD8 and TAMs
+
+## Preliminary observations : UCell epithelial compartment (Bloc 4B, GSE207422)
+
+**Signatures applied (13 total):**
+- MSigDB Hallmark (Liberzon et al., Cell Systems 2015): Proliferation_E2F, Proliferation_G2M, Apoptosis, EMT, IFN_gamma_response, IL6_JAK_STAT3, TNFA_NFkB, WNT_beta_catenin, Notch_signaling, Unfolded_protein, Hypoxia
+- Custom: HSF1_targets (Mendillo et al., Cell 2012), Antigen_presentation (Hu et al., Genome Medicine 2023)
+
+**Dotplot observations (ranked by expression per group):**
+
+tumor_NMPR: Proliferation_E2F > Proliferation_G2M > Apoptosis > TNFA_NFkB > Unfolded_protein > HSF1_targets > Hypoxia = Aggressive survival program: massive proliferation, chronic proteotoxic stress, inflammatory resistance, absent antigen presentation
+
+tumor_MPR: IL6_JAK_STAT3 > WNT_beta_catenin > Notch_signaling > Hypoxia > Unfolded_protein > Proliferation_E2F > Proliferation_G2M = Plasticity program: developmental signaling dominant, moderate proliferation, communicative tumor phenotype potentially sensitive to immunotherapy
+
+normal_NMPR: EMT > IFN_gamma_response > Hypoxia > TNFA_NFkB > Apoptosis = Dysfunctional inflammatory compartment: EMT residual signature (reclassified cells) + sterile inflammation amplified by IFN without coordinated antigen presentation
+
+normal_MPR: Antigen_presentation > IFN_gamma_response > IL6_JAK_STAT3 = Pro-immunogenic compartment: normal epithelial cells actively present antigens and respond to IFN in a coordinated manner, supporting immune activation
+
+Ciliated: Antigen_presentation > Notch_signaling = Stable reference: constitutive antigen presentation, identity maintenance
+
+**Key biological interpretations:**
+
+- IFN_gamma_response higher in normal_NMPR than normal_MPR but coupled to EMT and TNFA_NFkB rather than antigen presentation — IFN acts as a contextual amplifier: pro-immunogenic in MPR, pro-inflammatory/immunosuppressive in NMPR
+- HSF1_targets confirmed in tumor_NMPR (compact, high, uniform distribution) > tumor_MPR : completes the HSF1 feedback loop across three compartments: tumor_NMPR → TAMs → CD8 exhaustion
+- Unfolded_protein and HSF1_targets concordant in tumor_NMPR, independent signatures converging on same chronic proteotoxic stress program (internal validation)
+- Antigen_presentation quasi-absent in tumor_NMPR → complete immune evasion through loss of antigen presentation
+- Two distinct tumor survival programs identified:
+  tumor_MPR: IL6/JAK/STAT3 + WNT + Notch (plasticity, communicative)
+  tumor_NMPR: HSF1 + Proliferation + TNFA (stress resistance, autonomous)
+- Apoptosis slightly higher in NMPR groups, tumor cells resist death signals (BIRC5/BCL2 program) while some normal NMPR cells succumb, interpretation limited by absence of pCR group in GSE207422
+- Hypoxia higher in tumor_MPR than tumor_NMPR — consistent with active immune remodeling increasing local oxygen consumption rather than hypoxic escape
+
+**Cross-compartment HSF1 conclusion:**
+HSF1_targets enriched in tumor_NMPR (epithelial) + non-responder TAMs (Bloc 4A) + non-responder CD8 (Bloc 3), suggesting a HSF1-driven immunosuppressive feedback loop originating from the tumor epithelial compartment propagating through the TME
 
 ## Methodological Notes
 

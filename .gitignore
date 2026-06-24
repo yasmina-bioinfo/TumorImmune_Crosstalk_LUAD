@@ -24,3 +24,8 @@ omnipathr-log/
 # SCEVAN large outputs
 scevan_log.txt
 Results/Figures/BLOC4B_Epithelial_TAMs/output/*.log
+
+*vega_output
+*_output
+Results/Figures/BLOC4B_Epithelial_TAMs/output/
+*.log
