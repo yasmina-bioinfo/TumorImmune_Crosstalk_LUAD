@@ -130,4 +130,66 @@ print(summary_scores)
 fwrite(summary_scores, file.path(OUT_TAB, "Bloc3_GSE207422_UCell_scores_summary.csv"))
 message("Saved: Bloc3_GSE207422_UCell_scores_summary.csv")
 
+# 8) Save CD8 object with UCell scores
+saveRDS(seu_CD8, file.path(DATA_DIR, "Objects/Bloc3_GSE207422_02_seu_CD8_UCell.rds"))
+message("Saved: Objects/Bloc3_GSE207422_02_seu_CD8_UCell.rds")
+
+# 9) Dotplot: all signatures x all CD8 states
+Idents(seu_CD8) <- "functional.cluster"
+
+p_dot <- DotPlot(seu_CD8,
+                 features = score_cols,
+                 group.by = "functional.cluster",
+                 cols = c("lightblue", "red"),
+                 dot.scale = 8) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        plot.title  = element_text(size = 14, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores — CD8 T cells GSE207422") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_GSE207422_UCell_Dotplot_CD8.png"),
+       p_dot, width = 10, height = 6, dpi = 300, bg = "white")
+message("Saved: Bloc3_GSE207422_UCell_Dotplot_CD8.png")
+
+# 10) Dotplot x condition
+Idents(seu_CD8) <- "PathResponse"
+
+p_dot_response <- DotPlot(seu_CD8,
+                          features = score_cols,
+                          group.by = "PathResponse",
+                          cols = c("lightblue", "red"),
+                          dot.scale = 8) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        plot.title  = element_text(size = 14, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores by response — CD8 T cells GSE207422") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_GSE207422_UCell_Dotplot_CD8_response.png"),
+       p_dot_response, width = 8, height = 5, dpi = 300, bg = "white")
+
+# 11) Dotplot x CD8 states x condition
+p_dot_split <- DotPlot(seu_CD8,
+                       features = score_cols,
+                       group.by = "functional.cluster",
+                       split.by = "PathResponse",
+                       cols = c("MPR" = "#E63946", "NMPR" = "#457B9D"),
+                       dot.scale = 6) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11, color = "black"),
+        axis.text.y = element_text(size = 11, color = "black"),
+        plot.title  = element_text(size = 13, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores by CD8 state and response — GSE207422") +
+  labs(subtitle = "Red = MPR | Blue = NMPR") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_GSE207422_UCell_Dotplot_CD8_split.png"),
+       p_dot_split, width = 14, height = 7, dpi = 300, bg = "white")
+
 message("DONE Bloc3_GSE207422 Script 03")

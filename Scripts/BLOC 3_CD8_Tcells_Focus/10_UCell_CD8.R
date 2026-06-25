@@ -134,4 +134,70 @@ message("Saved: Bloc3_UCell_scores_summary.csv")
 message("Saving CD8 UCell object...")
 saveRDS(seu_CD8, file.path(DATA_DIR, "Objects/Bloc3_11_seu_CD8_UCell.rds"))
 message("Saved: Objects/Bloc3_11_seu_CD8_UCell.rds")
+
+# 9) Dotplot: all signatures x all CD8 states
+message("Generating dotplot...")
+
+Idents(seu_CD8) <- "functional.cluster"
+
+p_dot <- DotPlot(seu_CD8,
+                 features = score_cols,
+                 group.by = "functional.cluster",
+                 cols = c("lightblue", "red"),
+                 dot.scale = 8) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        plot.title  = element_text(size = 14, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores — CD8 T cells GSE243013") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_UCell_Dotplot_CD8.png"),
+       p_dot, width = 10, height = 6, dpi = 300, bg = "white")
+
+message("Saved: Bloc3_UCell_Dotplot_CD8.png")
+
+# 10) Dotplot x condition
+Idents(seu_CD8) <- "pathological_response"
+
+p_dot_response <- DotPlot(seu_CD8,
+                          features = score_cols,
+                          group.by = "PathResponse",
+                          cols = c("lightblue", "red"),
+                          dot.scale = 8) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        plot.title  = element_text(size = 14, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores by response — CD8 T cells GSE207422") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_GSE243013_UCell_Dotplot_CD8_response.png"),
+       p_dot_response, width = 8, height = 5, dpi = 300, bg = "white")
+message("Saved!")
+
+# 11) Dotplot x CD8 states x condition
+p_dot_split <- DotPlot(seu_CD8,
+                       features = score_cols,
+                       group.by = "functional.cluster",
+                       split.by = "pathological_response",
+                       cols = c("MPR" = "#E63946", "non-MPR" = "#457B9D", "pCR" = "#2A9D8F"),
+                       dot.scale = 6) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11, color = "black"),
+        axis.text.y = element_text(size = 11, color = "black"),
+        plot.title  = element_text(size = 13, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90"),
+        legend.position = "right") +
+  ggtitle("UCell scores by CD8 state and response — GSE243013") +
+  labs(subtitle = "Red = MPR | Blue = non-MPR | Green = pCR") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc3_UCell_Dotplot_CD8_split.png"),
+       p_dot_split, width = 16, height = 8, dpi = 300, bg = "white")
+
+message("Saved!")
+
 message("DONE Bloc3 Script 10")

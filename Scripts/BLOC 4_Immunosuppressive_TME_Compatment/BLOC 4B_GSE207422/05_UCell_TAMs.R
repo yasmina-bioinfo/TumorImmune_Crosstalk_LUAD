@@ -194,4 +194,25 @@ message("Saved: Bloc4B_UCell_TAMs_combined_barplot_scores.png")
 message("Saving updated TAMs object with UCell scores...")
 saveRDS(seu_TAM, file.path(DATA_DIR_OUTPUT, "Objects/Bloc4B_05_seu_TAMs_combined_UCell.rds"))
 message("Saved: Objects/Bloc4B_05_seu_TAMs_combined_UCell.rds")
+
+# 9) Dotplot by TAM subtype and response
+p_dot <- DotPlot(seu_TAM,
+                 features = score_cols,
+                 group.by = "combined_annotation",
+                 split.by = "PathResponse",
+                 cols = c("MPR" = "#E63946", "NMPR" = "#457B9D"),
+                 dot.scale = 6) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11, color = "black"),
+        axis.text.y = element_text(size = 9, color = "black"),
+        plot.title  = element_text(size = 13, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores by TAM subtype and response — GSE207422") +
+  labs(subtitle = "Red = MPR | Blue = NMPR") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc4B_UCell_Dotplot_TAMs_split.png"),
+       p_dot, width = 14, height = 10, dpi = 300, bg = "white")
+message("Saved: Bloc4B_UCell_Dotplot_TAMs_split.png")
+
 message("DONE Bloc4B Script 05")

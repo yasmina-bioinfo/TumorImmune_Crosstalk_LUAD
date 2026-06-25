@@ -200,8 +200,30 @@ ggsave(file.path(OUT_FIG, "Bloc4A_UCell_TAMs_barplot_scores.png"),
        p_bar_ucell, width = 10, height = 8, dpi = 300, bg = "white")
 message("Saved: Bloc4A_UCell_TAMs_barplot_scores.png")
 
+
 # 8) Save updated object
 message("Saving updated TAMs object with UCell scores...")
 saveRDS(seu_TAM, file.path(DATA_DIR_OUTPUT, "Objects/Bloc4A_05_seu_TAMs_UCell.rds"))
 message("Saved: Objects/Bloc4A_05_seu_TAMs_UCell.rds")
+
+# 9) Dotplot by TAM subtype and response
+p_dot <- DotPlot(seu_TAM,
+                 features = score_cols,
+                 group.by = "final_annotation",
+                 split.by = "pathological_response",
+                 cols = c("MPR" = "#E63946", "non-MPR" = "#457B9D", "pCR" = "#2A9D8F"),
+                 dot.scale = 6) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11, color = "black"),
+        axis.text.y = element_text(size = 9, color = "black"),
+        plot.title  = element_text(size = 13, color = "black", face = "bold"),
+        panel.grid.major = element_line(color = "grey90")) +
+  ggtitle("UCell scores by TAM subtype and response — GSE243013") +
+  labs(subtitle = "Red = MPR | Blue = non-MPR | Green = pCR") +
+  xlab("") + ylab("")
+
+ggsave(file.path(OUT_FIG, "Bloc4A_UCell_Dotplot_TAMs_split.png"),
+       p_dot, width = 14, height = 10, dpi = 300, bg = "white")
+
+message("Saved: Bloc4A_UCell_Dotplot_TAMs_split.png")
 message("DONE Bloc4A Script 05")

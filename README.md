@@ -564,6 +564,20 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
           Objects/Bloc4B_10_seu_Epithelial_UCell.rds
 - Figures: 1 dotplot (main figure) + 13 violin plots (supplementary)
 
+#### Script 11 : CollecTRI TF activity on epithelial cells
+
+- Tool: decoupleR run_ulm (Badia-i-Mompel et al., Bioinformatics Advances 2022)
+- Network: CollecTRI (Müller-Dott et al., Nucleic Acids Research 2023), 43,159 interactions, 1,186 TFs
+- Input: Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds (n=8,944 cells)
+- 5 final groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=3,574), Ciliated (n=565)
+- No downsampling applied (manageable dataset size)
+- Top 20 TFs by cross-cell variance (objective selection, no confirmation bias)
+- Top 6 TFs: MYC, RFXAP, RFXANK, HSF2, RFX5, CIITA
+- Output: Results/Figures/BLOC4B_Epithelial_TAMs/CollecTRI_Epithelial/
+          Results/Tables/Bloc4B_11_CollecTRI_Epithelial_TF_activity.csv
+          Objects/Bloc4B_11_seu_Epithelial_TF.rds
+- Figures: 1 heatmap (main figure) + violin plots split tumor/normal (supplementary)
+
 ---
 
 ## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
@@ -580,7 +594,7 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 - Proposed gradient: non-MPR (TEX dominant) → MPR (TEX + TPEX) → pCR (TPEX dominant)
 Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
-## Preliminary observations : UCell CD8 scoring (bloc 3)
+## Preliminary observations : UCell CD8 scoring (bloc 3, GSE243013)
 
 - Exhaustion gradient confirmed: non-MPR (0.347) > pCR (0.249) > MPR (0.220) in CD8.TEX
 - CD8.EM exhaustion: non-MPR (0.128) > MPR (0.107) ≈ pCR (0.106), EM dysfunction in non-responders
@@ -625,7 +639,7 @@ Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 - **Violin plots (Top 6 by variance, absolute scores)** , global MPR vs non-MPR comparison across CD8.TEX and CD8.TPEX
 - **Heatmaps (scale=row, Top 20 by variance)** , state-specific TF patterns within each CD8 state per condition
 
-**Violin plots — cross-dataset consensus (objective Top 6):**
+**Violin plots, cross-dataset consensus (objective Top 6):**
 - ELK4 enriched MPR CD8.TEX = cross-dataset
 - MYC/HSF1/HSF2 enriched non-responders = cross-dataset
 - STAT2/TBX21 : not in objective Top 6 : DoRothEA preliminary only
@@ -820,10 +834,58 @@ Ciliated: Antigen_presentation > Notch_signaling = Stable reference: constitutiv
   tumor_MPR: IL6/JAK/STAT3 + WNT + Notch (plasticity, communicative)
   tumor_NMPR: HSF1 + Proliferation + TNFA (stress resistance, autonomous)
 - Apoptosis slightly higher in NMPR groups, tumor cells resist death signals (BIRC5/BCL2 program) while some normal NMPR cells succumb, interpretation limited by absence of pCR group in GSE207422
-- Hypoxia higher in tumor_MPR than tumor_NMPR — consistent with active immune remodeling increasing local oxygen consumption rather than hypoxic escape
+- Hypoxia higher in tumor_MPR than tumor_NMPR, consistent with active immune remodeling increasing local oxygen consumption rather than hypoxic escape
 
 **Cross-compartment HSF1 conclusion:**
-HSF1_targets enriched in tumor_NMPR (epithelial) + non-responder TAMs (Bloc 4A) + non-responder CD8 (Bloc 3), suggesting a HSF1-driven immunosuppressive feedback loop originating from the tumor epithelial compartment propagating through the TME
+HSF1_targets enriched in tumor_NMPR (epithelial) + non-responder TAMs (Bloc 4A) + non-responder CD8 (Bloc 3), suggesting a HSF1-driven immunosuppressive feedback loop originating from the tumor epithelial compartment propagating through the TME.
+
+## Preliminary observations : CollecTRI TF activity epithelial compartment (Bloc 4B, Script 11)
+
+**Top 20 TFs by cross-cell variance:**
+MYC, RFXAP, RFXANK, HSF2, RFX5, CIITA, NKX2-1, SP1, FOXJ1, DMTF1, NFE2L2, E2F4,
+HSF1, ELK4, TP53, DACH1, HIF1A, E2F1, NFKB, JUN
+
+**TF programs per group (heatmap + violin observations) :**
+
+tumor_MPR: TP53, MYC, NFE2L2, HIF1A, SP1, NFKB, ELK4, JUN, E2F4, CIITA = Mixed plasticity/stress program with pro-immunogenic window (ELK4 + CIITA)
+
+tumor_NMPR: E2F4, HSF2, E2F1, HSF1, DMTF1, TP53, ELK4, SP1, JUN, NFE2L2, HIF1A, NFKB, MYC = Proliferation (E2F4/E2F1) + chronic proteotoxic stress (HSF1/HSF2) , HSF1 confirmed 
+
+normal_MPR: NKX2-1, RFXAP, RFX5, CIITA, RFXANK, DACH1 = MHC II dominant , pro-immunogenic compartment confirmed
+
+normal_NMPR: DACH1, HIF1A, NFKB, JUN, NKX2-1, signal globally weak = Transcriptionally quiescent, uncoordinated inflammatory state
+
+Ciliated: FOXJ1, RFXANK, RFXAP, RFX5, DACH1, CIITA = Ciliary identity (FOXJ1) + constitutive MHC II : stable reference
+
+**Key cross-compartiment findings:**
+
+**HSF1 feedback loop confirmed (3rd compartment):**
+HSF1 enriched in tumor_NMPR epithelial (CollecTRI + UCell) : ORIGIN
++ non-responder TAMs (both datasets) + non-responder CD8 (both datasets)
+= HSF1-driven immunosuppressive cascade originating in tumor epithelial compartment
+
+**ELK4 contextual modulator hypothesis confirmed:**
+- tumor_MPR: ELK4 + CIITA/TP53 = pro-immunogenic context
+- tumor_NMPR: ELK4 + HSF1/E2F = immunosuppressive context
+- CD8 MPR: ELK4 + TBX21 = functional cytotoxic program
+- CD8 NMPR: ELK4 without TBX21 = abortive cytotoxic program
+- TAMs MPR: ELK4 Resident M2 + Classical-Mono (GSE243013)
+   - ELK4 functional output determined by co-regulatory partners, not expression level
+   - Supporting references: Yao 2013 (BMC Genomics), Xue et al. 2023 (Advanced Science)
+
+**MHC II program cross-compartment (MPR):**
+RFXAP/RFXANK/RFX5/CIITA enriched in:
+- normal_MPR epithelial (dominant)
+- tumor_MPR epithelial (CIITA present)
+- Ciliated (constitutive)
+- TAMs MPR (Resident M2, Classical-Mono, MRC1+) = Global pro-immunogenic MHC II program in MPR TME
+
+**Literature support:**
+- Lanucara et al., Biomedicines 2024, SCEVAN/CopyKAT benchmark
+- Hu et al., Genome Medicine 2023, normal epithelial expansion in MPR
+- Cui et al., Molecular Cancer 2025, normal epithelial microenvironment after immunotherapy
+- Yao, BMC Genomics 2013, ELK4 contextual modulator in macrophages
+- Xue et al., Advanced Science 2023, ELK4 co-factor dependency in cancer
 
 ## Methodological Notes
 

@@ -60,7 +60,7 @@ p_nmpr <- ggplot(bar_nmpr, aes(x = response, y = prop, fill = copykat.pred)) +
        x = "", y = "Proportion") +
   theme_classic()
 ggsave(file.path(OUT_FIG, "CopyKAT_NMPR", "CopyKAT_NMPR_Barplot.png"),
-       p_nmpr, width = 5, height = 5, dpi = 150)
+       p_nmpr, width = 5, height = 5, dpi = 300)
 message("Saved: CopyKAT_NMPR_Barplot.png")
 
 # 4) Barplot MPR + NMPR combiné
@@ -81,7 +81,7 @@ p_all <- ggplot(bar_all, aes(x = response, y = prop, fill = copykat.pred)) +
        x = "", y = "Proportion") +
   theme_classic()
 ggsave(file.path(OUT_FIG, "Bloc4B_08h_Barplot_CopyKAT_response.png"),
-       p_all, width = 7, height = 5, dpi = 150)
+       p_all, width = 7, height = 5, dpi = 300)
 message("Saved: Bloc4B_08h_Barplot_CopyKAT_response.png")
 
 # 5) UMAP MPR + NMPR — exclude cells without CopyKAT prediction
@@ -98,5 +98,5 @@ p_umap <- DimPlot(seu_sub_umap, group.by = "CopyKAT_pred",
                   cols = c("aneuploid" = "#E63946", "diploid" = "#457B9D", "not.defined" = "grey80")) +
   ggtitle("CopyKAT predictions — Epithelial cells GSE207422")
 ggsave(file.path(OUT_FIG, "Bloc4B_08h_UMAP_CopyKAT.png"),
-       p_umap, width = 8, height = 6, dpi = 150)
+       p_umap, width = 8, height = 6, dpi = 300)
 message("Saved: Bloc4B_08h_UMAP_CopyKAT.png")

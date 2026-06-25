@@ -53,7 +53,7 @@ p1 <- VlnPlot(seu_vln, features = "CytoTRACE2_Score",
   ggtitle("CytoTRACE2 Score — Final epithelial groups (EMT reclassified as normal_NMPR)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave(file.path(OUT_FIG, "Bloc4B_09c_Violin_CytoTRACE2_FinalGroups.png"),
-       p1, width = 10, height = 6, dpi = 150)
+       p1, width = 10, height = 6, dpi = 300)
 message("Saved: Violin final groups")
 
 # 4) Save final groups CSV

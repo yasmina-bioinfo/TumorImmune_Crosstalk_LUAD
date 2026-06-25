@@ -76,7 +76,7 @@ p <- ggplot(bar_df, aes(x = response, y = prop, fill = scevan_class)) +
   theme_classic()
 
 ggsave(file.path(OUT_FIG, "SCEVAN_NMPR", "Bloc4B_08_Barplot_SCEVAN_NMPR.png"), 
-       p, width = 5, height = 5, dpi = 150)
+       p, width = 5, height = 5, dpi = 300)
 message("Barplot SCEVAN NMPR saved.")
 
 print(table(predictions$scevan_class))
