@@ -116,7 +116,7 @@ Building on a CD8_Exhausted_Terminal enrichment signal in MPR patients (OR = 3.3
 | SCEVAN | CNV inference (malignant vs normal epithelial) | De Falco et al., Nature Communications 2023 |
 | CytoTRACE 2 | Differentiation potency inference (epithelial cells) | Kang et al., Nature 2024 |
 | LIANA+ | Intercellular communication inference (consensus) | Dimitrov et al., *Nat Comm* 2022 |
-| MultiNicheNet | Differential cell-cell communication multi-condition | Browaeys et al., *bioRxiv* 2023 |
+| CellChat v2 | Differential cell-cell communication analysis MPR vs NMPR | Jin et al., *Nature Communications* 2021 |
 ---
 
 ## Progress
@@ -590,7 +590,7 @@ Does the transcriptional divergence between MPR and NMPR compartments (CD8, TAMs
 
 ### Tools
 - LIANA+ v0.1.14 (Dimitrov et al., Nature Communications 2022), consensus LR inference (sca + natmi + connectome)
-- MultiNicheNet v2.0.0 (Browaeys et al., bioRxiv 2023), differential multi-condition communication
+- Differential cell-cell communication analysis across MPR vs NMPR using CellChat v2 (Jin et al., Nature Communications 2021)
 
 ### Design rationale
 Full TME opened for inference: interpretation prioritized on CD8 - TAMs, CD8 - Epithelial, TAMs - Epithelial axes established in Blocs 3 and 4.
@@ -625,6 +625,31 @@ Unexpected interactions retained only if they corroborate findings from prior bl
 - TAM short labels applied for readability (consistent with Blocs 4A/4B)
 - Epithelial labels simplified: tumor_MPR + tumor_NMPR → Tumor epithelial; normal_MPR + normal_NMPR → Normal epithelial
 - Top 5 interactions per target group (aggregate_rank <= 0.05)
+
+### Script 03 : CellChat v2 GSE207422, differential communication analysis
+
+- Input: Bloc5_01_seu_TME_GSE207422.rds
+- CellChatDB.human full database
+- Per condition objects: cellchat_MPR.rds + cellchat_NMPR.rds
+- Parameters: nboot = 100, min.cells = 5
+- Merged object: Bloc5_03_cellchat_merged_GSE207422.rds
+- Differential analysis: netVisual_diffInteraction() + rankNet() per axis
+- Output: Bloc5_03_cellchat_MPR.rds
+          Bloc5_03_cellchat_NMPR.rds
+          Bloc5_03_cellchat_merged_GSE207422.rds
+
+### Script 04 : CellChat v2 GSE207422, custom figures
+
+- Input: Bloc5_03_cellchat_merged_GSE207422.rds
+- Custom ggplot2 figures from exported CellChat CSV (not netVisual_bubble)
+- 3 main axes (MPR vs NMPR comparative bubble plots):
+  1. CD8 → Epithelial (Bloc5_04_CellChat_CD8_Epithelial.png)
+  2. CD8 → TAMs (Bloc5_04_CellChat_CD8_TAMs.png)
+  3. TAMs → Epithelial (Bloc5_04_CellChat_TAMs_Epithelial.png)
+- Heatmaps: number of interactions MPR vs NMPR (Bloc5_04_CellChat_heatmap_MPR.png + NMPR.png)
+- Barplot: interaction counts per condition (Bloc5_04_CellChat_barplot.png)
+- Opacity encoding: p < 0.001 = opaque | p < 0.01 = semi | p < 0.05 = light
+- Note: MultiNicheNet abandoned — n=3 MPR patients insufficient for pseudobulk differential analysis. Script conserved with explanatory note.
 
 ---
 
@@ -968,6 +993,70 @@ NMPR: CXCL8-SDC1 (tumor), IL6-F3, PLAU-ITGA3, VCAN-EGFR, F13A1-ITGB1 (normal) = 
 **HSF1 axis and supplementary figure observations:**
 
 HSF1 is an intracellular transcription factor and is not directly detectable as a ligand in LIANA+. However its secreted targets appear in NMPR interactions: CXCL8-SDC1 from TAMs toward tumor epithelial and IL6-F3 from TAMs toward normal epithelial are known HSF1 transcriptional targets, confirming the HSF1 immunosuppressive program at the ligand-receptor level. The supplementary figure further reveals HSP90AA1-EGFR from CD8.TEX toward TAM_like_stress and tumor epithelial as an additional extracellular HSF1 effector. XCL1-ADGRV1 from CD8.TPEX toward tumor_MPR showed the highest LR score, consistent with TPEX-mediated immune coordination in MPR. GZMB-CHRM3 from CD8.TEX toward tumor_MPR confirmed direct cytotoxic engagement in responders. TNFSF9-HLA-DPA1 and IFNG-IFNGR1_IFNGR2 from CD8.TEX toward TAMs further support the cross-compartment MHC II and IFN programs identified in Blocs 3 and 4.
+
+### Preliminary observations for CellChat GSE207422
+
+**CD8 → Epithelial (MPR vs NMPR) :**
+
+MPR dominant interactions:
+- CRTAM-CADM1 : immune recognition signal in Tumor epithelial = functional CD8-tumor contact in responders
+- PPIA-BSG : cross-compartment stress signal present in both conditions, stronger in Tumor epithelial
+- HLA-DRB1-CD4 toward Ciliated : MHC II-mediated indirect CD4 recruitment signal
+
+NMPR dominant interactions:
+- PPIA-BSG : dominant in Tumor epithelial = stress/immunosuppressive signal amplified
+- GZMA-PARD3 toward Normal epithelial : misdirected cytotoxicity toward normal compartment
+- IFNG toward Normal epithelial : inflammatory signal displaced from tumor
+- HLA-DPA1/DPB1/DRA toward Ciliated : expanded MHC II signal in Ciliated = attempted CD4 recruitment, disconnected from tumor compartment
+
+Conclusion: qualitatively distinct communication MPR vs NMPR; MPR = functional immune-tumor contact; NMPR = misdirected cytotoxicity + displaced inflammatory signal
+
+**CD8 → TAMs (MPR vs NMPR) :**
+
+Shared interactions (both conditions):
+- MT-RNR2-FPRL2 : mitochondrial stress signal present across conditions
+- PTPRC-MRC1 : CD45-CD206 axis, conserved across conditions
+
+MPR-enriched:
+- CCL5-CCR1 : higher Comm.Prob. in MPR across shared TAM subtypes
+
+NMPR-specific:
+- CCL5-CCR1 restricted to Monocyte-derived only
+
+Conclusion: quantitative rather than qualitative difference; MPR = stronger signal intensity on shared interactions
+
+**TAMs → Epithelial (MPR vs NMPR) :**
+
+MPR dominant interactions:
+- FN1-CD44, FN1-SDC1 : matricial remodeling signal toward Tumor and Normal epithelial (p < 0.001)
+- LGALS9-CD44 : adhesion and plasticity signal toward Tumor epithelial
+- HLA-DRA-CD4 toward Ciliated : antigen presentation residual signal in regenerative context
+- APP-CD74 toward Normal epithelial : MHC II/CLIP pathway, pro-immunogenic
+
+NMPR dominant interactions:
+- FN1-SDC1 : dominant toward Tumor epithelial (p < 0.001, highest Comm.Prob.) = active fibrosis, not resolutive remodeling
+- FN1-SDC4 toward Ciliated : fibrotic signal extended to airway compartment
+- LGALS9-P4HB toward Normal epithelial : stress signal (P4HB = PDI, ER stress marker)
+- PPIA-BSG toward Tumor epithelial : cross-compartment stress/immunosuppression, consistent with CD8→Epithelial NMPR
+- SPP1-CD44 toward Tumor epithelial : pro-tumoral osteopontin signal, immune exclusion
+
+Conclusion: MPR = TAM-driven resolutive remodeling + residual antigen presentation; NMPR = TAM-driven active fibrosis + stress + pro-tumoral SPP1 signal; consistent with hostile immunosuppressive TME
+
+**Cross-tool convergence LIANA+ / CellChat :**
+
+- SPP1-CD44 NMPR : confirmed by both tools
+- PPIA-BSG cross-compartiment NMPR : confirmed by both tools
+- Fibrotic signal NMPR (FN1-SDC1/SDC4) : confirmed by both tools
+- HGF-SDC1 MPR (LIANA+) : not detected by CellChat (database resource difference, expected divergence)
+- CXCL8-SDC1 NMPR (LIANA+) : not detected by CellChat (idem)
+
+**HSF1 axis : CellChat confirmation :**
+
+CXCL8 and IL6, direct transcriptional targets of HSF1 in CollecTRI were detected as dominant TAM ligands in NMPR by both LIANA+ and CellChat. HSP90AA1, an additional HSF1 target, was detected in NMPR by LIANA+ (CD8.TEX toward stress-response TAMs and tumor epithelial) but not confirmed by CellChat. SPP1 and PPIA are not registered as direct HSF1 targets in CollecTRI.
+
+**CD4 recruitment perspective :**
+
+MHC II / HLA signals appear across three compartments in NMPR (CD8 TEX via HLA-DPA1/DPB1/DRA → Ciliated; TAMs via HLA-DRA-CD4 → Ciliated; both tools), yet remain spatially disconnected from the tumor epithelial compartment. This pattern suggests an unsuccessful attempt to recruit CD4 helper T cells in non-responders. Recent evidence in lung cancer identifies a Th1-like CD4+ population (Th7R) spatially partnered with TPEX in tertiary lymphoid structures as a predictor of neoadjuvant PD-1 blockade response (Kagamu et al., Nat Commun 2026). The dominance of SPP1-CD44 in NMPR TAMs is consistent with the absence of functional CD4 help, as TCF7+ CD8 states (TPEX) associated with ICI response depend on coordinated CD4 support (Sade-Feldman et al., Cell 2018). Profiling of CD4 T cell states alongside CD8 and TAM states represents a priority for future work.
 
 ## Methodological Notes
 
