@@ -584,6 +584,32 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 ### Biological question
 Does the transcriptional divergence between MPR and NMPR/non-MPR compartments (CD8, TAMs, epithelial) reflect distinct intercellular communication programs that reinforce or undermine anti-PD-1 response? Specifically, do responders and non-responders conditions differ in the directionality, specificity, and coordination of bidirectional communication loops between CD8 T cells, TAMs, and epithelial cells, and does this bidirectional crosstalk constitute a self-reinforcing immunosuppressive network in non-responders?
 
+### Cells of interest — guided by Blocs 3 and 4 findings
+
+Intercellular communication analysis is guided by discriminant cell states identified in prior blocs. The following cell types are prioritized for interpretation across all communication axes:
+
+**CD8 T cells — both datasets:**
+- CD8.TEX and CD8.TPEX : most discriminant between MPR and NMPR/non-MPR
+- CD8.EM, CD8.CM, CD8.TEMRA, CD8.NaiveLike : secondary context
+
+**TAMs — GSE207422:**
+- MPR priority : IFN-stimulated (IRF1/STAT1), Lipid-associated (HSF1/HSF2/HIF1A), Stress-response (HSF1/NF-KB)
+- NMPR priority : Stress-response (HIF1A/NF-KB), SPP1+ immunosuppressive (NF-KB/STAT3), Monocyte-derived (NF-KB/RELA)
+
+**TAMs — GSE243013:**
+- MPR priority : IFN-stimulated (IRF1/STAT1/REL), Lipid-associated/LAMs (HSF1/HSF2), Stress-response (HSF1/NF-KB)
+- non-MPR priority : Resident M2 (HSF1/HSF2/HIF1A/ELK4), Monocyte FCN1+ (HIF1A/NF-KB), IFN-stimulated (STAT1/CIITA/RFX)
+
+**Epithelial — GSE207422 only:**
+- Tumor epithelial : HSF1 transcriptionally active in NMPR = primary target
+- Normal epithelial : secondary context
+- Ciliated : CD4 recruitment signal = tertiary context
+
+**Cross-dataset observation:**
+HSF1 is active in TAMs of both conditions and both datasets; it is not exclusive to non-responders in TAMs, unlike tumor epithelial where HSF1 
+is clearly enriched in NMPR. This suggests HSF1 cascade is initiated in tumor epithelial and propagates toward TAMs via CXCL8/IL6, a hypothesis to be addressed in perspectives. Spatial resolution via spatial transcriptomics or validation in an independent 
+scRNA-seq cohort with epithelial compartment would be required to formally test this cascade.
+
 ### Dataset coverage
 GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated) , full bidirectional analysis across all three compartments
 - GSE243013 : CD8 + TAMs (no epithelial compartment available) , bidirectional CD8 ↔ TAMs analysis; pCR retained in analysis, excluded from main narrative
@@ -614,16 +640,36 @@ Full TME opened for inference: interpretation prioritized on bidirectional CD8 �
           Results/Figures/BLOC5_Communication/GSE207422/Bloc5_01_LIANA_dotplot_CD8_to_TME.png
 - Supplementary figure: top 20 interactions from CD8.TEX and CD8.TPEX toward TAM_like_IFN and TAM_like_stress (selected based on Bloc 4A/4B findings as most discriminant TAM subtypes between MPR and NMPR) and all epithelial groups.Target selection was biologically motivated by prior results, not exhaustive.
 
-### Script 02 : LIANA+ GSE207422, main axis figures
+### Script 02 : LIANA+ GSE207422, main axis figures (supplementary)
 
 - Input: Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv + NMPR_aggregated.csv
-- 3 main figures (MPR vs NMPR comparative dotplots):
+- 6 bidirectional figures (MPR vs NMPR comparative dotplots), full TME:
   1. CD8 → TAMs (Bloc5_02_LIANA_CD8_TAMs.png)
-  2. CD8 → Epithelial (Bloc5_02_LIANA_CD8_Epithelial.png)
-  3. TAMs → Epithelial (Bloc5_02_LIANA_TAMs_Epithelial.png)
+  2. TAMs → CD8 (Bloc5_02_LIANA_TAMs_CD8.png)
+  3. CD8 → Epithelial (Bloc5_02_LIANA_CD8_Epithelial.png)
+  4. Epithelial → CD8 (Bloc5_02_LIANA_Epithelial_CD8.png)
+  5. TAMs → Epithelial (Bloc5_02_LIANA_TAMs_Epithelial.png)
+  6. Epithelial → TAMs (Bloc5_02_LIANA_Epithelial_TAMs.png)
 - 1 supplementary figure: all compartments (Bloc5_01_LIANA_dotplot_CD8_to_TME.png)
 - TAM short labels applied for readability (consistent with Blocs 4A/4B)
 - Epithelial labels simplified: tumor_MPR + tumor_NMPR → Tumor epithelial; normal_MPR + normal_NMPR → Normal epithelial
+- Top 5 interactions per target group (aggregate_rank <= 0.05)
+- All 9 TAM subtypes + all CD8 subtypes + all epithelial groups included
+
+### Script 02b : LIANA+ GSE207422, preprint figures — cells of interest
+
+- Input: Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv + NMPR_aggregated.csv
+- Same 6 bidirectional axes as Script 02 but filtered on cells of interest guided by Blocs 3 and 4 CollecTRI findings
+- CD8 priority: CD8.TEX, CD8.TPEX
+- TAMs priority: IFN-stimulated, Stress-response, SPP1+ immunosuppressive, Monocyte-derived, Lipid-associated
+- Epithelial: Tumor epithelial + Normal epithelial + Ciliated (all kept)
+- Output: Results/Figures/BLOC5_Communication/GSE207422/Preprint/
+  1. Bloc5_02b_LIANA_CD8_TAMs_preprint.png
+  2. Bloc5_02b_LIANA_TAMs_CD8_preprint.png
+  3. Bloc5_02b_LIANA_CD8_Epithelial_preprint.png
+  4. Bloc5_02b_LIANA_Epithelial_CD8_preprint.png
+  5. Bloc5_02b_LIANA_TAMs_Epithelial_preprint.png
+  6. Bloc5_02b_LIANA_Epithelial_TAMs_preprint.png
 - Top 5 interactions per target group (aggregate_rank <= 0.05)
 
 ### Script 03 : CellChat v2 GSE207422, differential communication analysis
@@ -996,37 +1042,46 @@ RFXAP/RFXANK/RFX5/CIITA enriched in:
 
 ### Preliminary observations for LIANA+ GSE207422
 
-**CD8 → TAMs (MPR vs NMPR) :**
+**CD8 to TAMs :**
+MPR: CCL5-CCR1 (recruitment, 4 subtypes), TNFSF9-HLA-DPA1 (MHC II co-stimulation), CCL5-SDC4 (resolutive remodeling), CD52-SIGLEC10 (IFN-stimulated only). Monocyte-derived: no interaction in MPR.
+NMPR: CCL5-CCRL2 (decoy diversion cross-dataset), GZMB-IGF2R (misdirected cytotoxicity), HLA-LILRB1/2 + B2M-LILRB2 (double trap Monocyte-derived), ENTPD1-TMIGD3 (adenosine pathway SPP1+).
 
-MPR dominant interactions:
-- CCL5-CCR1 : functional chemokine recruitment signal across 6/9 TAM subtypes
-- TNFSF9-HLA-DPA1 : MHC II co-stimulation signal = CD8 MPR actively stimulate antigen presentation in TAMs,consistent with CollecTRI MHC II program
-- IFNG-IFNGR1_IFNGR2 : IFN-gamma signal toward pro-immunogenic TAM subtypes (Resident M2, MRC1+, Lipid-associated)
-- CXCL13-ACKR1 : TLS formation signal toward Resident M2 : pro-immunogenic niche
-- GZMB-IGF2R : cytotoxic signal limited to Resident M2
+**TAMs to CD8 :**
+MPR: CLEC4G-LAG3 + HLA-DRB3-LAG3 (modulatory LAG3 TPEX+TEX), GRN-NTRK1 (TPEX survival), HLA-CD8A (antigen presentation). Zero shared interactions with NMPR.
+NMPR: HLA-DQA1/DQB1-LAG3 (canonical inhibitory checkpoint TPEX+TEX), S100A8-CD69 (TPEX retention), CCL13-CXCR3 (TEX hostile recruitment).
 
-NMPR dominant interactions:
-- CCL5-CCR1 (SPP1+, Lipid-associated, IFN-stimulated) + CCL5-CCRL2 (Stress-response, Regulatory); CCRL2 is a decoy receptor, signal potentially diverted toward immunosuppressive TAMs
-- GZMB-IGF2R : expanded to 5/9 TAM subtypes : CD8 cytotoxicity misdirected toward TAMs
-- CD52-SIGLEC10 : inhibitory checkpoint expanded from 1 to 3 TAM subtypes
-- HLA-A/C-LILRB1/2 : new inhibitory MHC-checkpoint signal in Monocyte-derived (absent MPR)
-- ENTPD1-ADORA3 : adenosine immunosuppressive signal in SPP1+
+Bidirectional CD8-TAMs: MPR = pro-immunogenic self-reinforcing loop. 
+NMPR = immunosuppressive self-reinforcing loop. Key: LAG3 via CLEC4G (modulatory) in MPR vs HLA-DQA1/DQB1 (canonical inhibitory) in NMPR.
 
-**CD8 → Epithelial (MPR vs NMPR) :**
+**CD8 to Epithelial :**
+Shared: CCL5-SDC1/SDC4, XCL1-ADGRV1.
+MPR: CRTAM-CADM1 (functional immune-tumor contact), HMGB1-SDC1, CXCL13-GRM7 (TLS).
+NMPR: COL6A3-ITGA/ITGB (fibrosis expanded to Normal+Ciliated), GZMA-PARD3 (misdirected cytotoxicity), HSP90AA1-EGFR (HSF1 target toward Normal epithelial).
 
-MPR: CCL5-SDC1 + XCL1-ADGRV1 dominant in Tumor and Normal, functional immune recruitment
-NMPR: CCL5-SDC1 + XCL1-ADGRV1 in Tumor; CCL5-SDC1 + COL6A3-SDC1 in Normal = matrix/fibrotic signal replaces immune signal in Normal epithelial
-Ciliated MPR: S100A4-ERBB3 (differentiation); NMPR: GDF11-BMPR1B (TGF-β like signal)
+**Epithelial to CD8 :**
+Shared: CD59-CD2, NECTIN4-TIGIT (TEX both, expanded to TPEX in NMPR).
+MPR: GPI/COPA-NTRK1 (TPEX survival), HLA-A-CD8A (TEX presentation).
+NMPR: NECTIN4-TIGIT expanded to TPEX (locks reactivable precursors), COL21A1/COL28A1-ITGB1 (fibrosis toward TEX).
 
-**TAMs → Epithelial (MPR vs NMPR) :**
+Bidirectional CD8-Epithelial: MPR = functional dialogue. NMPR = mutual exclusion, each compartment amplifies the other's dysfunction.
 
-MPR: HGF-SDC1, FN1-SDC1, LAMA4-DAG1/ITGA6_ITGB4, SPINK1-EGFR, EREG-ERBB3 = Plasticity, adhesion, and differentiation signals, regenerative pro-immunogenic TME
+**TAMs to Epithelial :**
+Shared: EREG-ERBB2/ERBB4 (Ciliated only).
+MPR: HGF-SDC1/MET (regeneration, strongest resolutive signal), EREG-EGFR/ERBB, LAMA4-DAG1/ITGA6, SPINK1-EGFR.
+NMPR: CXCL8-SDC1 (HSF1 in Tumor), IL6-F3 (HSF1 in Normal), FN1-SDC1 (fibrosis), F13A1-ITGB1 (coagulation), VCAN-EGFR (pro-tumoral).
 
-NMPR: CXCL8-SDC1 (tumor), IL6-F3, PLAU-ITGA3, VCAN-EGFR, F13A1-ITGB1 (normal) = Pro-inflammatory, fibrotic, pro-coagulant signals, hostile immunosuppressive TME
+**Epithelial to TAMs :**
+Shared: SLPI-CD4/PLSCR1 (Lipid-associated + IFN-stimulated).
+MPR: MEGF10-ABCA1 (phagocytosis), CD59-STAB1 (complement), GPC3-CD81. Monocyte-derived: no interaction, convergence with CD8 to TAMs MPR.
+NMPR: SAA1-FPR1/FPR2/CD36 (alarmin activates Monocyte-derived), SCGB3A1-MARCO (macrophage recruitment), EFNB3-EPHB2 (pro-invasive, 3 subtypes).
 
-**HSF1 axis and supplementary figure observations:**
+Bidirectional TAMs-Epithelial: MPR = regenerative TME (HGF dominant). NMPR = hostile self-amplifying network (HSF1 targets + fibrosis + SAA1 alarmin).
+Key: Monocyte-derived ignored in MPR in BOTH CD8→TAMs AND Epithelial→TAMs 
 
-HSF1 is an intracellular transcription factor and is not directly detectable as a ligand in LIANA+. However its secreted targets appear in NMPR interactions: CXCL8-SDC1 from TAMs toward tumor epithelial and IL6-F3 from TAMs toward normal epithelial are known HSF1 transcriptional targets, confirming the HSF1 immunosuppressive program at the ligand-receptor level. The supplementary figure further reveals HSP90AA1-EGFR from CD8.TEX toward TAM_like_stress and tumor epithelial as an additional extracellular HSF1 effector. XCL1-ADGRV1 from CD8.TPEX toward tumor_MPR showed the highest LR score, consistent with TPEX-mediated immune coordination in MPR. GZMB-CHRM3 from CD8.TEX toward tumor_MPR confirmed direct cytotoxic engagement in responders. TNFSF9-HLA-DPA1 and IFNG-IFNGR1_IFNGR2 from CD8.TEX toward TAMs further support the cross-compartment MHC II and IFN programs identified in Blocs 3 and 4.
+**HSF1 cross-compartment network:**
+CXCL8 and IL6 (HSF1 direct targets CollecTRI) in TAMs→Epithelial NMPR. 
+HSP90AA1 (HSF1 target) from CD8.TEX toward Normal epithelial and TAM_like_stress. 
+Cross-compartment propagation across CD8, TAMs, and epithelial simultaneously,consistent with self-reinforcing network rather than linear cascade. Spatial transcriptomics required to resolve directionality.
 
 ### Preliminary observations for CellChat GSE207422
 
