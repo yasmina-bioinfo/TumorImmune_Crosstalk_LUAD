@@ -582,20 +582,20 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 ## Bloc 5 : TME Intercellular Communication
 
 ### Biological question
-Does the transcriptional divergence between MPR and NMPR compartments (CD8, TAMs, epithelial) reflect distinct intercellular communication programs that reinforce or undermine anti-PD-1 response?
+Does the transcriptional divergence between MPR and NMPR/non-MPR compartments (CD8, TAMs, epithelial) reflect distinct intercellular communication programs that reinforce or undermine anti-PD-1 response? Specifically, do responders and non-responders conditions differ in the directionality, specificity, and coordination of bidirectional communication loops between CD8 T cells, TAMs, and epithelial cells, and does this bidirectional crosstalk constitute a self-reinforcing immunosuppressive network in non-responders?
 
 ### Dataset coverage
-- GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated)
-- GSE243013 : CD8 + TAMs (no epithelial compartment available)
+GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated) , full bidirectional analysis across all three compartments
+- GSE243013 : CD8 + TAMs (no epithelial compartment available) , bidirectional CD8 ↔ TAMs analysis; pCR retained in analysis, excluded from main narrative
 
 ### Tools
 - LIANA+ v0.1.14 (Dimitrov et al., Nature Communications 2022), consensus LR inference (sca + natmi + connectome)
-- Differential cell-cell communication analysis across MPR vs NMPR using CellChat v2 (Jin et al., Nature Communications 2021)
+- CellChat v2 (Jin et al., Nature Communications 2021), differential communication analysis
 
 ### Design rationale
-Full TME opened for inference: interpretation prioritized on CD8 - TAMs, CD8 - Epithelial, TAMs - Epithelial axes established in Blocs 3 and 4.
-Unexpected interactions retained only if they corroborate findings from prior blocs.
+Full TME opened for inference: interpretation prioritized on bidirectional CD8 ↔ TAMs, CD8 ↔ Epithelial, TAMs↔Epithelial axes established in Blocs 3 and 4. Both directions of each axis are analyzed to characterize communication loops, not unidirectional signals. Unexpected interactions retained only if they corroborate findings from prior blocs.
 
+---
 
 ### Script 01 : LIANA+ GSE207422, intercellular communication inference
 
@@ -650,6 +650,40 @@ Unexpected interactions retained only if they corroborate findings from prior bl
 - Barplot: interaction counts per condition (Bloc5_04_CellChat_barplot.png)
 - Opacity encoding: p < 0.001 = opaque | p < 0.01 = semi | p < 0.05 = light
 - Note: MultiNicheNet abandoned — n=3 MPR patients insufficient for pseudobulk differential analysis. Script conserved with explanatory note.
+
+### Script 05 : LIANA+ GSE243013, intercellular communication inference
+
+- Input: Objects/Bloc3_03_seu_Tcells_ProjecTILs.rds + 
+         Objects/Bloc4A_04_seu_TAMs_annotated.rds
+- Merged TME object: CD8 + TAMs (n=TBD cells)
+- Condition column: pathological_response (MPR | non-MPR | pCR)
+- Methods: sca + natmi + connectome aggregated via liana_aggregate()
+- Resource: Consensus (CellChatDB + OmniPath + others)
+- Conversion: SingleCellExperiment (SCE) for Seurat v5 compatibility
+- Full object run: MPR + non-MPR + pCR (39,730 interactions)
+- Per condition runs: MPR (n=8,936 cells) | non-MPR (n=56,977 cells) | pCR (n=12,118 cells)
+- Output: Results/Tables/BLOC5/GSE243013/Bloc5_03_LIANA_GSE243013_aggregated.csv
+          Results/Tables/BLOC5/GSE243013/Bloc5_03_LIANA_GSE243013_MPR_aggregated.csv
+          Results/Tables/BLOC5/GSE243013/Bloc5_03_LIANA_GSE243013_non_MPR_aggregated.csv
+          Results/Tables/BLOC5/GSE243013/Bloc5_03_LIANA_GSE243013_pCR_aggregated.csv
+          Objects/Bloc5_03_seu_TME_GSE243013.rds
+          Results/Figures/BLOC5_Communication/GSE243013/Bloc5_03_LIANA_dotplot_CD8_to_TAMs.png
+- TAM short labels applied for readability (consistent with Bloc 4A)
+- 7 TAM subtypes: Resident M2, Lipid-associated, Inflammatory Mono-derived,
+  Stress-response, Proliferating, IFN-stimulated, Classical Mono-derived
+
+### Script 06 : LIANA+ GSE243013, main axis figures
+
+- Input: Bloc5_03_LIANA_GSE243013_MPR_aggregated.csv + non_MPR_aggregated.csv + pCR_aggregated.csv
+- Two series of figures:
+  Preprint (MPR vs non-MPR):
+  1. CD8 → TAMs (Bloc5_04_LIANA_CD8_TAMs_MPR_nonMPR.png)
+  2. TAMs → CD8 (Bloc5_04_LIANA_TAMs_CD8_MPR_nonMPR.png)
+  Discussion (MPR vs pCR):
+  3. CD8 → TAMs (Bloc5_04_LIANA_CD8_TAMs_MPR_pCR.png)
+  4. TAMs → CD8 (Bloc5_04_LIANA_TAMs_CD8_MPR_pCR.png)
+- Top 5 interactions per target group (aggregate_rank <= 0.05)
+- TAM short labels applied for readability
 
 ---
 
@@ -1050,13 +1084,74 @@ Conclusion: MPR = TAM-driven resolutive remodeling + residual antigen presentati
 - HGF-SDC1 MPR (LIANA+) : not detected by CellChat (database resource difference, expected divergence)
 - CXCL8-SDC1 NMPR (LIANA+) : not detected by CellChat (idem)
 
-**HSF1 axis : CellChat confirmation :**
+**HSF1 axis in CellChat  :**
 
 CXCL8 and IL6, direct transcriptional targets of HSF1 in CollecTRI were detected as dominant TAM ligands in NMPR by both LIANA+ and CellChat. HSP90AA1, an additional HSF1 target, was detected in NMPR by LIANA+ (CD8.TEX toward stress-response TAMs and tumor epithelial) but not confirmed by CellChat. SPP1 and PPIA are not registered as direct HSF1 targets in CollecTRI.
 
 **CD4 recruitment perspective :**
 
 MHC II / HLA signals appear across three compartments in NMPR (CD8 TEX via HLA-DPA1/DPB1/DRA → Ciliated; TAMs via HLA-DRA-CD4 → Ciliated; both tools), yet remain spatially disconnected from the tumor epithelial compartment. This pattern suggests an unsuccessful attempt to recruit CD4 helper T cells in non-responders. Recent evidence in lung cancer identifies a Th1-like CD4+ population (Th7R) spatially partnered with TPEX in tertiary lymphoid structures as a predictor of neoadjuvant PD-1 blockade response (Kagamu et al., Nat Commun 2026). The dominance of SPP1-CD44 in NMPR TAMs is consistent with the absence of functional CD4 help, as TCF7+ CD8 states (TPEX) associated with ICI response depend on coordinated CD4 support (Sade-Feldman et al., Cell 2018). Profiling of CD4 T cell states alongside CD8 and TAM states represents a priority for future work.
+
+### Preliminary observations for LIANA+ GSE243013
+
+**CD8 → TAMs (MPR vs non-MPR) :**
+
+MPR dominant interactions:
+- CCL5-ACKR1 + CXCL13-ACKR1 toward Stress-response : TLS chemokine signal, organized immune recruitment
+- TNFSF9-HLA-DPA1 toward Resident M2 : MHC II co-stimulation, targeted (1 TAM subtype only)
+- LTB-CD40 toward IFN-stimulated : lymphotoxin co-stimulation
+- HMGB1-CD163 toward Resident M2 + Lipid-associated : controlled remodeling signal
+- SCGB3A1/A2-MARCO toward Stress-response : airway-associated signal
+
+non-MPR dominant interactions:
+- CCL5-CCRL2 toward Stress-response : CCL5 diverted through decoy receptor = cross-dataset confirmed
+- CIRBP-TREM1 toward Stress-response : stress/inflammasome signal
+- TIGIT-NECTIN2 toward IFN-stimulated : dominant inhibitory checkpoint
+- TNFSF9-HLA-DPA1 expanded to 4 TAM subtypes : co-stimulatory signal paradoxically amplified but uncoordinated
+- IFNG-IFNGR1/2 expanded to Resident M2 + Lipid-associated : diffuse IFN signal, non-targeted
+- HMGB1-TLR2 toward Resident M2 : danger/pro-inflammatory signal
+- HLA-A/C-LILRB2 : inhibitory MHC-checkpoint signal expanded
+
+Conclusion: MPR = targeted and coordinated CD8→TAM communication. 
+non-MPR = expanded, diffuse, with decoy receptor diversion and inhibitory 
+checkpoints. Cross-dataset confirmation of GSE207422 pattern.
+
+**TAMs → CD8 (MPR vs non-MPR) :**
+
+MPR dominant interactions:
+- CXCL9/10/11-CXCR3 toward TPEX + TEX : chemokine recruitment in functional TME
+- MMP9-CD44 toward TPEX + TEMRA : matrix remodeling facilitating infiltration
+- SPP1-PTGER4 toward TPEX + TEX : survival signal
+- SPP1-S1PR1 toward TEMRA : migration signal
+- SECTM1-CD7 toward TEX : co-stimulation
+- LYZ-ITGAL toward TEMRA : adhesion signal
+
+non-MPR dominant interactions:
+- CXCL9/10/11-CXCR3 toward TPEX + TEX : same chemokines but in hostile TME context
+- HLA-DRA-LAG3 toward TEX : MHC II binds LAG3 = direct inhibitory checkpoint activation = key finding
+- S100A8-CD69 toward TPEX/TEX/EM/CM : myeloid activation/retention signal expanded
+- VCAN-SELL toward NaiveLike : matrix signal toward naive CD8
+- CXCL11-CCR5 toward TEX : retention signal
+
+Conclusion: MPR = TAMs send pro-immunogenic recruitment and survival signals toward CD8. non-MPR = TAMs send inhibitory signals (HLA-DRA-LAG3) and retention signals in a hostile context. Bidirectional loop confirmed: CD8 and TAMs mutually reinforce their respective functional or dysfunctional programs depending on response condition.
+
+**HSF1 axis — GSE243013 :**
+To be completed after CollecTRI cross-check (same procedure as GSE207422, verify which ligands detected in non-MPR interactions are direct HSF1 targets in CollecTRI before any claim).
+
+**pCR observations (MPR vs pCR) :**
+
+CD8 → TAMs:
+- pCR shares inhibitory signals with non-MPR: HLA-A/C-LILRB1/2, CIRBP-TREM1, TIGIT-NECTIN2, HMGB1-THBD
+- pCR-specific: CD55-ADGRE2 toward Resident M2 (complement protection signal), RPS19-C5AR1 toward IFN-stimulated (complement/inflammation)
+- LTB-CD40 absent in pCR : co-stimulation lost vs MPR
+
+TAMs → CD8:
+- pCR shares CXCL9/10/11-CXCR3 with MPR but lacks HLA-DRA-LAG3
+- pCR-specific: NECTIN2-TIGIT toward TPEX + TEX, S100A8-CD69 expanded, CXCL9-DPP4
+- SPP1-PTGER4, MMP9-CD44, VCAN-SELL absent in pCR vs MPR
+
+Conclusion: pCR is biologically distinct from both MPR and non-MPR. Complete pathological response does not reflect a fully resolved immune TME; TAMs maintain inhibitory checkpoints (NECTIN2-TIGIT) toward TPEX in pCR, suggesting response may involve mechanisms beyond T cell-mediated cytotoxicity. 
+Consistent with Bloc 4 observations (pCR more heterogeneous than MPR, biological instability of MPR as intermediate state).
 
 ## Methodological Notes
 
