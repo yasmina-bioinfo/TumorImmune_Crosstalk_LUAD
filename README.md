@@ -1362,6 +1362,23 @@ HSF1 transcriptional activity is enriched in non-MPR/NMPR CD8 and TAM compartmen
 as a ligand in CD8↔TAMs interactions in either dataset. HSF1 influences the CD8↔TAMs axis at the intracellular transcriptional level but not at
 the intercellular ligand-receptor level. The intercellular link between HSF1 intracellular activity and the communication programs observed remainsto be resolved a question amenable to spatial transcriptomics.
 
+### Bloc 6 — Bulk validation — not performed
+
+A systematic search for publicly available bulk RNA-seq datasets of neoadjuvant anti-PD-1 treated NSCLC with MPR/non-MPR pathological 
+response classification was conducted. The following options were evaluated and excluded:
+
+1. **GSE126044** (Kim et al., Genome Medicine 2020, nivolumab, n=16) : RECIST-based classification (CR/PR vs SD/PD), not pathological response (MPR/non-MPR). RECIST underestimates pathological response, in Checkmate 159, 45% achieved MPR while only 10% showed partial response on CT/RECIST. Classification mismatch prevents valid comparison with scRNA-seq findings.
+
+2. **IMvigor210** : urothelial carcinoma cohort (atezolizumab/anti-PD-L1) , wrong cancer type and wrong drug class, not applicable.
+
+3. **Hu et al. Genome Medicine 2023 bulk cohort** (n=21) : pre-treatment biopsies collected before neoadjuvant ICI, baseline context, not post-treatment surgical resection. Response prediction context differs from post-neoadjuvant MPR classification.
+
+4. **HSF1 signature** : preliminary analysis in both scRNA-seq datasets showed HSF1-target genes are not sufficiently discriminant between MPR and non-MPR in CD8 or TAM compartments to construct a robust ssGSEA signature (majority of HSF1-targets expressed in both conditions; only SESN3 cross-dataset exclusive non-MPR in CD8).
+
+**Conclusion:** No publicly available bulk RNA-seq dataset combining NSCLC, neoadjuvant anti-PD-1, and MPR/non-MPR pathological response 
+classification was identified. Bulk validation remains a priority for future work, contingent on availability of harmonized datasets 
+or institutional cohorts. Signatures retained for future bulk validation: CD8 Exhaustion, CD8 Cytotoxicity, M2_immunosuppressive, SPP1, IFN_response — constructed from UCell modules applied in Blocs 3 and 4.
+
 ## Methodological Notes
 
 ### TME annotation : iterative approach
