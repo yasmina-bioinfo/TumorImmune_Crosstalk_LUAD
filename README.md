@@ -279,6 +279,17 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
   - All signatures ns (p>0.05) : Cytotoxicity p=0.5573, Exhaustion p=0.5116, Memory p=0.1734, TPEX p=0.6047
   - Inter-patient heterogeneity similar between MPR and pCR, contrasts with TAMs where pCR showed greater heterogeneity than MPR (Bloc4A Script 06)
 
+### Script 12b : CollecTRI CD8 T cells GSE243013 (no downsampling)
+- **Input:** Objects/Bloc3_08_seu_CD8_ProjecTILs.rds
+- **Subset:** CD8.TEX and CD8.TPEX only (CD8.EM excluded — secondary to narrative, RAM constraint)
+- **Downsampling:** None — full subset used (TEX + TPEX, ~25,000 cells)
+- **RAM note:** Script 12 required downsampling to 10,000 cells/state due to WSL RAM constraints. Script 12b runs on 12Gi WSL allocation with TEX+TPEX only.
+- **Output:** Results/Figures/CD8/Preprint/Bloc3_CollecTRI_heatmap.png
+             Results/Figures/CD8/Preprint/Bloc3_CollecTRI_heatmap_MPR_nonMPR.png
+             Results/Figures/CD8/Preprint/Bloc3_CollecTRI_key_TFs_violin.png
+             Results/Tables/Bloc3_CollecTRI_TF_activity.csv
+- **Top 20 TFs by variance:** HSF1, HSF2, MYC, RFXANK, RFXAP, RFX5, ELK4, NFYC, NFKB, E2F4, TBX21, RLF, RELA, MLXIP, CIITA, NFYB, DAXX, ZBTB4, NFKB1, E2F1
+
 #### GSE207422 
 
 #### Script 01 : ProjecTILs on annotated CD8 object (08_CD8_MPR_NMPR.rds)
@@ -864,6 +875,15 @@ GSE243013 :
 - CD8.TEX pCR : HOPX dominant, ELK4 absent → post-response quiescence
 - CD8.EM pCR : most transcriptionally diverse state, nearly all 20 TFs active → polyfonctional memory surveillance
 
+GSE243013 (Script 12b — no downsampling, CD8.TEX and CD8.TPEX only):
+- CD8.TEX MPR : ELK4 weak, ZBTB4 moderate, RLF weak = MPR-enriched cluster
+- CD8.TPEX MPR : ELK4 strong, ZBTB4 strong, RLF strong = dominant reactivation program
+- CD8.TEX non-MPR : CIITA, TBX21, RFX5, RFXANK, RFXAP strong = MHC II program dominant
+- CD8.TPEX non-MPR : HSF1, E2F1, MYC, HSF2, NFYC, MLXIP, NFYB, E2F4 strong = stress/proliferation program
+- ELK4 and RLF: residual weak signal in TPEX non-MPR — MPR enrichment supported
+- ZBTB4 and RLF: new TFs identified with full dataset, masked by downsampling in Script 12
+- pCR and CD8.EM: excluded from Script 12b, retained in Script 12 observations for reference
+
 GSE207422 :
 - CD8.TEX NMPR : MHC II (RFXAP/RFXANK/RFX5/CIITA) + STAT1 + ZBTB4
 - CD8.TPEX NMPR : MYC, E2F1, E2F4, SRSF2, TFDP1 → chronic proliferation = consistent with GSE243013
@@ -875,6 +895,7 @@ GSE207422 :
 - TBX21 in non-MPR CD8.TEX WITHOUT ELK4 = abortive cytotoxic program; TBX21 in MPR CD8.TEX WITH ELK4 = functional cytotoxic program
 - ABL1 and NFYC as consistent ELK4 co-activators in MPR TEX/TPEX (GSE207422) and MPR TPEX (GSE243013)
 - non-MPR TPEX : chronic proliferation program (MYC/E2F/HSF) without cytotoxic coordination : confirmed cross-dataset
+- HSF1/HSF2 : constitutive in CD8.TEX across conditions, discriminant in CD8.TPEX only : dominant nonMPR/NMPR vs weak MPR, in inverse pattern with ELK4/RLF = transcriptional switch TPEX
 - pCR CD8.TEX : HOPX-dominant quiescence : post-complete response state
 
 ## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
