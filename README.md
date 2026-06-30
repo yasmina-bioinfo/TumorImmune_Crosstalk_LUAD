@@ -586,29 +586,26 @@ Does the transcriptional divergence between MPR and NMPR/non-MPR compartments (C
 
 ### Cells of interest — guided by Blocs 3 and 4 findings
 
-Intercellular communication analysis is guided by discriminant cell states identified in prior blocs. The following cell types are prioritized for interpretation across all communication axes:
+Intercellular communication analysis is guided by discriminant cell states identified in Blocs 3 and 4 (CollecTRI/decoupleR TF activity and UCell functional scoring). Cell subtypes of interest were selected based on differential transcriptional programs across response conditions. Full TME was opened for inference; interpretation is prioritized on these axes without excluding unexpected interactions.
 
 **CD8 T cells — both datasets:**
-- CD8.TEX and CD8.TPEX : most discriminant between MPR and NMPR/non-MPR
+- CD8.TEX and CD8.TPEX : most discriminant between MPR and NMPR/non-MPR (ELK4 enriched MPR cross-dataset, exhaustion program enriched non-MPR)
 - CD8.EM, CD8.CM, CD8.TEMRA, CD8.NaiveLike : secondary context
 
 **TAMs — GSE207422:**
-- MPR priority : IFN-stimulated (IRF1/STAT1), Lipid-associated (HSF1/HSF2/HIF1A), Stress-response (HSF1/NF-KB)
+- MPR priority : IFN-stimulated (IRF1/STAT1), Lipid-associated (HIF1A)
 - NMPR priority : Stress-response (HIF1A/NF-KB), SPP1+ immunosuppressive (NF-KB/STAT3), Monocyte-derived (NF-KB/RELA)
 
 **TAMs — GSE243013:**
-- MPR priority : IFN-stimulated (IRF1/STAT1/REL), Lipid-associated/LAMs (HSF1/HSF2), Stress-response (HSF1/NF-KB)
-- non-MPR priority : Resident M2 (HSF1/HSF2/HIF1A/ELK4), Monocyte FCN1+ (HIF1A/NF-KB), IFN-stimulated (STAT1/CIITA/RFX)
+- MPR priority : IFN-stimulated (IRF1/STAT1/REL), Resident M2 (ELK4)
+- non-MPR priority : Resident M2 (HIF1A/NF-KB), Monocyte FCN1+ (HIF1A/NF-KB),Stress-response (MYC/NF-KB)
 
 **Epithelial — GSE207422 only:**
-- Tumor epithelial : HSF1 transcriptionally active in NMPR = primary target
-- Normal epithelial : secondary context
-- Ciliated : CD4 recruitment signal = tertiary context
+- Excluded from main preprint narrative (single dataset)
+- Retained in perspectives : tumor_NMPR shows enriched oncogenic/stress program (E2F1/E2F4/MYC/HIF1A) distinct from immune compartment signals
 
 **Cross-dataset observation:**
-HSF1 is active in TAMs of both conditions and both datasets; it is not exclusive to non-responders in TAMs, unlike tumor epithelial where HSF1 
-is clearly enriched in NMPR. This suggests HSF1 cascade is initiated in tumor epithelial and propagates toward TAMs via CXCL8/IL6, a hypothesis to be addressed in perspectives. Spatial resolution via spatial transcriptomics or validation in an independent 
-scRNA-seq cohort with epithelial compartment would be required to formally test this cascade.
+HSF1 transcriptional activity is detected in TAMs and CD8 T cells across both conditions and both datasets, indicating a constitutive stress response program not exclusive to non-responders in immune compartments. HSF1 discriminant signal is restricted to tumor epithelial cells in GSE207422 (single dataset, not cross-validated). The intercellular link between HSF1 epithelial activity and immune compartment programs remains to be resolved, a question amenable to spatial transcriptomics addressed in perspectives.
 
 ### Dataset coverage
 GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated) , full bidirectional analysis across all three compartments
@@ -755,6 +752,40 @@ output, likely excluded by min.cells = 5 threshold or no significant interaction
   4. TAMs → CD8 (Bloc5_04_LIANA_TAMs_CD8_MPR_pCR.png)
 - Top 5 interactions per target group (aggregate_rank <= 0.05)
 - TAM short labels applied for readability
+
+### Script 07 : CellChat v2 GSE243013, differential communication analysis
+
+- Input: Objects/Bloc5_03_seu_TME_GSE243013.rds
+- CellChatDB.human full database
+- Per condition objects: MPR, non-MPR, pCR
+- Parameters: nboot = 100, min.cells = 5
+- Short TAM labels applied: "Monocyte FCN1+" harmonized across blocs
+- Merged objects: MPR vs non-MPR + MPR vs pCR (separate)
+- Output: Objects/Bloc5_07_cellchat_MPR_GSE243013.rds
+          Objects/Bloc5_07_cellchat_nonMPR_GSE243013.rds
+          Objects/Bloc5_07_cellchat_pCR_GSE243013.rds
+          Objects/Bloc5_07_cellchat_merged_MPR_nonMPR_GSE243013.rds
+          Objects/Bloc5_07_cellchat_merged_MPR_pCR_GSE243013.rds
+          Results/Tables/BLOC5/GSE243013/Bloc5_07_CellChat_GSE243013_MPR_interactions.csv
+          Results/Tables/BLOC5/GSE243013/Bloc5_07_CellChat_GSE243013_nonMPR_interactions.csv
+          Results/Tables/BLOC5/GSE243013/Bloc5_07_CellChat_GSE243013_pCR_interactions.csv
+- Note: MultiNicheNet abandoned — n=3 MPR insufficient for pseudobulk.
+- Note: Figures generated from CSV (not netVisual_bubble) to avoid blank page rendering issue with CellChat native figures.
+
+### Script 08b : CellChat v2 GSE243013, preprint + discussion figures
+
+- Input: Results/Tables/BLOC5/GSE243013/Bloc5_07_CellChat_GSE243013_*_interactions.csv
+- Cells of interest guided by Blocs 3 and 4 CollecTRI findings
+- CD8 priority: CD8.TEX, CD8.TPEX
+- TAMs priority: IFN-stimulated, Stress-response, Resident M2, Lipid-associated, Monocyte FCN1+
+- Preprint figures (CD8 <-> TAMs MPR vs non-MPR):
+  1. CD8 → TAMs (Bloc5_08b_CellChat_CD8_TAMs_MPR_nonMPR_preprint.png)
+  2. TAMs → CD8 (Bloc5_08b_CellChat_TAMs_CD8_MPR_nonMPR_preprint.png)
+- Discussion figures (MPR vs pCR):
+  3. CD8 → TAMs (Bloc5_08b_CellChat_CD8_TAMs_MPR_pCR_preprint.png)
+  4. TAMs → CD8 (Bloc5_08b_CellChat_TAMs_CD8_MPR_pCR_preprint.png)
+- Output: Results/Figures/BLOC5_Communication/GSE243013/Preprint/
+- Note: Script 08 (full figures) skipped — went directly to 08b preprint figures on cells of interest for analytical efficiency.
 
 ---
 
@@ -1265,7 +1296,71 @@ Conclusion: pCR is biologically distinct from both MPR and non-MPR.
 Shares inhibitory signals with non-MPR but without the decoy diversion (no CCL5-CCRL2). TLS signals lost vs MPR. NECTIN2 contradictory signal 
 (CD226 activating + TIGIT inhibitory) unique to pCR. Complete pathological response does not reflect fully resolved immune TME.
 
+### Preliminary observations for CellChat GSE243013** 
 
+**CD8 → TAMs (MPR vs non-MPR) :**
+
+Shared interactions: MIF-(CD74+CD44) toward Stress-response, Resident M2, IFN-stimulated (both conditions, similar intensity); PTPRC-MRC1 toward Stress-response, Resident M2, Lipid-associated (both conditions); PPIA-BSG toward Lipid-associated (both conditions); MIF-(CD74+CXCR4) toward Resident M2 (both conditions)
+
+MPR dominant interactions:
+- ANXA1-FPR1 toward IFN-stimulated : resolution signal = cross-tool (LIANA+)
+- CD99-PILRA toward IFN-stimulated : immune recognition = cross-tool (LIANA+)
+- HLA-DRB1-CD4 toward Stress-response : CD4 recruitment — MPR exclusive
+- MIF-(CD74+CD44) toward Lipid-associated : extended MIF signal
+
+non-MPR dominant interactions:
+- PPIA-BSG expanded toward Stress-response + IFN-stimulated : stress/immunosuppression toward pro-immunogenic subtypes
+
+**CellChat TAMs → CD8 (MPR vs non-MPR) :**
+
+Shared interactions: HLA-A/B-CD8A → TEX (both conditions)
+
+MPR dominant interactions:
+- HLA-A/B/C-CD8A toward TPEX (weak) : MHC I toward precursors
+- HLA-C-CD8A toward TEX : third HLA allele MPR exclusive
+- MIF-(CD74+CD44) + SPP1-CD44 toward TPEX : survival/retention signals
+
+non-MPR dominant interactions:
+- HLA-A/B-CD8A toward TPEX (strong) : enriched toward precursors, attempted antigen presentation in hostile context
+
+Bidirectional loop conclusion CD8↔TAMs CellChat:
+MPR = MIF basal + CD4 recruitment (HLA-DRB1-CD4) + resolution signals toward IFN-stimulated. 
+non-MPR = PPIA-BSG stress expanded + HLA-A/B enriched toward TPEX without functional recovery.
+
+**CellChat pCR observations (MPR vs pCR) :**
+Note: single dataset, pseudobulk MPR/pCR non-significant in Blocs 3-4.
+
+CD8 → TAMs:
+- Shared: MIF-(CD74+CD44), PTPRC-MRC1 (4 subtypes), ANXA1-FPR1, CD99-PILRA toward IFN-stimulated, MIF-(CD74+CXCR4) toward Resident M2
+- MPR exclusive: HLA-DRB1-CD4 (CD4 recruitment lost in pCR), MIF-(CD74+CD44) toward Lipid-associated, PPIA-BSG toward Lipid-associated
+- pCR exclusive: ANXA1-FPR1 extended to Stress-response, PGE2-PTGES3-PTGER4 toward Resident M2 (prostaglandin resolution signal)
+
+TAMs → CD8:
+- Shared: HLA-A/B-CD8A toward TEX, MIF-(CD74+CXCR4) toward TPEX (MPR) and TPEX+TEX (pCR)
+- MPR exclusive: HLA-C-CD8A toward TEX, MIF-(CD74+CD44) + SPP1-CD44 toward TPEX (weak)
+- pCR exclusive: APP-CD74, CXCL16-CXCR6, LGALS9-CD45 toward TPEX+TEX, pan-HLA strong toward TEX, MIF-(CD74+CD44) strong toward TPEX+TEX
+
+**Cross-tool convergence CellChat/LIANA+ GSE243013 :**
+Confirmed by both tools:
+- ANXA1-FPR1 → IFN-stimulated MPR
+- CD99-PILRA → IFN-stimulated MPR 
+- HLA-A/B-CD8A → TEX (both conditions) 
+- HLA-A/B-CD8A enriched → TPEX non-MPR 
+LIANA+ only: CCL5-ACKR1/CXCL13-ACKR1, CCL5-CCRL2, TIGIT-NECTIN2, HLA-DRA-LAG3, CXCL9/10/11-CXCR3
+CellChat only: MIF signaling, LGALS9-CD45, CXCL16-CXCR6, pCR-specific signals
+
+### General conclusion : Bloc 5 intercellular communication
+
+CellChat v2 constitutes the primary differential communication analysis tool for both datasets, given its established probabilistic framework and curated ligand-receptor-cofactor database. However, LIANA+ provides critical complementary signals across all biological axes — including the CD8-TAMs narrative (CCL5-CCRL2 decoy diversion, GZMB-IGF2R misdirected cytotoxicity, HLA-LILRB checkpoints, LAG3 differential engagement) and the epithelial axes in GSE207422 (HSF1 targets, NECTIN4-TIGIT), that are not detected by CellChat due to database resource differences.
+
+Cross-tool confirmed interactions, most robust findings:
+GSE207422 (6): CCL5-CCR1 (CD8→TAMs), HLA-A/C-CD8A (TAMs→CD8),GZMA-PARD3 + CRTAM-CADM1 (CD8→Epithelial), HLA-A-CD8A (Epithelial→CD8), FN1-SDC1 (TAMs→Epithelial)
+GSE243013 (4): ANXA1-FPR1 + CD99-PILRA (CD8→TAMs MPR IFN-stimulated), HLA-A/B-CD8A toward TEX (TAMs→CD8 both conditions), HLA-A/B-CD8A enriched toward TPEX (TAMs→CD8 non-MPR)
+
+HSF1 cross-dataset observation:
+HSF1 transcriptional activity is enriched in non-MPR/NMPR CD8 and TAM compartments (CollecTRI, Blocs 3-4) but no HSF1 direct target is detected
+as a ligand in CD8↔TAMs interactions in either dataset. HSF1 influences the CD8↔TAMs axis at the intracellular transcriptional level but not at
+the intercellular ligand-receptor level. The intercellular link between HSF1 intracellular activity and the communication programs observed remainsto be resolved a question amenable to spatial transcriptomics.
 
 ## Methodological Notes
 
