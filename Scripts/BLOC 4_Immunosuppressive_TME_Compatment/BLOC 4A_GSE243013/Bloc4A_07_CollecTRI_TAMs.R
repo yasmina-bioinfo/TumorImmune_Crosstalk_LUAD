@@ -53,9 +53,10 @@ net <- read.csv(file.path(DATA_DIR, "Data/collectri_network.csv"))
 message("CollecTRI: ", nrow(net), " interactions, ",
         length(unique(net$source)), " TFs")
 
-# 2b) Downsample TAM subtypes for RAM efficiency
-# All 7 TAM subtypes included
-# Downsampled to max 10,000 cells per subtype, set.seed(42) for reproducibility
+# 2b) Downsample TAM subtypes for RAM efficiency if needed
+#Note : max 10,000 cells/subtype parameter is precautionary only
+# All 7 TAM subtypes contained fewer than 10,000 cells (range: 248-4,316)
+# No actual downsampling occured
 set.seed(42)
 cells_keep <- seu_TAMs@meta.data %>%
   tibble::rownames_to_column("barcode") %>%

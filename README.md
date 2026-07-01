@@ -958,45 +958,44 @@ not artifact
 - TAM signatures alone insufficient to separate MPR from pCR
 - Integration of CD8 + TAM signatures required planned via CellChat/NicheNet
 
-## Preliminary observations : CollecTRI TAMs (Bloc 4)
+## Preliminary observations : CollecTRI TAMs (Bloc 4-GSE3013)
+
+
+
+## Preliminary observations : CollecTRI TAMs (Bloc 4-GSE207422)
 
 **Two complementary visualizations:**
 - **Violin plots (Top 6 by variance, absolute scores)** : global MPR vs non-MPR comparison
 - **Heatmaps (scale=row, Top 20 by variance)** , subtype-specific TF patterns per condition
 
-**Violin plots , cross-dataset consensus (objective Top 6):**
-- MHC II program (RFXAP/RFXANK/RFX5/CIITA) enriched responders both datasets 
-- HSF1 enriched non-responders both datasets : chronic stress program
-- RELA/REL similar between groups — NMPR wider distribution (inter-patient heterogeneity)
+CollecTRI Top 6 TFs violins GSE207422 TAMs :
+- RFXAP/RFXANK/RFX5/CIITA : enriched MPR globally with MHC II program more active across TAM compartment in responders
+- RELA/REL : non-discriminant, NF-KB constitutive in both conditions
 
-**Heatmap observations , subtype-specific patterns:**
+**MPR :**
 
-GSE243013 :
-- Resident M2 MPR : ELK4 dominant : pro-immunogenic signal 
-- Resident M2 non-MPR : HIF1A, NFKB : hypoxic/inflammatory stress
-- Resident M2 pCR : ELK4 + DMTF1
-- Monocyte FCN1+ non-MPR : HIF1A dominant : hypoxic adaptation
-- Stress-response non-MPR : MYC + HSF1/HSF2 : chronic proliferation 
-- Proliferating pCR : MYC very strong
-- Classical-Mono MPR : ELK4 + MHC II dominant 
-- Classical-Mono pCR : ELK4 + MHC II present but weaker
-- IFN-stimulated : STAT1 constitutive all conditions, not discriminating
+- IFN-stimulated : IRF1 strong, STAT1 moderate — dominant pro-immunogenic program (IRF1/STAT1). CIITA weak , limited MHC II antigen presentation. No residual immunosuppressive signal.
+- SPP1+ immunosuppressive : CIITA/RFX moderate = dominant MHC II program. No canonical immunosuppressive signal. Original finding : partial reprogramming toward antigen presentation in MPR.
+- Lipid-associated : MYC/HSF2 strong = active M2/stress program. Cellular survival signal under residual stress. MYC not dominant as coordinated immunosuppressive driver.
+- Stress-response : MYC/HSF1/HIF1A moderate = residual stress program. No dominant coordinated immunosuppression. Consistent with TME remodeling post-treatment.
+- Regulatory : MYC/RFX moderate, CIITA weak = mixed moderate MHC II/M2 program. Non-discriminant.
+- MRC1+ M2-like : RFX moderate, CIITA weak = moderate MHC II with weak immunosuppressive activity. Secondary subtype.
+- Resident M2 : globally weak signal, MYC/IRF1/HSF2 weak. Transcriptional quiescence in MPR.
+- M2-SIGLEC8+ : CIITA strong, RFX moderate = dominant MHC II program. Non-discriminant between conditions.
+- Monocyte-derived : 0 MPR cells because data not available.
 
-GSE207422 :
-- IFN-stimulated MPR : IRF1, STAT1, IRF5, REL, strong IFN program
-- MRC1+ M2-like MPR : MHC II dominant , consistent with GSE243013
-- SPP1+ immunosuppressive NMPR : highly active, heterogeneous : complex immunosuppressive program
-- Monocyte-derived NMPR : HIF1A dominant , consistent with GSE243013
-- Stress-response : active both conditions, constitutive
+**NMPR :**
 
-**Cross-dataset consensus (violin + heatmap combined):**
-- MHC II enriched MPR TAMs : Resident M2 GSE243013, MRC1+ M2-like GSE207422 
-- ELK4 enriched MPR Resident M2 and Classical-Mono GSE243013 : absent GSE207422
-  (possible LUAD vs NSCLC histological difference)
-- HIF1A enriched non-responder Monocyte TAMs both datasets 
-- MYC/HSF enriched non-responder Stress-response TAMs GSE243013 
-- SPP1+ immunosuppressive NMPR most transcriptionally active GSE207422 
-- IFN-stimulated STAT1 constitutive both datasets : not discriminating
+- IFN-stimulated : IRF1/STAT1 strong, IRF5 moderate — intense pro-immunogenic program. CIITA moderate without strong RFX = incomplete MHC II. STAT3/NF-KB weak = low-grade residual immunosuppressive signal. Intense but dysfunctional program.
+- Resident M2 : diffuse weak signal with no dominant program. Transcriptional quiescence in both conditions.
+- Monocyte-derived : DMTF1 strong, STAT1/STAT3 moderate — tumor suppressor active (ARF-p53). DMTF1 orients balance toward pro-inflammatory signal despite equal STAT1/STAT3 levels. NFKBIB moderate, so active NF-KB inhibition. No MYC, so no complete M2 polarization. Partial resistance to M2 differentiation.
+- MRC1+ M2-like : weak diffuse signal with MYC/HIF1A weak (M2 minimal), IRF5 weak (pro-inflammatory minimal), RFX without CIITA (non-functional MHC II). JUN whose role unassignable without phosphorylation data. Non-discriminant, no dominant program.
+- SPP1+ immunosuppressive : IRF5 strong, isolated pro-inflammatory signal. CREB1 moderate, M2 immunosuppressive driver counterbalancing IRF5. NF-KB moderate limited by NFKBIB. Mixed M1/M2 program with tension between IRF5 and CREB1 without resolution. Weak block shared between M1 and M2 residual signals. MHC II non-functional.
+- Lipid-associated : all signals weak/absent, transcriptionally silent in NMPR. Immunosuppression likely via post-transcriptional or metabolic mechanisms rather than TF-driven program.
+- Stress-response : STAT1/IRF5/NF-KB strong, IRF1/HIF1A/STAT3 moderate with intense dysregulated inflammatory program with M1 tendency. NFKBIB moderate, so partial NF-KB brake. MHC II poorly functional (CIITA/RFX weak). Consistent with macrophage stress adaptation under therapeutic pressure.
+- Regulatory : DMTF1/RFX/CIITA/HIF1A weak, so residual regulatory program. HIF1A = tumor-imposed hypoxic response. DMTF1 = residual ARF-p53 regulation attempt. RFX/CIITA = minimal MHC II antigen presentation. Low-grade survival program under TME constraints.
+- M2-SIGLEC8+ : CIITA strong, RFX moderate, dominant MHC II program identical to MPR. Mixed weak block M1/M2 without influence on dominant program. Non-discriminant between conditions, so excluded from communication short-list.
+
 
 ## Preliminary observations : Epithelial compartment CNV (Bloc 4B, GSE207422)
 

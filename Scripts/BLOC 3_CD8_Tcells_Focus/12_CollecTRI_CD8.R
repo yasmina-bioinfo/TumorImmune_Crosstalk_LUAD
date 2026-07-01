@@ -32,7 +32,8 @@ suppressPackageStartupMessages({
 })
 
 # Paths
-DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
+# DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
+DATA_DIR <- "/mnt/c/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
 IN_OBJ   <- file.path(DATA_DIR, "Objects/Bloc3_08_seu_CD8_ProjecTILs.rds")
 OUT_FIG  <- file.path(DATA_DIR, "Results/Figures/CD8")
 OUT_TAB  <- file.path(DATA_DIR, "Results/Tables")
