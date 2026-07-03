@@ -107,9 +107,9 @@ p_bar <- ggplot(df_prop,
            y        = 1.08,
            label    = paste0("Chi-2 p = ", signif(chisq_res$p.value, 3)),
            size     = 3.5,
-           fontface = "italic")
+           fontface = "italic") +
   ylab("CD8 state proportion") +
-  labs(caption = "Note: proportions based on ProjecTILs functional.cluster annotation (Script 02)") +
+  ggtitle("CD8 T cell state proportions — GSE207422") +
   theme_classic() +
   theme(axis.title.x   = element_blank(),
         axis.text.x    = element_text(size = 13, face = "bold"),
@@ -122,8 +122,10 @@ p_bar <- ggplot(df_prop,
         plot.caption   = element_text(size = 8, face = "italic", hjust = 0)) +
   guides(fill = guide_legend(ncol = 1))
 
-ggsave(file.path(OUT_FIG, "Bloc3_GSE207422_Barplot_CD8_ProjecTILs.png"),
+OUT_FIG_PREPRINT <- file.path(DATA_DIR, "Results/Figures/CD8/Preprint")
+dir.create(OUT_FIG_PREPRINT, recursive = TRUE, showWarnings = FALSE)
+
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc3_GSE207422_Barplot_CD8_ProjecTILs_preprint.png"),
        p_bar, width = 7, height = 6, dpi = 300, bg = "white")
-message("Saved: Bloc3_GSE207422__Barplot_CD8_ProjecTILs.png")
 
 message("DONE Bloc3_GSE207422 Script 02")

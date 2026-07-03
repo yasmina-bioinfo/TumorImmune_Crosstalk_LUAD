@@ -11,10 +11,12 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(data.table)
   library(tidyr)
+  library(ggpubr)
 })
 
 DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
-OUT_FIG  <- file.path(DATA_DIR, "Results/Figures/BLOC4A_TAMs")
+OUT_FIG_PREPRINT <- file.path(DATA_DIR, "Results/Figures/BLOC4A_TAMs/Preprint")
+dir.create(OUT_FIG_PREPRINT, recursive = TRUE, showWarnings = FALSE)
 
 # 1) Load object with UCell scores already computed + subset MPR/non-MPR
 seu_TAM <- readRDS(file.path(DATA_DIR, "Objects/Bloc4A_05_seu_TAMs_UCell.rds"))
@@ -29,6 +31,9 @@ pvals <- sapply(score_cols, function(s) {
   wilcox.test(seu_TAM@meta.data[[s]][seu_TAM@meta.data$pathological_response == "MPR"],
               seu_TAM@meta.data[[s]][seu_TAM@meta.data$pathological_response == "non-MPR"])$p.value
 })
+
+message("Wilcoxon p-values MPR vs non-MPR:")
+print(data.frame(signature = score_cols, p_value = pvals))
 
 pval_df <- data.frame(
   signature = score_cols,
@@ -60,7 +65,33 @@ p_bar <- ggplot(score_summary_bar,
         strip.text      = element_text(size = 11, face = "bold")) +
   ylab("Mean UCell score")
 
-ggsave(file.path(OUT_FIG, "Bloc4A_UCell_TAMs_barplot_MPR_nonMPR.png"),
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc4A_UCell_TAMs_barplot_MPR_nonMPR.png"),
        p_bar, width = 10, height = 8, dpi = 300, bg = "white")
 message("Saved: Bloc4A_UCell_TAMs_barplot_MPR_nonMPR.png")
+
+# 4) Violin plots avec p-values — Preprint
+
+meta_vln <- seu_TAM@meta.data %>%
+  select(response = pathological_response, all_of(score_cols))
+
+plot_list_vln <- lapply(score_cols, function(score) {
+  ggplot(meta_vln, aes(x = response, y = .data[[score]], fill = response)) +
+    geom_violin(trim = TRUE) +
+    geom_boxplot(width = 0.1, fill = "white", outlier.size = 0.3) +
+    scale_fill_manual(values = c("MPR" = "#4393C3", "non-MPR" = "#D73027")) +
+    stat_compare_means(method = "wilcox.test", label = "p.format",
+                       comparisons = list(c("MPR", "non-MPR"))) +
+    theme_bw() +
+    theme(legend.position = "none",
+          axis.title.x    = element_blank(),
+          axis.text.x     = element_text(angle = 45, hjust = 1, size = 9)) +
+    labs(title = gsub("_UCell", "", score), y = "UCell score")
+})
+
+p_vln <- wrap_plots(plot_list_vln, ncol = 2)
+
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc4A_UCell_TAMs_violin_MPR_nonMPR_pvalues.png"),
+       p_vln, width = 12, height = 10, dpi = 300, bg = "white")
+message("Saved: Bloc4A_UCell_TAMs_violin_MPR_nonMPR_pvalues.png")
+
 message("DONE Bloc4A Script 05b")

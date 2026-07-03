@@ -189,7 +189,7 @@ pheatmap(tf_heatmap_2cond,
          color             = green_palette,
          annotation_col    = col_anno_2cond,
          annotation_colors = anno_colors_2cond,
-         main              = "TF activity (CollecTRI/decoupleR) — CD8 T cells GSE243013 — MPR vs non-MPR",
+         main              = "TF activity (CollecTRI/decoupleR) — CD8 T cells GSE243013",
          fontsize_row      = 11,
          fontsize_col      = 10,
          angle_col         = 45,
@@ -229,6 +229,35 @@ p_key <- wrap_plots(plot_list, ncol = 2)
 ggsave(file.path(OUT_FIG_PREPRINT, "Bloc3_CollecTRI_key_TFs_violin.png"),
        p_key, width = 12, height = 10, dpi = 300, bg = "white")
 message("Saved: Bloc3_CollecTRI_key_TFs_violin.png")
+
+# 9b) Violin plot MPR vs non-MPR only (preprint)
+tf_key_2cond <- tf_scores %>%
+  filter(source %in% key_tfs_present) %>%
+  left_join(meta, by = "condition") %>%
+  filter(!is.na(response), !is.na(cd8_state),
+         cd8_state %in% c("CD8.TEX", "CD8.TPEX"),
+         response %in% c("MPR", "non-MPR"))
+
+plot_list_2cond <- lapply(key_tfs_present, function(tf) {
+  tf_key_2cond %>%
+    filter(source == tf) %>%
+    ggplot(aes(x = response, y = score, fill = response)) +
+    geom_violin(trim = TRUE) +
+    geom_boxplot(width = 0.1, fill = "white", outlier.size = 0.3) +
+    scale_fill_manual(values = c("MPR"     = "#4393C3",
+                                 "non-MPR" = "#D73027")) +
+    facet_wrap(~cd8_state) +
+    theme_bw() +
+    theme(legend.position = "none",
+          axis.title.x    = element_blank(),
+          axis.text.x     = element_text(angle = 45, hjust = 1, size = 9)) +
+    labs(title = tf, y = "TF activity (ULM score)")
+})
+
+p_key_2cond <- wrap_plots(plot_list_2cond, ncol = 2)
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc3_CollecTRI_key_TFs_violin_MPR_nonMPR.png"),
+       p_key_2cond, width = 12, height = 10, dpi = 300, bg = "white")
+message("Saved: Bloc3_CollecTRI_key_TFs_violin_MPR_nonMPR.png")
 
 # 10) Save updated object
 message("Saving updated CD8 object...")

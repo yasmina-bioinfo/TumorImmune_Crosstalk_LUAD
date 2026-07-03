@@ -12,6 +12,7 @@ suppressPackageStartupMessages({
   library(Seurat)
   library(UCell)
   library(ggplot2)
+  library(ggpubr)
   library(dplyr)
   library(data.table)
   library(patchwork)
@@ -197,6 +198,46 @@ p_dot_split <- DotPlot(seu_CD8,
 
 ggsave(file.path(OUT_FIG, "Bloc3_UCell_Dotplot_CD8_split.png"),
        p_dot_split, width = 16, height = 8, dpi = 300, bg = "white")
+
+# ============================================================
+# 12) Preprint figures : MPR vs non-MPR with Wilcoxon p-values
+# CD8.TEX and CD8.TPEX only
+# ============================================================
+
+OUT_FIG_PREPRINT <- file.path(DATA_DIR, "Results/Figures/CD8/Preprint")
+dir.create(OUT_FIG_PREPRINT, recursive = TRUE, showWarnings = FALSE)
+
+# Subset TEX and TPEX, MPR and non-MPR only
+seu_preprint <- subset(seu_CD8,
+                       subset = functional.cluster %in% c("CD8.TEX", "CD8.TPEX") &
+                         pathological_response %in% c("MPR", "non-MPR"))
+
+meta_preprint <- seu_preprint@meta.data %>%
+  select(response  = pathological_response,
+         cd8_state = functional.cluster,
+         all_of(score_cols))
+
+# Generate violin + p-value per signature
+plot_list_preprint <- lapply(score_cols, function(score) {
+  ggplot(meta_preprint, aes(x = response, y = .data[[score]], fill = response)) +
+    geom_violin(trim = TRUE) +
+    geom_boxplot(width = 0.1, fill = "white", outlier.size = 0.3) +
+    scale_fill_manual(values = c("MPR" = "#4393C3", "non-MPR" = "#D73027")) +
+    stat_compare_means(method = "wilcox.test", label = "p.format",
+                       comparisons = list(c("MPR", "non-MPR"))) +
+    facet_wrap(~cd8_state) +
+    theme_bw() +
+    theme(legend.position = "none",
+          axis.title.x    = element_blank(),
+          axis.text.x     = element_text(angle = 45, hjust = 1, size = 9)) +
+    labs(title = score, y = "UCell score")
+})
+
+p_preprint <- wrap_plots(plot_list_preprint, ncol = 2)
+
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc3_UCell_CD8_TEX_TPEX_MPR_nonMPR_pvalues.png"),
+       p_preprint, width = 16, height = 10, dpi = 300, bg = "white")
+message("Saved: Bloc3_UCell_CD8_TEX_TPEX_MPR_nonMPR_pvalues.png")
 
 message("Saved!")
 

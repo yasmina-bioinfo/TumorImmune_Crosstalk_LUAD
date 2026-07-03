@@ -71,7 +71,7 @@ p_bar <- ggplot(df_prop,
            size     = 3.5,
            fontface = "italic") +
   ylab("CD8 state proportion") +
-  labs(caption = "Note: proportions based on ProjecTILs functional.cluster annotation (Script 08)") +
+  ggtitle("CD8 T cell state proportions — GSE243013") +
   theme_classic() +
   theme(axis.title.x   = element_blank(),
         axis.text.x    = element_text(size = 13, face = "bold"),
@@ -126,5 +126,57 @@ fisher_df <- do.call(rbind, fisher_results)
 print(fisher_df)
 fwrite(fisher_df, file.path(OUT_TAB, "Bloc3_CD8_fisher_posthoc.csv"))
 message("Saved: Bloc3_CD8_fisher_posthoc.csv")
+
+# 6) Preprint figure — MPR vs non-MPR only
+message("Generating preprint barplot MPR vs non-MPR...")
+
+OUT_FIG_PREPRINT <- file.path(DATA_DIR, "Results/Figures/CD8/Preprint")
+dir.create(OUT_FIG_PREPRINT, recursive = TRUE, showWarnings = FALSE)
+
+# Chi-2 sur MPR vs non-MPR uniquement
+cont_table_2cond <- table(
+  seu_CD8$functional.cluster,
+  seu_CD8$pathological_response)[, c("MPR", "non-MPR")]
+chisq_2cond <- chisq.test(cont_table_2cond)
+message("Chi-2 MPR vs non-MPR p-value: ", chisq_2cond$p.value)
+
+df_prop_preprint <- seu_CD8@meta.data %>%
+  filter(!is.na(functional.cluster),
+         pathological_response %in% c("MPR", "non-MPR")) %>%
+  transmute(response  = pathological_response,
+            cd8_state = functional.cluster) %>%
+  count(response, cd8_state, name = "n") %>%
+  group_by(response) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+p_bar_preprint <- ggplot(df_prop_preprint,
+                         aes(x = response, y = prop, fill = cd8_state)) +
+  geom_col(width = 0.8, color = "white", linewidth = 0.2) +
+  scale_fill_manual(values = cd8_colors, drop = FALSE) +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, 1.1)) +
+  annotate("text",
+           x        = 1.5,
+           y        = 1.08,
+           label    = paste0("Chi-2 p = ", signif(chisq_2cond$p.value, 3)),
+           size     = 3.5,
+           fontface = "italic") +
+  ggtitle("CD8 T cell state proportions — GSE243013") +
+  ylab("CD8 state proportion") +
+  theme_classic() +
+  theme(axis.title.x    = element_blank(),
+        axis.text.x     = element_text(size = 13, face = "bold"),
+        axis.text.y     = element_text(size = 11),
+        axis.title.y    = element_text(size = 12),
+        legend.position = "right",
+        legend.text     = element_text(size = 10),
+        legend.key.size = unit(0.5, "cm"),
+        legend.title    = element_blank()) +
+  guides(fill = guide_legend(ncol = 1))
+
+ggsave(file.path(OUT_FIG_PREPRINT, "Bloc3_Barplot_CD8_ProjecTILs_MPR_nonMPR.png"),
+       p_bar_preprint, width = 7, height = 6, dpi = 300, bg = "white")
+message("Saved: Bloc3_Barplot_CD8_ProjecTILs_MPR_nonMPR.png — Preprint")
 
 message("DONE Bloc3 Script 09")
