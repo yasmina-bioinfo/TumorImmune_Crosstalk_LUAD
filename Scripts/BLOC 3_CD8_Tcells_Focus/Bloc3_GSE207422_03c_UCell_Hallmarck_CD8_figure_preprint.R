@@ -61,20 +61,28 @@ sig_filtered <- c(
   "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION"
 )
 
-# 4) Calculate p-values per signature
-pval_row <- sapply(sig_filtered, function(sig) {
-  mpr  <- seu_sub@meta.data[seu_sub@meta.data$PathResponse == "MPR",  sig]
-  nmpr <- seu_sub@meta.data[seu_sub@meta.data$PathResponse == "NMPR", sig]
-  mpr  <- mpr[!is.na(mpr)]
-  nmpr <- nmpr[!is.na(nmpr)]
-  wilcox.test(mpr, nmpr)$p.value
-})
+# 4) Build heatmap matrix (no significance labels here, significance is
+# reported separately in Results text with subtype-level Wilcoxon values,
+# and in a supplementary global heatmap with asterisks)
 
-# Labels avec astérisques
-labels_row_sig <- paste0(gsub("HALLMARK_", "", sig_filtered), " ",
-                         ifelse(pval_row < 0.001, "***",
-                                ifelse(pval_row < 0.01,  "**",
-                                       ifelse(pval_row < 0.05,  "*", "ns"))))
+labels_row_clean <- gsub("HALLMARK_", "", sig_filtered)
+
+mat_heatmap <- meta_sub %>%
+  select(response, cd8_state, all_of(sig_filtered)) %>%
+  mutate(group = paste0(cd8_state, "\n", response)) %>%
+  select(-response, -cd8_state) %>%
+  pivot_longer(cols = all_of(sig_filtered),
+               names_to = "signature",
+               values_to = "score") %>%
+  group_by(group, signature) %>%
+  summarise(mean_score = mean(score, na.rm = TRUE), .groups = "drop") %>%
+  mutate(signature = gsub("HALLMARK_", "", signature),
+         group = factor(group, levels = c(
+           "CD8.TEX\nMPR", "CD8.TEX\nNMPR",
+           "CD8.TPEX\nMPR", "CD8.TPEX\nNMPR"))) %>%
+  pivot_wider(names_from = group, values_from = mean_score) %>%
+  tibble::column_to_rownames("signature") %>%
+  as.matrix()
 
 # 5) Build heatmap matrix
 mat_heatmap <- meta_sub %>%
@@ -116,8 +124,8 @@ pheatmap(mat_heatmap,
          color             = green_palette,
          annotation_col    = col_anno,
          annotation_colors = anno_colors,
-         labels_row        = labels_row_sig,
-         main              = "Hallmark UCell scores — CD8 T cells GSE207422\n*** p<0.001  ** p<0.01  * p<0.05  ns not significant",
+         labels_row        = labels_row_clean,
+         main = "Hallmark UCell scores — CD8 T cells GSE207422",
          fontsize_row      = 10,
          fontsize_col      = 10,
          angle_col         = 45,

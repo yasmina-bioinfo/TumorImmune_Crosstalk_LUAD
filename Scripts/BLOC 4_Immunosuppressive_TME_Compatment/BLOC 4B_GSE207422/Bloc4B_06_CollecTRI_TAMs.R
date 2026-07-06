@@ -25,6 +25,7 @@ suppressPackageStartupMessages({
 
 # Paths
 DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
+#DATA_DIR <- "/mnt/c/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
 IN_OBJ  <- file.path(DATA_DIR, "Objects/Bloc4B_04_seu_TAMs_combined.rds")
 OUT_FIG <- file.path(DATA_DIR, "Results/Figures/BLOC4B_Epithelial_TAMs")
 OUT_TAB <- file.path(DATA_DIR, "Results/Tables")
@@ -56,17 +57,8 @@ net <- read.csv(file.path(DATA_DIR, "Data/collectri_network.csv"))
 message("CollecTRI: ", nrow(net), " interactions, ",
         length(unique(net$source)), " TFs")
 
-# 2b) Downsample TAM subtypes for RAM efficiency
-# All 9 TAM subtypes included
-# Downsampled to max 10,000 cells per subtype, set.seed(42) for reproducibility
-set.seed(42)
-cells_keep <- seu_TAMs@meta.data %>%
-  tibble::rownames_to_column("barcode") %>%
-  dplyr::group_by(combined_annotation) %>%
-  dplyr::slice_sample(n = 10000) %>%
-  dplyr::pull(barcode)
-seu_sub <- subset(seu_TAMs, cells = cells_keep)
-message("Downsampled: ", ncol(seu_sub), " cells")
+seu_sub <- seu_TAMs
+message("Using full TAMs population: ", ncol(seu_sub), " cells")
 
 # 3) Extract normalized count matrix
 message("Extracting count matrix...")
@@ -83,38 +75,91 @@ tf_acts <- run_ulm(mat     = mat,
                    minsize = 5)
 message("TF activity computed for ", length(unique(tf_acts$source)), " TFs")
 
-# 5) Select top 20 TFs by variance across cells
-message("Selecting top 20 TFs by variance...")
-tf_scores <- tf_acts %>%
-  filter(statistic == "ulm") %>%
-  select(source, condition, score)
+saveRDS(tf_acts, file.path(DATA_DIR, "Objects/Bloc4B_06_tf_acts_raw.rds"))
+message("Saved: Objects/Bloc4B_06_tf_acts_raw.rds")
 
-tf_var <- tf_scores %>%
-  group_by(source) %>%
-  summarise(variance = var(score), .groups = "drop") %>%
-  arrange(desc(variance))
-
-top20_tfs <- tf_var$source[1:20]
-message("Top 20 TFs: ", paste(top20_tfs, collapse = ", "))
-
-# 6) Compute mean TF activity per TAM subtype x response group
-message("Computing mean TF activity per TAM subtype x response group...")
+# 5) Compute mean TF activity per TAM subtype x response group, for ALL TFs
+#    (done BEFORE any TF selection, so that selection itself can be based on
+#    between-group variance rather than per-cell variance)
+message("Computing mean TF activity per TAM subtype x response group (all TFs)...")
 
 meta <- seu_sub@meta.data %>%
   select(response  = PathResponse,
          tam_state = tam_short) %>%
   tibble::rownames_to_column("condition")
 
-tf_summary <- tf_scores %>%
-  filter(source %in% top20_tfs) %>%
+tf_scores <- tf_acts %>%
+  filter(statistic == "ulm") %>%
+  select(source, condition, score)
+
+tf_summary_all <- tf_scores %>%
   left_join(meta, by = "condition") %>%
   filter(!is.na(response), !is.na(tam_state)) %>%
   group_by(source, tam_state, response) %>%
   summarise(mean_activity = mean(score), .groups = "drop")
 
+# 6) Select TFs by BETWEEN-GROUP variance (variance of subtype x response means),
+#    not per-cell variance, this is the criterion aligned with the project's
+#    goal of comparing MPR vs NMPR response groups across TAM subtypes.
+message("Selecting TFs by between-group variance...")
+
+tf_var_between <- tf_summary_all %>%
+  group_by(source) %>%
+  summarise(variance = var(mean_activity), .groups = "drop") %>%
+  arrange(desc(variance))
+
+top20_tfs <- tf_var_between$source[1:20]
+key_tfs_present <- tf_var_between$source[1:6]
+message("Top 20 TFs (between-group variance): ", paste(top20_tfs, collapse = ", "))
+message("Top 6 TFs (between-group variance): ", paste(key_tfs_present, collapse = ", "))
+
+tf_summary <- tf_summary_all %>%
+  filter(source %in% top20_tfs)
+
 fwrite(as.data.frame(tf_summary),
        file.path(OUT_TAB, "Bloc4B_GSE207422_CollecTRI_TF_activity.csv"))
 message("Saved: Bloc4B_GSE207422_CollecTRI_TF_activity.csv")
+
+# 6b) Wilcoxon test per TAM subtype, MPR vs NMPR, on raw per-cell scores
+#     BH-corrected within subtype.
+message("Running Wilcoxon tests MPR vs NMPR, per TAM subtype, on raw TF scores...")
+
+tf_scores_meta <- tf_scores %>%
+  left_join(meta, by = "condition") %>%
+  filter(!is.na(response), !is.na(tam_state),
+         source %in% top20_tfs)
+
+tam_states_all <- unique(tf_scores_meta$tam_state)
+
+wilcox_bysubtype <- lapply(tam_states_all, function(state) {
+  lapply(top20_tfs, function(tf) {
+    mpr  <- tf_scores_meta$score[tf_scores_meta$tam_state == state &
+                                   tf_scores_meta$response  == "MPR" &
+                                   tf_scores_meta$source    == tf]
+    nmpr <- tf_scores_meta$score[tf_scores_meta$tam_state == state &
+                                   tf_scores_meta$response  == "NMPR" &
+                                   tf_scores_meta$source    == tf]
+    if (length(mpr) < 3 | length(nmpr) < 3) return(NULL)
+    test <- wilcox.test(mpr, nmpr)
+    data.frame(tam_state  = state,
+               source     = tf,
+               p_value    = test$p.value,
+               median_MPR = median(mpr),
+               median_NMPR = median(nmpr))
+  }) %>% bind_rows()
+}) %>% bind_rows()
+
+wilcox_bysubtype <- wilcox_bysubtype %>%
+  group_by(tam_state) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  ungroup() %>%
+  arrange(tam_state, p_adj)
+
+fwrite(wilcox_bysubtype,
+       file.path(OUT_TAB, "Bloc4B_GSE207422_CollecTRI_TF_wilcox_bysubtype.csv"))
+message("Saved: Bloc4B_GSE207422_CollecTRI_TF_wilcox_bysubtype.csv")
+print(wilcox_bysubtype)
+
 
 # 7) Build heatmap matrix, one per response group
 green_palette <- colorRampPalette(c("white", "#006400"))(100)
@@ -128,7 +173,6 @@ for (resp in c("MPR", "NMPR")) {
     tibble::column_to_rownames("source") %>%
     as.matrix()
   
-  # Order columns consistently across heatmaps
   col_order <- c("IFN-stimulated", "Resident M2", "MRC1+ M2-like",
                  "SPP1+ immunosuppressive", "Monocyte-derived",
                  "Lipid-associated", "Stress-response",
@@ -155,10 +199,6 @@ for (resp in c("MPR", "NMPR")) {
 # 8) Violin plots
 message("Generating violin plots for key TFs...")
 
-# Top 6 TFs by variance: objective selection, no confirmation bias
-key_tfs_present <- tf_var$source[1:6]
-message("Top 6 TFs: ", paste(key_tfs_present, collapse = ", "))
-
 tf_key <- tf_scores %>%
   filter(source %in% key_tfs_present) %>%
   left_join(meta, by = "condition") %>%
@@ -182,9 +222,3 @@ p_key <- wrap_plots(plot_list, ncol = 2)
 ggsave(file.path(OUT_FIG, "Bloc4B_GSE207422_CollecTRI_key_TFs_violin.png"),
        p_key, width = 14, height = 16, dpi = 300, bg = "white")
 message("Saved: Bloc4B_GSE207422_CollecTRI_key_TFs_violin.png")
-
-# 9) Save updated TAMs object
-message("Saving updated TAMs object...")
-saveRDS(seu_TAMs, file.path(DATA_DIR, "Objects/Bloc4B_06_seu_TAMs_TF.rds"))
-message("Saved: Objects/Bloc4B_06_seu_TAMs_TF.rds")
-message("DONE Bloc4B Script 06")

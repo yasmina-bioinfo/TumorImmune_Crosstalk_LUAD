@@ -94,6 +94,8 @@ green_palette <- colorRampPalette(c("white", "#006400"))(100)
 
 # 5) Heatmap
 message("Generating heatmap...")
+
+# 5a) Heatmaps global TAMs
 png(file.path(OUT_FIG_PREPRINT, "GSE243013_Hallmark_TAMs_heatmap_main.png"),
     width = 8, height = 10, units = "in", res = 300)
 pheatmap(mat_heatmap,
@@ -110,6 +112,77 @@ pheatmap(mat_heatmap,
          angle_col         = 45,
          border_color      = NA)
 dev.off()
+
 message("Saved: GSE243013_Hallmark_TAMs_heatmap_main.png")
+
+# 5b) Heatmap UCell Hallmark by subtype
+
+# Mapping full names to short names
+short_names <- c(
+  "Tissue-resident immunosuppressive TAMs (anti-inflammatory/M2-like)" = "Resident M2",
+  "TREM2+/APOE+ lipid-associated immunosuppressive TAMs (LAMs)" = "LAMs",
+  "Inflammatory monocyte-derived TAMs (FCN1+/S100A8+)" = "Monocyte FCN1+",
+  "Stress-response immunosuppressive TAMs (MARCO+/PPARG+/HSP-high)" = "Stress-response",
+  "Proliferating TAMs (cycling/MKI67+)" = "Proliferating",
+  "IFN-stimulated immunomodulatory TAMs (ISG-high/PD-L1+/IDO1+)" = "IFN-stimulated",
+  "Classical monocyte-derived TAMs (S100A8+/S100A9+/CCR2+)" = "Classical-Mono"
+)
+
+meta_subtype <- seu_TAM@meta.data %>%
+  select(subtype  = final_annotation,
+         response = pathological_response,
+         all_of(sig_filtered)) %>%
+  mutate(subtype = short_names[subtype])
+
+mat_subtype <- meta_subtype %>%
+  pivot_longer(cols = all_of(sig_filtered),
+               names_to = "signature",
+               values_to = "score") %>%
+  group_by(subtype, response, signature) %>%
+  summarise(mean_score = mean(score, na.rm = TRUE), .groups = "drop") %>%
+  mutate(signature = gsub("HALLMARK_", "", signature),
+         group = paste0(subtype, "\n", response)) %>%
+  select(signature, group, mean_score) %>%
+  pivot_wider(names_from = group, values_from = mean_score) %>%
+  tibble::column_to_rownames("signature") %>%
+  as.matrix()
+
+# Order columns
+tam_states <- c("Resident M2", "LAMs", "Monocyte FCN1+",
+                "Stress-response", "Proliferating",
+                "IFN-stimulated", "Classical-Mono")
+conditions <- c("non-MPR", "MPR")
+
+col_order <- as.vector(outer(tam_states, conditions,
+                             function(s, c) paste0(s, "\n", c)))
+col_order <- col_order[col_order %in% colnames(mat_subtype)]
+mat_subtype <- mat_subtype[, col_order]
+
+# Column annotation
+col_anno <- data.frame(
+  Response  = sub(".*\n", "", colnames(mat_subtype)),
+  row.names = colnames(mat_subtype))
+
+anno_colors <- list(
+  Response = c("MPR" = "#4393C3", "non-MPR" = "#D73027"))
+
+png(file.path(OUT_FIG_PREPRINT,
+              "GSE243013_Hallmark_TAMs_heatmap_bysubtype.png"),
+    width = 16, height = 10, units = "in", res = 300)
+pheatmap(mat_subtype,
+         scale             = "row",
+         cluster_cols      = FALSE,
+         cluster_rows      = TRUE,
+         color             = green_palette,
+         annotation_col    = col_anno,
+         annotation_colors = anno_colors,
+         main              = "Hallmark UCell scores — TAMs by subtype GSE243013",
+         fontsize_row      = 10,
+         fontsize_col      = 11,
+         angle_col         = 45,
+         border_color      = NA,
+         gaps_col          = 7)
+dev.off()
+message("Saved: heatmap by subtype")
 
 message("DONE Script 05d")

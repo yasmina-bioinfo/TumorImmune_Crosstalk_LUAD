@@ -60,26 +60,9 @@ sig_filtered <- c(
   "HALLMARK_COMPLEMENT"
 )
 
-# 4) Heatmap with p-value annotation — main preprint figure
-message("Generating main heatmap with p-values...")
+# 4) Build heatmap matrix (no significance labels — significance is reported
+# separately in Results text using Script 10b's state-specific _bysubtype table)
 
-# Calculate p-values per signature
-pval_row <- sapply(sig_filtered, function(sig) {
-  mpr  <- seu_sub@meta.data[seu_sub@meta.data$pathological_response == "MPR", sig]
-  nmpr <- seu_sub@meta.data[seu_sub@meta.data$pathological_response == "non-MPR", sig]
-  mpr  <- mpr[!is.na(mpr)]
-  nmpr <- nmpr[!is.na(nmpr)]
-  wilcox.test(mpr, nmpr)$p.value
-})
-
-# Row annotation with significance
-row_anno <- data.frame(
-  Significance = ifelse(pval_row < 0.001, "***",
-                        ifelse(pval_row < 0.01,  "**",
-                               ifelse(pval_row < 0.05,  "*", "ns"))),
-  row.names = gsub("HALLMARK_", "", sig_filtered))
-
-# Build matrix
 mat_heatmap <- meta_sub %>%
   select(response, cd8_state, all_of(sig_filtered)) %>%
   mutate(group = paste0(cd8_state, "\n", response)) %>%
@@ -97,11 +80,7 @@ mat_heatmap <- meta_sub %>%
   tibble::column_to_rownames("signature") %>%
   as.matrix()
 
-# Labels avec astérisques
-labels_row_sig <- paste0(gsub("HALLMARK_", "", sig_filtered), " ",
-                         ifelse(pval_row < 0.001, "***",
-                                ifelse(pval_row < 0.01,  "**",
-                                       ifelse(pval_row < 0.05,  "*", "ns"))))
+labels_row_clean <- gsub("HALLMARK_", "", sig_filtered)
 
 # Column annotation
 col_anno <- data.frame(
@@ -122,8 +101,8 @@ pheatmap(mat_heatmap,
          color             = green_palette,
          annotation_col    = col_anno,
          annotation_colors = anno_colors,
-         labels_row        = labels_row_sig,
-         main = "Hallmark UCell scores — CD8 T cells GSE243013\n*** p<0.001  ** p<0.01  * p<0.05  ns not significant",
+         labels_row        = labels_row_clean,
+         main = "Hallmark UCell scores — CD8 T cells GSE243013",
          fontsize_row      = 10,
          fontsize_col      = 10,
          angle_col         = 45,

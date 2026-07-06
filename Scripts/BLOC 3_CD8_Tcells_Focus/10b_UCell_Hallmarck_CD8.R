@@ -56,6 +56,8 @@ hallmark_cols <- names(hallmark_sets)
 
 # 5) Wilcoxon test — identify discriminant signatures
 message("Running Wilcoxon tests MPR vs non-MPR...")
+
+# 5a) Global
 wilcox_results <- lapply(hallmark_cols, function(sig) {
   mpr  <- seu_sub@meta.data[seu_sub@meta.data$pathological_response == "MPR",  sig]
   nmpr <- seu_sub@meta.data[seu_sub@meta.data$pathological_response == "non-MPR", sig]
@@ -76,6 +78,37 @@ wilcox_results <- wilcox_results %>%
 fwrite(wilcox_results,
        file.path(OUT_TAB, "Bloc3_GSE243013_UCell_Hallmark_CD8_wilcox_results.csv"))
 message("Saved: Bloc3_GSE243013_UCell_Hallmark_CD8_wilcox_results.csv")
+
+# 5b) Wilcoxon test PER CD8 STATE (TEX, TPEX separately) — BH-corrected within state
+message("Running Wilcoxon tests MPR vs non-MPR, per CD8 state (TEX, TPEX)...")
+
+wilcox_bystate <- lapply(c("CD8.TEX", "CD8.TPEX"), function(state) {
+  lapply(hallmark_cols, function(sig) {
+    mpr  <- seu_sub@meta.data[seu_sub@meta.data$functional.cluster == state &
+                                seu_sub@meta.data$pathological_response == "MPR",  sig]
+    nmpr <- seu_sub@meta.data[seu_sub@meta.data$functional.cluster == state &
+                                seu_sub@meta.data$pathological_response == "non-MPR", sig]
+    mpr  <- mpr[!is.na(mpr)]
+    nmpr <- nmpr[!is.na(nmpr)]
+    if (length(mpr) < 3 | length(nmpr) < 3) return(NULL)
+    test <- wilcox.test(mpr, nmpr)
+    data.frame(cd8_state     = state,
+               signature     = sig,
+               p_value       = test$p.value,
+               median_MPR    = median(mpr),
+               median_nonMPR = median(nmpr))
+  }) %>% bind_rows()
+}) %>% bind_rows()
+
+wilcox_bystate <- wilcox_bystate %>%
+  group_by(cd8_state) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  ungroup() %>%
+  arrange(cd8_state, p_adj)
+
+fwrite(wilcox_bystate,
+       file.path(OUT_TAB, "Bloc3_GSE243013_UCell_Hallmark_CD8_wilcox_bysubtype.csv"))
+message("Saved: Bloc3_GSE243013_UCell_Hallmark_CD8_wilcox_bysubtype.csv")
 
 # 6) Select discriminant signatures p_adj < 0.05
 sig_discriminant <- wilcox_results %>%

@@ -10,6 +10,7 @@
 # Output: Results/Figures/CD8/Preprint/Bloc3_GSE207422_CollecTRI_heatmap.png
 #         Results/Figures/CD8/Preprint/Bloc3_GSE207422_CollecTRI_key_TFs_violin.png
 #         Results/Tables/Bloc3_GSE207422_CollecTRI_TF_activity.csv
+#         Results/Tables/Bloc3_GSE207422_CollecTRI_TF_wilcox_bystate.csv
 # Reference: Müller-Dott et al., Nucleic Acids Research 2023
 #            Badia-i-Mompel et al., Bioinformatics Advances 2022
 # ============================================================
@@ -25,7 +26,8 @@ suppressPackageStartupMessages({
 })
 
 # Paths
-DATA_DIR         <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
+#DATA_DIR         <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
+DATA_DIR         <- "/mnt/c/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
 IN_OBJ           <- file.path(DATA_DIR, "Objects/Bloc3_GSE207422_01_seu_CD8_ProjecTILs.rds")
 OUT_FIG_PREPRINT <- file.path(DATA_DIR, "Results/Figures/CD8/Preprint")
 dir.create(OUT_FIG_PREPRINT, recursive = TRUE, showWarnings = FALSE)
@@ -61,38 +63,88 @@ tf_acts <- run_ulm(mat     = mat,
                    minsize = 5)
 message("TF activity computed for ", length(unique(tf_acts$source)), " TFs")
 
-# 6) Select top 20 TFs by variance across cells
-message("Selecting top 20 TFs by variance...")
+# Save raw per-cell TF scores in case a future adjustment is needed
+# without re-running decoupleR (the most expensive step)
+saveRDS(tf_acts, file.path(DATA_DIR, "Objects/Bloc3_GSE207422_04_tf_acts_raw.rds"))
+message("Saved: Objects/Bloc3_GSE207422_04_tf_acts_raw.rds")
+
 tf_scores <- tf_acts %>%
   filter(statistic == "ulm") %>%
   select(source, condition, score)
-
-tf_var <- tf_scores %>%
-  group_by(source) %>%
-  summarise(variance = var(score), .groups = "drop") %>%
-  arrange(desc(variance))
-
-top20_tfs <- tf_var$source[1:20]
-message("Top 20 TFs: ", paste(top20_tfs, collapse = ", "))
-
-# 7) Compute mean TF activity per CD8 state x response group
-message("Computing mean TF activity per CD8 state x response group...")
 
 meta <- seu_sub@meta.data %>%
   select(response  = PathResponse,
          cd8_state = functional.cluster) %>%
   tibble::rownames_to_column("condition")
 
-tf_summary <- tf_scores %>%
-  filter(source %in% top20_tfs) %>%
+# 6) Compute mean TF activity per CD8 state x response group — for ALL TFs
+#    (done BEFORE selection, so selection is based on between-group variance
+#    rather than per-cell variance)
+message("Computing mean TF activity per CD8 state x response group (all TFs)...")
+
+tf_summary_all <- tf_scores %>%
   left_join(meta, by = "condition") %>%
   filter(!is.na(response), !is.na(cd8_state)) %>%
   group_by(source, cd8_state, response) %>%
   summarise(mean_activity = mean(score), .groups = "drop")
 
+# 7) Select TFs by BETWEEN-GROUP variance (variance of state x response means)
+message("Selecting TFs by between-group variance...")
+
+tf_var_between <- tf_summary_all %>%
+  group_by(source) %>%
+  summarise(variance = var(mean_activity), .groups = "drop") %>%
+  arrange(desc(variance))
+
+top20_tfs <- tf_var_between$source[1:20]
+key_tfs_present <- tf_var_between$source[1:6]
+message("Top 20 TFs (between-group variance): ", paste(top20_tfs, collapse = ", "))
+message("Top 6 TFs (between-group variance): ", paste(key_tfs_present, collapse = ", "))
+
+tf_summary <- tf_summary_all %>%
+  filter(source %in% top20_tfs)
+
 fwrite(as.data.frame(tf_summary),
        file.path(OUT_TAB, "Bloc3_GSE207422_CollecTRI_TF_activity.csv"))
 message("Saved: Bloc3_GSE207422_CollecTRI_TF_activity.csv")
+
+# 7b) Wilcoxon test per CD8 state (TEX, TPEX), MPR vs NMPR, on raw per-cell
+#     scores — BH-corrected within state.
+message("Running Wilcoxon tests MPR vs NMPR, per CD8 state, on raw TF scores...")
+
+tf_scores_meta <- tf_scores %>%
+  left_join(meta, by = "condition") %>%
+  filter(!is.na(response), !is.na(cd8_state),
+         source %in% top20_tfs)
+
+wilcox_bystate <- lapply(c("CD8.TEX", "CD8.TPEX"), function(state) {
+  lapply(top20_tfs, function(tf) {
+    mpr  <- tf_scores_meta$score[tf_scores_meta$cd8_state == state &
+                                   tf_scores_meta$response  == "MPR" &
+                                   tf_scores_meta$source    == tf]
+    nmpr <- tf_scores_meta$score[tf_scores_meta$cd8_state == state &
+                                   tf_scores_meta$response  == "NMPR" &
+                                   tf_scores_meta$source    == tf]
+    if (length(mpr) < 3 | length(nmpr) < 3) return(NULL)
+    test <- wilcox.test(mpr, nmpr)
+    data.frame(cd8_state  = state,
+               source     = tf,
+               p_value    = test$p.value,
+               median_MPR = median(mpr),
+               median_NMPR = median(nmpr))
+  }) %>% bind_rows()
+}) %>% bind_rows()
+
+wilcox_bystate <- wilcox_bystate %>%
+  group_by(cd8_state) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  ungroup() %>%
+  arrange(cd8_state, p_adj)
+
+fwrite(wilcox_bystate,
+       file.path(OUT_TAB, "Bloc3_GSE207422_CollecTRI_TF_wilcox_bystate.csv"))
+message("Saved: Bloc3_GSE207422_CollecTRI_TF_wilcox_bystate.csv")
+print(wilcox_bystate)
 
 # 8) Build heatmap matrix
 tf_heatmap <- tf_summary %>%
@@ -137,10 +189,8 @@ pheatmap(tf_heatmap,
 dev.off()
 message("Saved: Bloc3_GSE207422_CollecTRI_heatmap.png")
 
-# 9) Violin plot
+# 9) Violin plot — Top 6 by between-group variance
 message("Generating violin plots for key TFs...")
-key_tfs_present <- tf_var$source[1:6]
-message("Key TFs: ", paste(key_tfs_present, collapse = ", "))
 
 tf_key <- tf_scores %>%
   filter(source %in% key_tfs_present) %>%
