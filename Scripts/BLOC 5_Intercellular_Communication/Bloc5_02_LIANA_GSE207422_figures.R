@@ -1,6 +1,10 @@
-#!/usr/bin/env Rscript
 # ============================================================
-# GSE207422 : Bloc5 Script 02: LIANA+ figures — main axes
+# GSE207422 : Bloc5 Script 02: LIANA+ figures — main axes (exploratory)
+# NOTE: descriptive/exploratory only — aggregate_rank prioritization,
+# NOT a statistical test (Dimitrov et al., 2022). These figures are
+# not used in the preprint main text or supplementary; kept for
+# reference on disk only. Formal Wilcoxon statistical testing is
+# applied in Script 02b (cells of interest, preprint figures).
 # Produces comparative dotplots for bidirectional axes:
 # CD8 <-> TAMs, CD8 <-> Epithelial, TAMs <-> Epithelial
 # Input:  Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv
@@ -29,8 +33,7 @@ liana_MPR  <- fread(file.path(OUT_TAB, "Bloc5_01_LIANA_GSE207422_MPR_aggregated.
 liana_NMPR <- fread(file.path(OUT_TAB, "Bloc5_01_LIANA_GSE207422_NMPR_aggregated.csv"))
 
 # Define cell type groups
-cd8_types <- c("CD8.TEX", "CD8.TPEX", "CD8.EM", "CD8.CM",
-               "CD8.TEMRA", "CD8.NaiveLike")
+cd8_types <- c("CD8.TEX", "CD8.TPEX")
 
 tam_types <- c("TAM_like_MRC1",
                "TAM_like_SPP1",
@@ -80,6 +83,11 @@ plot_liana_comparison <- function(liana_MPR, liana_NMPR,
     process_cond(liana_MPR, label_cond1),
     process_cond(liana_NMPR, label_cond2)
   )
+  
+  if (nrow(df_all) == 0) {
+    warning("No interactions found for this axis (source/target combination) — skipping plot.")
+    return(NULL)
+  }
   
   # Apply short TAM labels to source and target
   df_all$source <- ifelse(df_all$source %in% names(short_tam_labels),

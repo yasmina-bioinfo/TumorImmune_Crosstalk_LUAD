@@ -5,13 +5,10 @@
 # Compares interactions across MPR and NMPR conditions
 # Methods: sca, natmi, connectome (aggregated consensus)
 # NOTE: aggregate_rank is a rank-aggregation consensus score across methods,
-# NOT a hypothesis-test p-value. Differential significance between conditions
-# is assessed separately (Step 8) via patient-level pseudobulk Wilcoxon testing,
-# consistent with the pseudobulk methodology used elsewhere in this project
-# (avoids pseudo-replication at the single-cell level).
-# Epithelial compartment included here for completeness (available in GSE207422
-# only); CD8<->TAM interactions are the main-text focus, CD8/TAM<->Epithelial
-# results are reserved for supplementary figures / perspectives.
+# NOT a hypothesis-test p-value (Dimitrov et al., 2022; RRA method, Kolde et al., 2012).
+# Threshold 0.05 (more permissive than the tutorial's example 0.01), chosen to
+# avoid over-restricting discovery in a multi-compartment TME.
+# CD8 restricted to CD8.TEX/CD8.TPEX only.
 # Input:  Objects/Bloc3_GSE207422_01_seu_CD8_ProjecTILs.rds
 #         Objects/Bloc4B_04_seu_TAMs_combined.rds
 #         Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds
@@ -27,6 +24,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(ggplot2)
   library(data.table)
+  library(Matrix)
 })
 
 DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
@@ -44,9 +42,12 @@ seu_CD8 <- readRDS(file.path(DATA_DIR, "Objects/Bloc3_GSE207422_01_seu_CD8_Proje
 seu_TAM <- readRDS(file.path(DATA_DIR, "Objects/Bloc4B_04_seu_TAMs_combined.rds"))
 seu_Epi <- readRDS(file.path(DATA_DIR, "Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds"))
 
+# Restrict CD8 to TEX/TPEX only
+seu_CD8 <- subset(seu_CD8, subset = functional.cluster %in% c("CD8.TEX", "CD8.TPEX"))
+message("CD8 restricted to TEX/TPEX: ", ncol(seu_CD8), " cells")
+
 # ============================================================
-# 2) Unify cell_type column — TAM subtypes use short labels,
-#    consistent with tam_short convention used in Blocs 3/4
+# 2) Unify cell_type column — TAM subtypes use short labels
 # ============================================================
 seu_CD8$cell_type <- seu_CD8$functional.cluster
 
@@ -112,9 +113,7 @@ fwrite(as.data.frame(liana_agg),
 message("Saved: CSV aggregated interactions (pooled)")
 
 # ============================================================
-# 7) Run LIANA per condition - MPR and NMPR separately
-#    (descriptive/prioritization use only — NOT a statistical test,
-#    see Step 8 for the formal differential comparison)
+# 7) Run LIANA per condition - MPR and NMPR separately (descriptive)
 # ============================================================
 message("Running LIANA per condition...")
 
@@ -136,53 +135,105 @@ for (cond in c("MPR", "NMPR")) {
   message("Saved: LIANA ", cond, " (descriptive)")
 }
 
-
 # ============================================================
-# 8) Formal differential test: MPR vs NMPR, patient-level pseudobulk
-#    For each prioritized interaction (aggregate_rank <= 0.05 in at least one
-#    condition), compute a per-patient interaction score as the product of
-#    mean ligand expression (source cell type) and mean receptor expression
-#    (target cell type), then Wilcoxon rank-sum test across patients,
-#    BH-corrected across all tested interactions.
+# 8) Build the two interaction lists first (CD8<->TAM/Epithelial,
+#    and TAM/CD8<->tumor/normal), THEN compute expression means ONCE
+#    for all genes needed by both, THEN run both statistical tests.
 # ============================================================
-message("Running patient-level differential test (MPR vs NMPR)...")
 
+cd8_states_of_interest <- c("CD8.TEX", "CD8.TPEX")
+tam_states_of_interest <- unname(tam_short_labels)
+epi_states_of_interest <- c("tumor_MPR", "normal_MPR", "tumor_NMPR", "normal_NMPR", "Ciliated")
+valid_partners <- c(tam_states_of_interest, epi_states_of_interest)
+
+# List 1: CD8 <-> TAM / Ciliated (tested directly MPR vs NMPR)
 prioritized <- bind_rows(liana_per_cond, .id = "condition") %>%
   filter(aggregate_rank <= 0.05) %>%
-  distinct(source, target, ligand.complex, receptor.complex)
+  distinct(source, target, ligand.complex, receptor.complex) %>%
+  filter((source %in% cd8_states_of_interest & target %in% valid_partners) |
+           (target %in% cd8_states_of_interest & source %in% valid_partners))
+message("List 1 (CD8<->TAM/Epithelial): ", nrow(prioritized), " interactions")
 
-message("Prioritized interactions to test: ", nrow(prioritized))
+# List 2: TAM/CD8 <-> tumor/normal (tested as two arms of the same axis)
+epi_pairs <- list(
+  tumor  = c(mpr = "tumor_MPR",  nmpr = "tumor_NMPR"),
+  normal = c(mpr = "normal_MPR", nmpr = "normal_NMPR")
+)
+epi_partners <- liana_agg %>%
+  filter(aggregate_rank <= 0.05) %>%
+  filter((source %in% c(tam_states_of_interest, cd8_states_of_interest) &
+            target %in% unlist(epi_pairs)) |
+           (target %in% c(tam_states_of_interest, cd8_states_of_interest) &
+              source %in% unlist(epi_pairs))) %>%
+  distinct(source, target, ligand.complex, receptor.complex)
+message("List 2 (TAM/CD8<->tumor/normal): ", nrow(epi_partners), " interactions")
+
+# Genes needed for BOTH lists combined
+all_complexes <- c(prioritized$ligand.complex, prioritized$receptor.complex,
+                   epi_partners$ligand.complex, epi_partners$receptor.complex)
+needed_genes <- unique(unlist(strsplit(all_complexes, "_")))
 
 expr_mat <- GetAssayData(seu_TME, layer = "data")
+needed_genes <- intersect(needed_genes, rownames(expr_mat))
+message("Unique genes needed (both lists): ", length(needed_genes))
+
+expr_sub <- expr_mat[needed_genes, , drop = FALSE]
+
 meta_TME <- seu_TME@meta.data %>%
   tibble::rownames_to_column("cell_id") %>%
-  select(cell_id, cell_type, sampleID, PathResponse)
+  select(cell_id, cell_type, Sample, PathResponse) %>%
+  mutate(group_key = paste(cell_type, Sample, sep = "__"))
 
-get_patient_score <- function(gene, ctype) {
-  # Mean expression of `gene` in cells of type `ctype`, per patient
-  cells_ct <- meta_TME %>% filter(cell_type == ctype)
-  if (!(gene %in% rownames(expr_mat)) || nrow(cells_ct) == 0) return(NULL)
-  vals <- expr_mat[gene, cells_ct$cell_id]
-  data.frame(cell_id = cells_ct$cell_id, expr = vals) %>%
-    left_join(cells_ct, by = "cell_id") %>%
-    group_by(sampleID, PathResponse) %>%
-    summarise(mean_expr = mean(expr), .groups = "drop")
+stopifnot(identical(colnames(expr_sub), meta_TME$cell_id))
+
+groups <- unique(meta_TME$group_key)
+group_idx <- match(meta_TME$group_key, groups)
+indicator <- Matrix::sparseMatrix(i = seq_along(group_idx), j = group_idx,
+                                  x = 1, dims = c(nrow(meta_TME), length(groups)))
+colnames(indicator) <- groups
+
+group_sums   <- expr_sub %*% indicator
+group_counts <- Matrix::colSums(indicator)
+group_means  <- sweep(as.matrix(group_sums), 2, group_counts, "/")
+
+group_response <- meta_TME %>% distinct(group_key, cell_type, Sample, PathResponse)
+
+# get_scores: works for single genes AND multi-subunit complexes (geometric mean)
+get_scores <- function(gene_complex, ctype) {
+  genes <- strsplit(gene_complex, "_")[[1]]
+  genes <- intersect(genes, rownames(expr_sub))
+  if (length(genes) == 0) return(NULL)
+  
+  keys <- paste(ctype, group_response$Sample, sep = "__")
+  present <- keys %in% colnames(group_means)
+  
+  if (length(genes) == 1) {
+    vals <- rep(NA_real_, length(keys))
+    vals[present] <- group_means[genes, keys[present]]
+  } else {
+    sub_vals <- sapply(genes, function(g) {
+      v <- rep(NA_real_, length(keys))
+      v[present] <- group_means[g, keys[present]]
+      v
+    })
+    vals <- exp(rowMeans(log1p(sub_vals))) - 1
+  }
+  
+  data.frame(Sample = group_response$Sample, PathResponse = group_response$PathResponse,
+             mean_expr = vals)
 }
 
+# ---- Test 1: CD8 <-> TAM/Ciliated, MPR vs NMPR ----
+message("Testing List 1 (CD8<->TAM/Epithelial)...")
 diff_results <- lapply(seq_len(nrow(prioritized)), function(i) {
   row <- prioritized[i, ]
-  # simple single-subunit case; multi-subunit complexes (e.g. "A_B") use the
-  # first subunit as a practical proxy score, consistent with common LIANA
-  # downstream conventions
-  lig_gene <- strsplit(row$ligand.complex, "_")[[1]][1]
-  rec_gene <- strsplit(row$receptor.complex, "_")[[1]][1]
-  
-  lig_score <- get_patient_score(lig_gene, row$source)
-  rec_score <- get_patient_score(rec_gene, row$target)
+  lig_score <- get_scores(row$ligand.complex, row$source)
+  rec_score <- get_scores(row$receptor.complex, row$target)
   if (is.null(lig_score) || is.null(rec_score)) return(NULL)
   
-  merged <- inner_join(lig_score, rec_score, by = c("sampleID", "PathResponse"),
+  merged <- inner_join(lig_score, rec_score, by = c("Sample", "PathResponse"),
                        suffix = c("_lig", "_rec")) %>%
+    filter(!is.na(mean_expr_lig), !is.na(mean_expr_rec)) %>%
     mutate(interaction_score = mean_expr_lig * mean_expr_rec)
   
   mpr  <- merged$interaction_score[merged$PathResponse == "MPR"]
@@ -203,24 +254,69 @@ diff_results <- diff_results %>%
 
 fwrite(diff_results,
        file.path(OUT_TAB, "Bloc5_01_LIANA_GSE207422_differential_wilcox.csv"))
-message("Saved: Bloc5_01_LIANA_GSE207422_differential_wilcox.csv (",
-        sum(diff_results$p_adj < 0.05, na.rm = TRUE), " significant of ",
-        nrow(diff_results), " tested)")
+message("Saved List 1 results (", sum(diff_results$p_adj < 0.05, na.rm = TRUE),
+        " significant of ", nrow(diff_results), ")")
+
+# ---- Test 2: TAM/CD8 <-> tumor/normal, comparing the two arms ----
+message("Testing List 2 (TAM/CD8<->tumor/normal)...")
+epi_axis_results <- lapply(seq_len(nrow(epi_partners)), function(i) {
+  row <- epi_partners[i, ]
+  epi_side <- if (row$source %in% unlist(epi_pairs)) row$source else row$target
+  epi_base <- names(epi_pairs)[sapply(epi_pairs, function(x) epi_side %in% x)]
+  if (length(epi_base) == 0) return(NULL)
+  
+  epi_mpr  <- epi_pairs[[epi_base]]["mpr"]
+  epi_nmpr <- epi_pairs[[epi_base]]["nmpr"]
+  partner  <- if (row$source %in% unlist(epi_pairs)) row$target else row$source
+  partner_is_source <- !(row$source %in% unlist(epi_pairs))
+  
+  score_for <- function(epi_group) {
+    lig_ct <- if (partner_is_source) partner else epi_group
+    rec_ct <- if (partner_is_source) epi_group else partner
+    lig_score <- get_scores(row$ligand.complex, lig_ct)
+    rec_score <- get_scores(row$receptor.complex, rec_ct)
+    if (is.null(lig_score) || is.null(rec_score)) return(NULL)
+    inner_join(lig_score, rec_score, by = c("Sample", "PathResponse"),
+               suffix = c("_lig", "_rec")) %>%
+      filter(!is.na(mean_expr_lig), !is.na(mean_expr_rec)) %>%
+      mutate(interaction_score = mean_expr_lig * mean_expr_rec)
+  }
+  
+  mpr_data  <- score_for(epi_mpr)
+  nmpr_data <- score_for(epi_nmpr)
+  if (is.null(mpr_data) || is.null(nmpr_data)) return(NULL)
+  mpr_data  <- mpr_data  %>% filter(PathResponse == "MPR")
+  nmpr_data <- nmpr_data %>% filter(PathResponse == "NMPR")
+  if (nrow(mpr_data) < 3 | nrow(nmpr_data) < 3) return(NULL)
+  
+  test <- wilcox.test(mpr_data$interaction_score, nmpr_data$interaction_score)
+  data.frame(partner = partner, epithelial_axis = epi_base,
+             ligand = row$ligand.complex, receptor = row$receptor.complex,
+             p_value = test$p.value,
+             median_MPR_arm = median(mpr_data$interaction_score),
+             median_NMPR_arm = median(nmpr_data$interaction_score),
+             n_MPR = nrow(mpr_data), n_NMPR = nrow(nmpr_data))
+}) %>% bind_rows()
+
+epi_axis_results <- epi_axis_results %>%
+  distinct(partner, epithelial_axis, ligand, receptor, .keep_all = TRUE) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  arrange(p_adj)
+
+fwrite(epi_axis_results,
+       file.path(OUT_TAB, "Bloc5_01_LIANA_GSE207422_TAM_CD8_Epithelial_wilcox.csv"))
+message("Saved List 2 results (", sum(epi_axis_results$p_adj < 0.05, na.rm = TRUE),
+        " significant of ", nrow(epi_axis_results), ")")
 
 # ============================================================
 # 9) Visualizations - dot plot top interactions (descriptive, prioritization-based)
-#    NOTE: figure generation split by target audience —
-#    CD8<->TAM only for main text (this plot); CD8/TAM<->Epithelial
-#    reserved for supplementary (separate script)
 # ============================================================
 message("Generating main-text figure (CD8 <-> TAM only)...")
 
-tam_subtypes <- unname(tam_short_labels)
-
 p1 <- liana_agg %>%
   filter(aggregate_rank <= 0.05) %>%
-  liana_dotplot(source_groups = c("CD8.TEX", "CD8.TPEX"),
-                target_groups = tam_subtypes,
+  liana_dotplot(source_groups = cd8_states_of_interest,
+                target_groups = tam_states_of_interest,
                 ntop = 20) +
   theme(axis.text.x = element_text(angle = 55, hjust = 1, size = 16, color = "black"),
         axis.text.y = element_text(size = 14, color = "black"),

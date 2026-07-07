@@ -701,73 +701,74 @@ Full TME opened for inference: interpretation prioritized on bidirectional CD8 �
 
 - Input: Bloc3_GSE207422_01_seu_CD8_ProjecTILs.rds + Bloc4B_04_seu_TAMs_combined.rds + 
   Bloc4B_09c_seu_Epithelial_FinalGroups.rds
-- Merged TME object: 32,813 cells (CD8 n=7,423 | TAMs n=18,073 | Epithelial n=7,317)
-- Cell types removed: CD8.MAIT (< 5 cells)
+- CD8 restricted to CD8.TEX/CD8.TPEX only (CM, EM, TEMRA, NaiveLike, MAIT excluded, consistent with CD8/TAM CollecTRI methodology)
+- Merged TME object: 27,307 cells (CD8 n=5,353 | TAMs n=13,430 | Epithelial n=8,524)
 - Methods: sca + natmi + connectome aggregated via liana_aggregate()
 - Resource: Consensus (CellChatDB + OmniPath + others)
 - Conversion: SingleCellExperiment (SCE) for Seurat v5 compatibility
-- Per condition runs: MPR (n=5,892 cells) + NMPR (n=26,921 cells)
+- Per condition runs: MPR and NMPR (cell counts to confirm via table(seu_TME$cell_type, seu_TME$PathResponse))
+- Statistical test: patient-level pseudobulk Wilcoxon, BH-corrected, on interactions prioritized by aggregate_rank <= 0.05 (Dimitrov et al., 2022)
 - Output: Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_aggregated.csv
           Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv
           Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_NMPR_aggregated.csv
+          Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_differential_wilcox.csv (CD8<->TAM/Epithelial)
+          Results/Tables/BLOC5/Bloc5_01_LIANA_GSE207422_TAM_CD8_Epithelial_wilcox.csv (TAM/CD8<->tumor/normal axis comparison)
           Objects/Bloc5_01_seu_TME_GSE207422.rds
-          Results/Figures/BLOC5_Communication/GSE207422/Bloc5_01_LIANA_dotplot_CD8_to_TME.png
-- Supplementary figure: top 20 interactions from CD8.TEX and CD8.TPEX toward TAM_like_IFN and TAM_like_stress (selected based on Bloc 4A/4B findings as most discriminant TAM subtypes between MPR and NMPR) and all epithelial groups.Target selection was biologically motivated by prior results, not exhaustive.
 
-### Script 02 : LIANA+ GSE207422, main axis figures (supplementary)
+### Script 02 : LIANA+ GSE207422, main axis figures (exploratory, not in preprint)
 
 - Input: Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv + NMPR_aggregated.csv
-- 6 bidirectional figures (MPR vs NMPR comparative dotplots), full TME:
+- 6 bidirectional figures (MPR vs NMPR comparative dotplots), full TME (all 9 TAM subtypes, CD8.TEX/CD8.TPEX only, all epithelial groups)
+- Descriptive only: interactions prioritized by aggregate_rank ≤ 0.05 (Dimitrov et al., 2022), NOT statistically tested for MPR vs NMPR difference in this script
+- TAM short labels applied for readability (consistent with Blocs 4A/4B)
+- Epithelial labels simplified: tumor_MPR + tumor_NMPR → Tumor epithelial; normal_MPR + normal_NMPR → Normal epithelial; Ciliated kept separate
+- Top 5 interactions per target group (aggregate_rank ≤ 0.05)
+- Output:
   1. CD8 → TAMs (Bloc5_02_LIANA_CD8_TAMs.png)
   2. TAMs → CD8 (Bloc5_02_LIANA_TAMs_CD8.png)
   3. CD8 → Epithelial (Bloc5_02_LIANA_CD8_Epithelial.png)
   4. Epithelial → CD8 (Bloc5_02_LIANA_Epithelial_CD8.png)
   5. TAMs → Epithelial (Bloc5_02_LIANA_TAMs_Epithelial.png)
   6. Epithelial → TAMs (Bloc5_02_LIANA_Epithelial_TAMs.png)
-- 1 supplementary figure: all compartments (Bloc5_01_LIANA_dotplot_CD8_to_TME.png)
-- TAM short labels applied for readability (consistent with Blocs 4A/4B)
-- Epithelial labels simplified: tumor_MPR + tumor_NMPR → Tumor epithelial; normal_MPR + normal_NMPR → Normal epithelial
-- Top 5 interactions per target group (aggregate_rank <= 0.05)
-- All 9 TAM subtypes + all CD8 subtypes + all epithelial groups included
+- **Not used in the preprint main text or supplementary** — kept on disk for reference only. Formal Wilcoxon statistical testing (patient-level pseudobulk, BH-corrected), consistent with the rest of the project, is applied in Script 02b instead.
 
-### Script 02b : LIANA+ GSE207422, preprint figures - cells of interest
+### Script 02b : LIANA+ GSE207422, preprint figures with cells of interest
 
-- Input: Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv + NMPR_aggregated.csv
-- Same 6 bidirectional axes as Script 02 but filtered on cells of interest guided by Blocs 3 and 4 CollecTRI findings
-- CD8 priority: CD8.TEX, CD8.TPEX
-- TAMs priority: IFN-stimulated, Stress-response, SPP1+ immunosuppressive, Monocyte-derived, Lipid-associated
+- Input: Bloc5_01_LIANA_GSE207422_MPR_aggregated.csv + NMPR_aggregated.csv + Objects/Bloc5_01_seu_TME_GSE207422.rds (for statistical testing)
+- Same 6 bidirectional axes as Script 02, filtered on cells of interest guided by Blocs 3 and 4 CollecTRI findings
+- CD8 priority: CD8.TEX, CD8.TPEX (restricted at Script 01, merged object level)
+- TAMs priority (based on CollecTRI significant TF count, natural drop-off after Resident M2): MRC1+ M2-like, SPP1+ immunosuppressive, IFN-stimulated, M2-SIGLEC8+, Resident M2
 - Epithelial: Tumor epithelial + Normal epithelial + Ciliated (all kept)
-- Output: Results/Figures/BLOC5_Communication/GSE207422/Preprint/
-  1. Bloc5_02b_LIANA_CD8_TAMs_preprint.png
-  2. Bloc5_02b_LIANA_TAMs_CD8_preprint.png
-  3. Bloc5_02b_LIANA_CD8_Epithelial_preprint.png
-  4. Bloc5_02b_LIANA_Epithelial_CD8_preprint.png
-  5. Bloc5_02b_LIANA_TAMs_Epithelial_preprint.png
-  6. Bloc5_02b_LIANA_Epithelial_TAMs_preprint.png
-- Top 5 interactions per target group (aggregate_rank <= 0.05)
+- Top 5 interactions per target group prioritized by aggregate_rank ≤ 0.05 (descriptive), each additionally tested for MPR vs NMPR difference by patient-level pseudobulk Wilcoxon, BH-corrected (statistical, not just prioritization)
+- On figures: non-significant interactions (Wilcoxon p_adj ≥ 0.05) shown with reduced opacity, to visually distinguish LIANA prioritization from statistical significance
+- Output:
+  1. Bloc5_02b_LIANA_CD8_TAMs_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_CD8_to_TAMs.csv
+  2. Bloc5_02b_LIANA_TAMs_CD8_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_TAMs_to_CD8.csv
+  3. Bloc5_02b_LIANA_CD8_Epithelial_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_CD8_to_Epithelial.csv
+  4. Bloc5_02b_LIANA_Epithelial_CD8_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_Epithelial_to_CD8.csv
+  5. Bloc5_02b_LIANA_TAMs_Epithelial_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_TAMs_to_Epithelial.csv
+  6. Bloc5_02b_LIANA_Epithelial_TAMs_preprint.png + Bloc5_02b_LIANA_GSE207422_wilcox_Epithelial_to_TAMs.csv
 
 ### Script 03 : CellChat v2 GSE207422, differential communication analysis
 
 - Input: Bloc5_01_seu_TME_GSE207422.rds
+- CD8 restricted to CD8.TEX/CD8.TPEX only (consistent with Bloc 5 methodology)
 - CellChatDB.human full database
-- Per condition objects: cellchat_MPR.rds + cellchat_NMPR.rds
-- Parameters: nboot = 100, min.cells = 5
+- Communication probability computed via trimean method; significance via built-in permutation test (nboot = 100)
+- Per condition objects: cellchat_MPR.rds + cellchat_NMPR.rds (each computed independently on cells from that condition only)
+- min.cells = 5
 - Merged object: Bloc5_03_cellchat_merged_GSE207422.rds
-- Differential analysis: netVisual_diffInteraction() + rankNet() per axis
-- Output: Bloc5_03_cellchat_MPR.rds
-          Bloc5_03_cellchat_NMPR.rds
-          Bloc5_03_cellchat_merged_GSE207422.rds
+- Output: Objects/Bloc5_03_cellchat_MPR.rds
+          Objects/Bloc5_03_cellchat_NMPR.rds
+          Objects/Bloc5_03_cellchat_merged_GSE207422.rds
           Results/Tables/BLOC5/Bloc5_03_CellChat_GSE207422_MPR_interactions.csv
           Results/Tables/BLOC5/Bloc5_03_CellChat_GSE207422_NMPR_interactions.csv
-- Note: Stress-response and Monocyte-derived TAM subtypes absent from CellChat 
-output, likely excluded by min.cells = 5 threshold or no significant interactions detected. Present in LIANA+ only.
-- Note: MultiNicheNet abandoned because n=3 MPR patients insufficient for pseudobulk differential analysis. Script conserved with explanatory note.
 
-### Script 04 : CellChat v2 GSE207422, custom figures (supplementary)
+### Script 04 : CellChat v2 GSE207422, custom figures (exploratory)
 
 - Input: Bloc5_03_CellChat_GSE207422_MPR_interactions.csv + NMPR_interactions.csv
-- Custom ggplot2 figures from exported CellChat CSV (not netVisual_bubble)
-- 6 bidirectional figures — full TME (supplementary):
+- Custom ggplot2 figures built from exported CellChat CSV (not netVisual_bubble)
+- 6 bidirectional figures, full TME:
   1. CD8 → TAMs (Bloc5_04_CellChat_CD8_TAMs.png)
   2. TAMs → CD8 (Bloc5_04_CellChat_TAMs_CD8.png)
   3. CD8 → Epithelial (Bloc5_04_CellChat_CD8_Epithelial.png)
@@ -783,17 +784,16 @@ output, likely excluded by min.cells = 5 threshold or no significant interaction
 - Input: Bloc5_03_CellChat_GSE207422_MPR_interactions.csv + NMPR_interactions.csv
 - Cells of interest guided by Blocs 3 and 4 CollecTRI findings
 - CD8 priority: CD8.TEX, CD8.TPEX
-- TAMs priority: IFN-stimulated, SPP1+ immunosuppressive, Lipid-associated, 
-  Resident M2 (Stress-response and Monocyte-derived absent from CellChat output)
+- TAMs priority (based on CollecTRI significant TF count, natural drop-off after Resident M2): MRC1+ M2-like, SPP1+ immunosuppressive, IFN-stimulated, M2-SIGLEC8+, Resident M2
 - Epithelial: Tumor epithelial + Normal epithelial + Ciliated (all kept)
-- Preprint figures (CD8 ↔ TAMs - main narrative):
+- Preprint figures (CD8 ↔ TAMs — main narrative):
   1. CD8 → TAMs (Bloc5_04b_CellChat_CD8_TAMs_preprint.png)
   2. TAMs → CD8 (Bloc5_04b_CellChat_TAMs_CD8_preprint.png)
 - Discussion figures (epithelial axes — GSE207422 only):
   3. CD8 → Epithelial (Bloc5_04b_CellChat_CD8_Epithelial_discussion.png)
   4. Epithelial → CD8 (Bloc5_04b_CellChat_Epithelial_CD8_discussion.png)
   5. TAMs → Epithelial (Bloc5_04b_CellChat_TAMs_Epithelial_discussion.png)
-  6. Epithelial → TAM(Bloc5_04b_CellChat_Epithelial_TAMs_discussion.png)
+  6. Epithelial → TAMs (Bloc5_04b_CellChat_Epithelial_TAMs_discussion.png)
 - Output: Results/Figures/BLOC5_Communication/GSE207422/Preprint/
 
 ### Script 05 : LIANA+ GSE243013, intercellular communication inference
@@ -1278,50 +1278,67 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - ELK4 is significantly NMPR-enriched in both tumor and normal comparisons, not tested in Ciliated (not significant there, p_adj=0.159).
 - tumor_MPR_vs_NMPR is the most extensively discriminant comparison in this analysis (20/20 TFs significant).
 
-### Preliminary observations for LIANA+ GSE207422
+## Preliminary observations : LIANA+ communication, cells of interest (Bloc 5, Script 02b, GSE207422)
 
-**CD8 to TAMs :**
-MPR: CCL5-CCR1 (recruitment, SPP1+ and IFN-stimulated), TNFSF9-HLA-DPA1 (MHC II co-stimulation, cross-subtype), CCL5-SDC4 (Stress-response only), GZMB-IGF2R (cytotoxic signaling, Resident M2 and IFN-stimulated).
-NMPR: ENTPD1-TMIGD3 (adenosine immunosuppression, SPP1+), CD52-SIGLEC10 (TCR blockade, Resident M2), SPON2-ITGAM (M2 polarization reinforcement, SPP1+), LTB-CD40 (NF-KB activation, IFN-stimulated). TNFSF9-HLA-DPA1 present in both conditions cross-subtype.
+**Methodological note:** figures restricted to CD8.TEX/CD8.TPEX and the 5 TAM subtypes identified as most discriminant by CollecTRI (MRC1+ M2-like, SPP1+ immunosuppressive, IFN-stimulated, M2-SIGLEC8+, Resident M2). Top 5 interactions per target group prioritized by aggregate_rank ≤ 0.05 (Dimitrov et al., 2022), each tested for MPR vs NMPR difference by patient-level pseudobulk Wilcoxon (BH-corrected). Multi-subunit complexes scored by geometric mean of subunits.
 
-**TAMs to CD8 :**
-MPR: HLA-A-CD8A (MHC I antigen presentation, TEX, present in both conditions), HLA-C-CD8A (MPR enriched, TEX), CLEC4G-LAG3 (LAG3 engagement TEX+TPEX, context of partial response, biological significance undetermined), HLA-DRB3-LAG3 (TPEX MPR only), GRN-NTRK1 (TPEX MPR only — GRN documented as TAM-derived exhaustion inducer in other contexts, role here undetermined).
-NMPR: HLA-DQA1/DQB1-LAG3 (canonical inhibitory checkpoint engagement TEX+TPEX), S100A8-CD69 (TPEX retention and exhaustion), CCL13-CXCR3 (TEX recruitment into suppressive environment).
+### CD8 ↔ TAM 
 
-**Bidirectional CD8-TAMs summary:**
-MPR : coordinated pro-immunogenic exchange: CD8 send cytotoxic/chemotactic signals toward TAMs, TAMs provide MHC I antigen presentation.
-NMPR : self-reinforcing immunosuppressive loop: TAMs engage LAG3 via MHC II (HLA-DQA1/DQB1), CD8 exhausted cells reinforce TAM M2 polarization via ENTPD1/CD52/SPON2.
-Key distinction: LAG3 engagement via CLEC4G/HLA-DRB3 in MPR (biological significance undetermined) vs canonical HLA-DQA1/DQB1-LAG3 in NMPR (established inhibitory checkpoint).
+**CD8 → TAM (42 interactions tested, 38 significant):**
 
-**CD8 to Epithelial :**
-Shared: CCL5-SDC1/SDC4, XCL1-ADGRV1.
-MPR: CRTAM-CADM1 (functional immune-tumor contact), HMGB1-SDC1, CXCL13-GRM7 (TLS).
-NMPR: COL6A3-ITGA/ITGB (fibrosis expanded to Normal+Ciliated), GZMA-PARD3 (misdirected cytotoxicity), HSP90AA1-EGFR (HSF1 target toward Normal epithelial).
+- *IFN-stimulated:* CCL5-CCR1 MPR-enriched in both CD8.TEX and CD8.TPEX; CD52-SIGLEC10 NMPR-enriched in both; GZMB-IGF2R and IFNG-IFNGR1_IFNGR2 NMPR-enriched (CD8.TEX only); TNFSF9-HLA-DPA1 not significant (CD8.TPEX).
+- *M2-SIGLEC8+:* CCL5-CCR1 MPR-enriched in both states; CD52-SIGLEC10 NMPR-enriched (CD8.TEX); ENTPD1-ADORA3, GZMB-IGF2R, SPN-SIGLEC1 all MPR-enriched (CD8.TEX); CRTAM-CADM1 MPR-enriched (CD8.TPEX); TNFSF9-HLA-DPA1 not significant (CD8.TPEX).
+- *MRC1+ M2-like:* CCL5-CCR1 and IFNG-IFNGR1_IFNGR2 both MPR/NMPR-enriched in a direction opposite to the other four subtypes (CCL5-CCR1 NMPR-enriched, IFNG-IFNGR1_IFNGR2 MPR-enriched, CD8.TEX). CCL5-SDC4 and GZMB-IGF2R NMPR-enriched (CD8.TEX and/or CD8.TPEX); CIRBP-TREM1 NMPR-enriched (CD8.TPEX); TNFSF9-HLA-DPA1 not significant.
+- *Resident M2:* CCL5-CCR1 MPR-enriched in both states; CD52-SIGLEC10 and IFNG-IFNGR1_IFNGR2 both NMPR-enriched in both states; GZMB-IGF2R MPR-enriched (CD8.TEX); CCL5-ACKR1, CXCL13-ACKR1 significant with median = 0 in both conditions (direction not interpretable); TNFSF9-HLA-DPA1 not significant.
+- *SPP1+ immunosuppressive:* CCL5-CCR1 MPR-enriched in both states; CCL4-CCR1 and IFNG-IFNGR1_IFNGR2 NMPR-enriched (CD8.TPEX); CCL5-CCRL2 NMPR-enriched, SPN-SIGLEC1 MPR-enriched (CD8.TEX); CD200-CD200R1 and TNFSF9-HLA-DPA1 significant with median = 0 in both conditions (direction not interpretable).
 
-**Epithelial to CD8 :**
-Shared: CD59-CD2, NECTIN4-TIGIT (TEX both, expanded to TPEX in NMPR).
-MPR: GPI/COPA-NTRK1 (TPEX survival), HLA-A-CD8A (TEX presentation).
-NMPR: NECTIN4-TIGIT expanded to TPEX (locks reactivable precursors), COL21A1/COL28A1-ITGB1 (fibrosis toward TEX).
+**TAM → CD8 (19 interactions tested, 15 significant):**
 
-Bidirectional CD8-Epithelial: MPR = functional dialogue. NMPR = mutual exclusion, each compartment amplifies the other's dysfunction.
+- *IFN-stimulated:* HLA-C-CD8A NMPR-enriched toward CD8.TEX but MPR-enriched toward CD8.TPEX (opposite direction by target state); SECTM1-CD7 MPR-enriched (CD8.TPEX).
+- *M2-SIGLEC8+:* HLA-DQB1-LAG3 NMPR-enriched toward both CD8.TEX and CD8.TPEX; HLA-DQA1-LAG3 NMPR-enriched toward CD8.TPEX (not significant toward CD8.TEX); HLA-DRB3-LAG3 MPR-enriched toward CD8.TEX (not significant toward CD8.TPEX); HLA-A-CD8A and HLA-F-CD8A NMPR-enriched.
+- *MRC1+ M2-like:* HLA-DQB1-LAG3 NMPR-enriched (CD8.TPEX; absent in MPR, median = 0).
+- *Resident M2:* S100A8-CD69 NMPR-enriched (CD8.TPEX; absent in MPR, median = 0).
+- *SPP1+ immunosuppressive:* CCL13-CXCR3 NMPR-enriched toward both CD8.TEX and CD8.TPEX; HLA-DRB3-LAG3 NMPR-enriched toward CD8.TPEX (not significant toward CD8.TEX).
 
-**TAMs to Epithelial :**
-Shared: EREG-ERBB2/ERBB4 (Ciliated only).
-MPR: HGF-SDC1/MET (regeneration, strongest resolutive signal), EREG-EGFR/ERBB, LAMA4-DAG1/ITGA6, SPINK1-EGFR.
-NMPR: CXCL8-SDC1 (HSF1 in Tumor), IL6-F3 (HSF1 in Normal), FN1-SDC1 (fibrosis), F13A1-ITGB1 (coagulation), VCAN-EGFR (pro-tumoral).
+**Recurring pattern:** the HLA-DQ (A1 and B1 subunits). LAG3 axis is NMPR-enriched consistently across the TAM subtypes where it appears (M2-SIGLEC8+, MRC1+ M2-like). HLA-DQ is an MHC class II molecule and LAG3 is a checkpoint receptor capable of MHC class II engagement independently of the CD8 TCR. This pattern is discussed further alongside the CollecTRI MHC II findings (RFX/CIITA) in the Discussion.
 
-**Epithelial to TAMs :**
-Shared: SLPI-CD4/PLSCR1 (Lipid-associated + IFN-stimulated).
-MPR: MEGF10-ABCA1 (phagocytosis), CD59-STAB1 (complement), GPC3-CD81. Monocyte-derived: no interaction, convergence with CD8 to TAMs MPR.
-NMPR: SAA1-FPR1/FPR2/CD36 (alarmin activates Monocyte-derived), SCGB3A1-MARCO (macrophage recruitment), EFNB3-EPHB2 (pro-invasive, 3 subtypes).
+### CD8 ↔ Epithelial 
 
-Bidirectional TAMs-Epithelial: MPR = regenerative TME (HGF dominant). NMPR = hostile self-amplifying network (HSF1 targets + fibrosis + SAA1 alarmin).
-Key: Monocyte-derived ignored in MPR in BOTH CD8→TAMs AND Epithelial→TAMs 
+**Methodological note:** tumor_MPR/tumor_NMPR and normal_MPR/normal_NMPR were tested using their original condition-encoded labels (patient-level pseudobulk Wilcoxon, since tumor_MPR only exists in MPR patients), then collapsed to "Tumor" and "Normal" for reporting, since both labels of the same axis necessarily yield identical statistics. Ciliated tested directly (condition not encoded in its label).
 
-**HSF1 cross-compartment network:**
-CXCL8 and IL6 (HSF1 direct targets CollecTRI) in TAMs→Epithelial NMPR. 
-HSP90AA1 (HSF1 target) from CD8.TEX toward Normal epithelial and TAM_like_stress. 
-Cross-compartment propagation across CD8, TAMs, and epithelial simultaneously,consistent with self-reinforcing network rather than linear cascade. Spatial transcriptomics required to resolve directionality.
+**CD8 → Epithelial (21 interactions tested, 18 significant):**
+
+- *Ciliated (7/7 significant):* CCL5-SDC4, CCL5-GRM7, GZMA-PARD3, SEMA4D-PLXNB1 all MPR-enriched, in both CD8.TEX and CD8.TPEX where tested. CXCL13-GRM7 significant with median = 0 in both conditions (direction not interpretable).
+- *Normal (5/7 significant):* CCL5-SDC4 MPR-enriched; CCL5-DPP4 NMPR-enriched (the only NMPR-leaning interpretable interaction in this axis). CCL5-SDC1 (both states), COL6A3-SDC1, CRTAM-CADM1 significant with median = 0 in both conditions (direction not interpretable).
+- *Tumor (3/7 with interpretable direction, all significant):* CCL5-SDC1, HMGB1-SDC1, GZMA-PARD3 all MPR-enriched (CD8.TEX only; absent in NMPR, median = 0). The remaining 4 pairs are significant with median = 0 in both conditions (direction not interpretable) or not significant (XCL1-ADGRV1).
+
+**Epithelial → CD8 (14 interactions tested, 13 significant):**
+
+- *Ciliated → (6/6 significant):* CD59-CD2 MPR-enriched in both states; OMG-TNFRSF1B NMPR-enriched in both states; PCSK1N-GPR171 direction differs by CD8 state (NMPR-enriched toward CD8.TEX, MPR-enriched toward CD8.TPEX).
+- *Normal → (1/1 significant):* CADM1-CRTAM significant with median = 0 in both conditions (direction not interpretable).
+- *Tumor → (4/7 interpretable, all significant):* HLA-A-CD8A, NECTIN1-CD96 (CD8.TEX and CD8.TPEX), NECTIN4-TIGIT (CD8.TEX) all MPR-enriched, with very low absolute values (0.0001–0.06). CEACAM5-CD8A and GPI-NTRK1 significant with median = 0 in both conditions; NECTIN4-TIGIT toward CD8.TPEX not significant.
+
+**Overall pattern:** across both directions of the CD8 ↔ Epithelial axis, nearly all interactions with an interpretable direction (i.e. excluding pairs with median = 0 in both conditions) are MPR-enriched, with CCL5-DPP4 (CD8 → Normal) as the sole clear exception. Based on these results alone, MPR patients show a greater volume of detectable CD8-epithelial communication than NMPR patients. Whether this reflects a functionally beneficial (e.g. cytotoxic, activating) or simply more active communication landscape has not been characterized here and requires examining the specific nature of each ligand-receptor pair individually, a question taken up in the Discussion alongside the CD8 ↔ TAM axis, which shows the same general pattern.
+
+## Preliminary observations : LIANA+ TAM ↔ Epithelial communication, cells of interest (Bloc 5, Script 02b, GSE207422)
+
+**Methodological note:** same approach as the CD8 ↔ Epithelial axis with tumor_MPR/tumor_NMPR and normal_MPR/normal_NMPR tested using their condition-encoded labels, then collapsed to "Tumor"/"Normal" for reporting. Ciliated tested directly.
+
+**TAM → Epithelial (28 interactions tested, 25 significant):**
+
+- *IFN-stimulated (4/4 significant, all MPR):* CXCL10-SDC4 (Ciliated, Normal), CXCL9-GRM7 (Ciliated), FN1-SDC1 (Tumor).
+- *M2-SIGLEC8+ (5/6 significant):* PSAP-CELSR1 (Ciliated) and GRN-EGFR (Tumor) MPR-enriched; HGF-SDC1 and IGF1-IGF1R significant with median = 0 in both conditions (direction not interpretable); HGF-MET not significant.
+- *MRC1+ M2-like (7/8 significant):* ADAM17-ERBB4, ALCAM-CHL1, CXCL5-GRM7 (all → Ciliated), FN1-SDC1 and LPL-SDC1 (→ Tumor), LPL-SDC1 (→ Normal) all MPR-enriched — the sole exception being FN1-SDC1 → Normal, which is NMPR-enriched. GRN-EGFR (→ Tumor) not significant.
+- *Resident M2 (2/2 significant, both MPR):* MMP9-CD44 (Tumor), PSAP-CELSR1 (Ciliated).
+- *SPP1+ immunosuppressive (6/8 significant, nearly all NMPR):* CD209-CEACAM1, CXCL8-SDC1 (Normal and Tumor), F13A1-ITGB1, HGF-SDC1, IGF1-IGF1R all NMPR-enriched. PLAU-ITGA3 significant with median = 0 in both conditions; IGF1-INSR not significant.
+
+**Epithelial → TAM (43 interactions tested, 37 significant):**
+
+- *Ciliated → (24/25 significant, overwhelmingly NMPR):* SLPI-CD4 and SLPI-PLSCR1 recur across nearly every TAM subtype (IFN-stimulated, M2-SIGLEC8+, MRC1+ M2-like, Resident M2, SPP1+), all NMPR-enriched. CD24-SIGLEC10, SAA1-FPR2/SCARB1, PIP-CD4/NPTN, CD59-STAB1, CP-SLC40A1, OMG-RTN4R (→ M2-SIGLEC8+)/OMG-TNFRSF1B all NMPR-enriched. Exceptions (MPR-enriched): FGF14-FGFR1 (→ MRC1+ M2-like and → SPP1+), OMG-RTN4R (→ MRC1+ M2-like), SCGB3A1/A2-MARCO (→ MRC1+ M2-like).
+- *Normal → (5/7 significant, mixed):* SCGB3A1-MARCO, SCGB3A2-MARCO (→ MRC1+ M2-like) and SLPI-CD4 (→ SPP1+) MPR-enriched; SLPI-PLSCR1 (→ IFN-stimulated) NMPR-enriched; SLPI-CD4/PLSCR1 (→ Resident M2) and MXRA5-SIGLEC8 (→ M2-SIGLEC8+) significant/not significant with median = 0 in both conditions.
+- *Tumor → (7/11 significant, overwhelmingly MPR):* GPC3-CD81 recurs across 4 of the 5 TAM subtypes of interest (IFN-stimulated, M2-SIGLEC8+, MRC1+ M2-like, Resident M2), all MPR-enriched. ANGPTL4-SDC3, MXRA5-SIGLEC8, NTS-SORT1 also MPR-enriched. Remaining pairs (COL4A1/A5-CD93, CX3CL1-CX3CR1, FGF2-SDC3, all → SPP1+/M2-SIGLEC8+) significant with median = 0 in both conditions or not significant.
+
+**Notable contrast:** the direction of the TAM ↔ Epithelial axis depends strongly on which epithelial population is the source. Ciliated → TAM interactions (SLPI axis in particular) are overwhelmingly NMPR-enriched, while Tumor → TAM interactions (GPC3-CD81 in particular) are overwhelmingly MPR-enriched; opposite directions depending on the epithelial source, rather than a uniform MPR- or NMPR-leaning pattern as observed for the CD8 ↔ TAM and CD8 ↔ Epithelial axes. SPP1+ immunosuppressive is also the one TAM subtype whose outgoing signal (TAM → Epithelial) leans consistently NMPR, opposite to the other four subtypes.
 
 ## Preliminary observations for CellChat GSE207422
 
