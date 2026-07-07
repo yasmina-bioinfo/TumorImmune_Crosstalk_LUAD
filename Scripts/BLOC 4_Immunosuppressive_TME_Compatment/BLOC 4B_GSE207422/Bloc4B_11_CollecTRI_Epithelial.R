@@ -140,6 +140,45 @@ for (comp in unique(wilcox_results$comparison)) {
   message(comp, ": ", n_sig, "/", length(top20_tfs), " TFs significant (p_adj < 0.05)")
 }
 
+# 7b) Additional Wilcoxon tests: tumor vs normal, within each response condition
+#     (malignancy effect, tested separately per condition rather than pooled,
+#     since tumor vs normal differences may not be uniform across MPR/NMPR)
+message("Running Wilcoxon tests: tumor vs normal, within each condition...")
+
+run_malignancy_comparison <- function(scores, meta, level_a, level_b, label) {
+  full <- scores %>% left_join(meta, by = "condition") %>%
+    filter(final_group %in% c(level_a, level_b), source %in% top20_tfs)
+  results <- lapply(top20_tfs, function(tf) {
+    a <- full$score[full$final_group == level_a & full$source == tf]
+    b <- full$score[full$final_group == level_b & full$source == tf]
+    if (length(a) < 3 | length(b) < 3) return(NULL)
+    test <- wilcox.test(a, b)
+    data.frame(comparison = label, source = tf, p_value = test$p.value,
+               median_A = median(a), median_B = median(b))
+  }) %>% bind_rows()
+  names(results)[names(results) == "median_A"] <- paste0("median_", level_a)
+  names(results)[names(results) == "median_B"] <- paste0("median_", level_b)
+  results
+}
+
+res_MPR   <- run_malignancy_comparison(tf_scores, meta, "tumor_MPR",  "normal_MPR",  "tumor_vs_normal_MPR")
+res_NMPR  <- run_malignancy_comparison(tf_scores, meta, "tumor_NMPR", "normal_NMPR", "tumor_vs_normal_NMPR")
+
+malignancy_results <- bind_rows(res_MPR, res_NMPR) %>%
+  group_by(comparison) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  ungroup() %>%
+  arrange(comparison, p_adj)
+
+fwrite(malignancy_results,
+       file.path(OUT_TAB, "Bloc4B_11_CollecTRI_Epithelial_wilcox_malignancy.csv"))
+message("Saved: Bloc4B_11_CollecTRI_Epithelial_wilcox_malignancy.csv")
+
+for (comp in unique(malignancy_results$comparison)) {
+  n_sig <- sum(malignancy_results$comparison == comp & malignancy_results$p_adj < 0.05, na.rm = TRUE)
+  message(comp, ": ", n_sig, "/", length(top20_tfs), " TFs significant (p_adj < 0.05)")
+}
+
 # 8) Heatmap, 20 TFs x 5 groups (descriptive, row-scaled)
 message("Generating heatmap...")
 
