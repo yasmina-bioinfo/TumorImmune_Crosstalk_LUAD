@@ -632,17 +632,20 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
           Bloc4B_09c_seu_Epithelial_FinalGroups.rds
           Bloc4B_09c_Violin_CytoTRACE2_FinalGroups.png
 
-#### Script 10 : UCell scoring on epithelial cells
+#### Script 10 : UCell Hallmark scoring on epithelial cells
 
-- Tool: UCell v2.x (Andreatta & Carmona, iScience 2021)
+- Tool: UCell v2.x (Andreatta & Carmona, Computational and Structural Biotechnology Journal 2021)
 - Input: Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds (n=8,944 cells)
-- 5 final groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=3,574 including reclassified EMT), Ciliated (n=565)
-- 13 signatures: 11 MSigDB Hallmark + 2 custom (HSF1_targets, Antigen_presentation)
-- Signatures imported via msigdbr package (Liberzon et al., Cell Systems 2015)
-- Output: Results/Figures/BLOC4B_Epithelial_TAMs/UCell_Epithelial/
-          Results/Tables/Bloc4B_10_UCell_Epithelial_scores.csv
+- 5 groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=3,574, including reclassified EMT cells), Ciliated (n=565)
+- Unbiased approach: all 50 Hallmark MSigDB signatures tested (Liberzon et al., Cell Systems 2015), imported via msigdbr, consistent with CD8/TAM methodology
+- **Superseded:** the two custom signatures (HSF1_targets, Antigen_presentation) used in an earlier version of this script are no longer used, replaced by the unbiased Hallmark-only approach
+- 3 comparisons tested by Wilcoxon rank-sum, BH-corrected within each: tumor_MPR vs tumor_NMPR; normal_MPR vs normal_NMPR; Ciliated_MPR vs Ciliated_NMPR (Ciliated tested rather than assumed stable, given its original role as a CopyKAT/SCEVAN reference population only)
+- Discriminant signatures after biological relevance filtering (12 irrelevant gene sets excluded): 33/50 for tumor_MPR vs NMPR, 33/50 for normal_MPR vs NMPR, 13/50 for Ciliated_MPR vs NMPR
+- Output: Results/Tables/Bloc4B_10_UCell_Epithelial_scores.csv (all 50 signatures, per-cell)
+          Results/Tables/Bloc4B_10_UCell_Epithelial_wilcox_results.csv (all comparisons, all signatures)
+          Results/Tables/Bloc4B_10_UCell_Epithelial_wilcox_discriminant.csv (79 discriminant results)
           Objects/Bloc4B_10_seu_Epithelial_UCell.rds
-- Figures: 1 dotplot (main figure) + 13 violin plots (supplementary)
+- Figures: 1 dotplot (all 50 signatures x 5 groups, descriptive) + violin plots for discriminant signatures only
 
 #### Script 11 : CollecTRI TF activity on epithelial cells
 
@@ -651,43 +654,40 @@ Google Colab (12GB): session crashed. Full dataset analysis not feasible.
 - Input: Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds (n=8,944 cells)
 - 5 final groups: tumor_MPR (n=506), normal_MPR (n=493), tumor_NMPR (n=3,386), normal_NMPR (n=3,574), Ciliated (n=565)
 - No downsampling applied (manageable dataset size)
-- Top 20 TFs by cross-cell variance (objective selection, no confirmation bias)
-- Top 6 TFs: MYC, RFXAP, RFXANK, HSF2, RFX5, CIITA
-- Output: Results/Figures/BLOC4B_Epithelial_TAMs/CollecTRI_Epithelial/
-          Results/Tables/Bloc4B_11_CollecTRI_Epithelial_TF_activity.csv
+- TF selection method: between-group variance (variance of final_group means), corrected from per-cell variance, consistent with CD8/TAM methodology
+- Top 20 TFs (between-group variance): RFXANK, RFX5, RFXAP, HSF2, FOXJ1, CREB1, TP53, DMTF1, MYC, EPAS1, ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DACH1
+- Top 6 TFs (violin plots): RFXANK, RFX5, RFXAP, HSF2, FOXJ1, CREB1
+- Statistical test: Wilcoxon, 3 comparisons (tumor_MPR vs NMPR, normal_MPR vs NMPR, Ciliated_MPR vs NMPR), BH-corrected within each comparison
+- **Superseded:** the earlier Top 20 (per-cell variance: MYC, RFXAP, RFXANK, HSF2, RFX5, CIITA, NKX2-1, SP1, FOXJ1, DMTF1, NFE2L2, E2F4, HSF1, ELK4, TP53, DACH1, HIF1A, E2F1, NFKB, JUN) and all descriptive (non-statistically-tested) observations built on it are replaced by the between-group variance selection and Wilcoxon results above
+- Output: Results/Tables/Bloc4B_11_CollecTRI_Epithelial_TF_activity.csv (Top 20 means per group)
+          Results/Tables/Bloc4B_11_CollecTRI_Epithelial_wilcox_results.csv (Wilcoxon results, all 3 comparisons)
+          Objects/Bloc4B_11_tf_acts_raw.rds (raw per-cell TF scores, saved for future re-analysis)
           Objects/Bloc4B_11_seu_Epithelial_TF.rds
-- Figures: 1 heatmap (main figure) + violin plots split tumor/normal (supplementary)
+- Figures: 1 heatmap (descriptive, all 5 groups) + violin plots split tumor/normal (Ciliated included in normal group figure)
 
 ## Bloc 5 : TME Intercellular Communication
 
 ### Biological question
-Does the transcriptional divergence between MPR and NMPR/non-MPR compartments (CD8, TAMs, epithelial) reflect distinct intercellular communication programs that reinforce or undermine anti-PD-1 response? Specifically, do responders and non-responders conditions differ in the directionality, specificity, and coordination of bidirectional communication loops between CD8 T cells, TAMs, and epithelial cells, and does this bidirectional crosstalk constitute a self-reinforcing immunosuppressive network in non-responders?
+Does the transcriptional divergence between MPR and NMPR/non-MPR compartments (CD8, TAMs) reflect distinct intercellular communication programs that reinforce or undermine anti-PD-1 response? Specifically, do responders and non-responders differ in the directionality, specificity, and coordination of bidirectional communication loops between CD8 T cells and TAMs, and does this crosstalk constitute a self-reinforcing immunosuppressive network in non-responders?
 
-### Cells of interest : guided by Blocs 3 and 4 findings
+### Cells of interest : guided by Blocs 3 and 4 findings (statistically verified, between-group variance + Wilcoxon)
 
-Intercellular communication analysis is guided by discriminant cell states identified in Blocs 3 and 4 (CollecTRI/decoupleR TF activity and UCell functional scoring). Cell subtypes of interest were selected based on differential transcriptional programs across response conditions. Full TME was opened for inference; interpretation is prioritized on these axes without excluding unexpected interactions.
+Cell subtypes of interest were selected based on the number of significantly discriminant transcription factors (CollecTRI, Wilcoxon MPR vs non-MPR/NMPR, BH-corrected within each subtype/state, out of the Top 20 tested), using the natural drop-off in each dataset's ranking rather than a fixed cutoff. Full TME was opened for inference; interpretation is prioritized on these axes without excluding unexpected interactions.
 
-**CD8 T cells — both datasets:**
-- CD8.TEX and CD8.TPEX : most discriminant between MPR and NMPR/non-MPR (ELK4 enriched MPR cross-dataset, exhaustion program enriched non-MPR)
-- CD8.EM, CD8.CM, CD8.TEMRA, CD8.NaiveLike : secondary context
+**CD8 T cells - both datasets:**
+- CD8.TEX and CD8.TPEX: the only two states analyzed, established as the primary exhausted CD8 populations responsive to PD-1 blockade (Liu B et al., 2022). ELK4 is significantly MPR-enriched in both states, in both datasets — the most robust cross-dataset signal identified in this project.
 
-**TAMs — GSE207422:**
-- MPR priority : IFN-stimulated (IRF1/STAT1), Lipid-associated (HIF1A)
-- NMPR priority : Stress-response (HIF1A/NF-KB), SPP1+ immunosuppressive (NF-KB/STAT3), Monocyte-derived (NF-KB/RELA)
+**TAMs - GSE243013 (6 of 7 subtypes retained, natural drop-off after Resident M2):**
+LAMs (20/20 significant TFs), Proliferating (20/20), Monocyte FCN1+ (19/20), Resident M2 (19/20), IFN-stimulated (16/20), Stress-response (16/20). Classical-Mono excluded (9/20, the least discriminant subtype).
 
-**TAMs — GSE243013:**
-- MPR priority : IFN-stimulated (IRF1/STAT1/REL), Resident M2 (ELK4)
-- non-MPR priority : Resident M2 (HIF1A/NF-KB), Monocyte FCN1+ (HIF1A/NF-KB),Stress-response (MYC/NF-KB)
+**TAMs - GSE207422 (5 of 9 subtypes retained, natural drop-off after Resident M2):**
+MRC1+ M2-like (19/20 significant TFs), SPP1+ immunosuppressive (19/20), IFN-stimulated (16/20), M2-SIGLEC8+ (12/20), Resident M2 (10/20). Stress-response (1/20), Lipid-associated (0/20) and Regulatory (0/20) excluded. Monocyte-derived not tested (no MPR cells available in this dataset).
 
-**Epithelial — GSE207422 only:**
-- Excluded from main preprint narrative (single dataset)
-- Retained in perspectives : tumor_NMPR shows enriched oncogenic/stress program (E2F1/E2F4/MYC/HIF1A) distinct from immune compartment signals
-
-**Cross-dataset observation:**
-HSF1 transcriptional activity is detected in TAMs and CD8 T cells across both conditions and both datasets, indicating a constitutive stress response program not exclusive to non-responders in immune compartments. HSF1 discriminant signal is restricted to tumor epithelial cells in GSE207422 (single dataset, not cross-validated). The intercellular link between HSF1 epithelial activity and immune compartment programs remains to be resolved, a question amenable to spatial transcriptomics addressed in perspectives.
+**Epithelial: GSE207422 only:**
+Excluded from the main preprint narrative (single dataset, no cross-dataset validation possible). Retained in perspectives/supplementary: tumor and normal epithelial compartments each show extensive discriminant TF and Hallmark programs (see Bloc 4B Preliminary observations, Scripts 10-11), with the RFX complex consistently MPR-enriched across tumor, normal, and Ciliated populations.
 
 ### Dataset coverage
-GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated) , full bidirectional analysis across all three compartments
+- GSE207422 : CD8 + TAMs + Epithelial (tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated) , full bidirectional analysis across all three compartments
 - GSE243013 : CD8 + TAMs (no epithelial compartment available) , bidirectional CD8 ↔ TAMs analysis; pCR retained in analysis, excluded from main narrative
 
 ### Tools
@@ -1224,86 +1224,59 @@ tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated
 - Cui et al. 2025 (Molecular Cancer): neoadjuvant chemoimmunotherapy induces immunosuppressive microenvironment in normal epithelial cells
 - Supports CellChat/NicheNet hypothesis: normal epithelial plasticity in MPR may associate with pro-immunogenic signaling to CD8 and TAMs
 
-## Preliminary observations : UCell epithelial compartment (Bloc 4B, GSE207422)
+## Preliminary observations : UCell Hallmark epithelial compartment (Bloc 4B, GSE207422)
 
-**Signatures applied (13 total):**
-- MSigDB Hallmark (Liberzon et al., Cell Systems 2015): Proliferation_E2F, Proliferation_G2M, Apoptosis, EMT, IFN_gamma_response, IL6_JAK_STAT3, TNFA_NFkB, WNT_beta_catenin, Notch_signaling, Unfolded_protein, Hypoxia
-- Custom: HSF1_targets (Mendillo et al., Cell 2012), Antigen_presentation (Hu et al., Genome Medicine 2023)
+**Methodological note:** earlier version used 11 pre-selected Hallmark signatures plus 2 custom signatures (HSF1_targets, Antigen_presentation). Superseded by the unbiased approach: all 50 Hallmark signatures tested, discriminant signatures identified post-hoc by Wilcoxon test (BH-corrected within each comparison), consistent with CD8/TAM methodology.
 
-**Dotplot observations (ranked by expression per group):**
+**tumor_MPR vs tumor_NMPR (33/50 significant):**
+*Higher in tumor_MPR*: IL6_JAK_STAT3_SIGNALING (strongest signal, p_adj=3.0×10⁻¹⁷⁵), ALLOGRAFT_REJECTION, PROTEIN_SECRETION, GLYCOLYSIS, OXIDATIVE_PHOSPHORYLATION, WNT_BETA_CATENIN_SIGNALING, NOTCH_SIGNALING, REACTIVE_OXYGEN_SPECIES_PATHWAY, FATTY_ACID_METABOLISM, HYPOXIA, COMPLEMENT, INTERFERON_GAMMA_RESPONSE, INFLAMMATORY_RESPONSE, HEME_METABOLISM, UV_RESPONSE_UP, INTERFERON_ALPHA_RESPONSE.
+*Higher in tumor_NMPR*: APICAL_JUNCTION, MITOTIC_SPINDLE, APOPTOSIS, CHOLESTEROL_HOMEOSTASIS, P53_PATHWAY, TNFA_SIGNALING_VIA_NFKB, KRAS_SIGNALING_DN, G2M_CHECKPOINT, UNFOLDED_PROTEIN_RESPONSE, TGF_BETA_SIGNALING, PI3K_AKT_MTOR_SIGNALING, E2F_TARGETS, DNA_REPAIR, KRAS_SIGNALING_UP, MYC_TARGETS_V2, EPITHELIAL_MESENCHYMAL_TRANSITION, MTORC1_SIGNALING.
 
-tumor_NMPR: Proliferation_E2F > Proliferation_G2M > Apoptosis > TNFA_NFkB > Unfolded_protein > HSF1_targets > Hypoxia = Aggressive survival program: massive proliferation, chronic proteotoxic stress, inflammatory resistance, absent antigen presentation
+**normal_MPR vs normal_NMPR (33/50 significant):**
+*Higher in normal_NMPR*: KRAS_SIGNALING_DN, PI3K_AKT_MTOR_SIGNALING, HYPOXIA, EPITHELIAL_MESENCHYMAL_TRANSITION, APOPTOSIS, KRAS_SIGNALING_UP, APICAL_JUNCTION, TNFA_SIGNALING_VIA_NFKB, TGF_BETA_SIGNALING, INFLAMMATORY_RESPONSE, MTORC1_SIGNALING, IL2_STAT5_SIGNALING, GLYCOLYSIS, UNFOLDED_PROTEIN_RESPONSE, COMPLEMENT, ANGIOGENESIS, MYC_TARGETS_V1, OXIDATIVE_PHOSPHORYLATION, UV_RESPONSE_UP, INTERFERON_GAMMA_RESPONSE, P53_PATHWAY, PROTEIN_SECRETION, MITOTIC_SPINDLE, INTERFERON_ALPHA_RESPONSE, MYC_TARGETS_V2, HEME_METABOLISM, DNA_REPAIR, REACTIVE_OXYGEN_SPECIES_PATHWAY, WNT_BETA_CATENIN_SIGNALING, UV_RESPONSE_DN (30 of 33).
+*Higher in normal_MPR*: FATTY_ACID_METABOLISM, NOTCH_SIGNALING, CHOLESTEROL_HOMEOSTASIS (3 of 33).
 
-tumor_MPR: IL6_JAK_STAT3 > WNT_beta_catenin > Notch_signaling > Hypoxia > Unfolded_protein > Proliferation_E2F > Proliferation_G2M = Plasticity program: developmental signaling dominant, moderate proliferation, communicative tumor phenotype potentially sensitive to immunotherapy
+**Ciliated_MPR vs Ciliated_NMPR (13/50 significant):**
+*Higher in MPR*: INTERFERON_GAMMA_RESPONSE, MYC_TARGETS_V1, APICAL_SURFACE, ALLOGRAFT_REJECTION, PROTEIN_SECRETION, G2M_CHECKPOINT.
+*Higher in NMPR*: DNA_REPAIR, INFLAMMATORY_RESPONSE, REACTIVE_OXYGEN_SPECIES_PATHWAY, WNT_BETA_CATENIN_SIGNALING, NOTCH_SIGNALING, OXIDATIVE_PHOSPHORYLATION, TNFA_SIGNALING_VIA_NFKB.
 
-normal_NMPR: EMT > IFN_gamma_response > Hypoxia > TNFA_NFkB > Apoptosis = Dysfunctional inflammatory compartment: EMT residual signature (reclassified cells) + sterile inflammation amplified by IFN without coordinated antigen presentation
-
-normal_MPR: Antigen_presentation > IFN_gamma_response > IL6_JAK_STAT3 = Pro-immunogenic compartment: normal epithelial cells actively present antigens and respond to IFN in a coordinated manner, supporting immune activation
-
-Ciliated: Antigen_presentation > Notch_signaling = Stable reference: constitutive antigen presentation, identity maintenance
-
-**Key biological interpretations:**
-
-- IFN_gamma_response higher in normal_NMPR than normal_MPR but coupled to EMT and TNFA_NFkB rather than antigen presentation — IFN acts as a contextual amplifier: pro-immunogenic in MPR, pro-inflammatory/immunosuppressive in NMPR
-- HSF1_targets confirmed in tumor_NMPR (compact, high, uniform distribution) > tumor_MPR : completes the HSF1 feedback loop across three compartments: tumor_NMPR → TAMs → CD8 exhaustion
-- Unfolded_protein and HSF1_targets concordant in tumor_NMPR, independent signatures converging on same chronic proteotoxic stress program (internal validation)
-- Antigen_presentation quasi-absent in tumor_NMPR → complete immune evasion through loss of antigen presentation
-- Two distinct tumor survival programs identified:
-  tumor_MPR: IL6/JAK/STAT3 + WNT + Notch (plasticity, communicative)
-  tumor_NMPR: HSF1 + Proliferation + TNFA (stress resistance, autonomous)
-- Apoptosis slightly higher in NMPR groups, tumor cells resist death signals (BIRC5/BCL2 program) while some normal NMPR cells succumb, interpretation limited by absence of pCR group in GSE207422
-- Hypoxia higher in tumor_MPR than tumor_NMPR, consistent with active immune remodeling increasing local oxygen consumption rather than hypoxic escape
-
-**Cross-compartment HSF1 conclusion:**
-HSF1_targets enriched in tumor_NMPR (epithelial) + non-responder TAMs (Bloc 4A) + non-responder CD8 (Bloc 3), suggesting a HSF1-driven immunosuppressive feedback loop originating from the tumor epithelial compartment propagating through the TME.
+**Key observations:**
+- The tumor compartment shows the most extensive divergence between conditions (33/50 signatures), with IL6_JAK_STAT3_SIGNALING as the single most significant signature in this analysis (p_adj=3.0×10⁻¹⁷⁵).
+- The normal epithelial compartment shows a comparably extensive divergence (33/50 signatures), but overwhelmingly in one direction: 30 of 33 signatures are higher in normal_NMPR.
+- Ciliated cells, despite their original role as a stable reference population for malignancy calling, show 13/50 significant differences between MPR and NMPR — fewer than tumor or normal compartments, but not zero.
+- NOTCH_SIGNALING direction differs by population: higher in tumor_MPR, higher in normal_MPR, but higher in Ciliated_NMPR.
+- FATTY_ACID_METABOLISM is higher in MPR in both tumor and normal compartments, the only signature showing this same direction in both.
 
 ## Preliminary observations : CollecTRI TF activity epithelial compartment (Bloc 4B, Script 11)
 
-**Top 20 TFs by cross-cell variance:**
-MYC, RFXAP, RFXANK, HSF2, RFX5, CIITA, NKX2-1, SP1, FOXJ1, DMTF1, NFE2L2, E2F4,
-HSF1, ELK4, TP53, DACH1, HIF1A, E2F1, NFKB, JUN
+**Methodological note:** TF selection (Top 20/Top 6) corrected from per-cell variance to between-group variance (variance of final_group means), consistent with CD8/TAM methodology. This changed the composition of the Top 20 relative to earlier observations, see below.
 
-**TF programs per group (heatmap + violin observations) :**
+**Top 20 TFs by between-group variance:**
+RFXANK, RFX5, RFXAP, HSF2, FOXJ1, CREB1, TP53, DMTF1, MYC, EPAS1, ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DACH1
 
-tumor_MPR: TP53, MYC, NFE2L2, HIF1A, SP1, NFKB, ELK4, JUN, E2F4, CIITA = Mixed plasticity/stress program with pro-immunogenic window (ELK4 + CIITA)
+*Note: CIITA, E2F1, E2F4, HSF1, JUN and NFKB, all featured in earlier observations, are no longer part of the Top 20 under this corrected selection method and are not discussed below.*
 
-tumor_NMPR: E2F4, HSF2, E2F1, HSF1, DMTF1, TP53, ELK4, SP1, JUN, NFE2L2, HIF1A, NFKB, MYC = Proliferation (E2F4/E2F1) + chronic proteotoxic stress (HSF1/HSF2) , HSF1 confirmed 
+**Wilcoxon results, statistically verified (BH-corrected within each comparison):**
 
-normal_MPR: NKX2-1, RFXAP, RFX5, CIITA, RFXANK, DACH1 = MHC II dominant , pro-immunogenic compartment confirmed
+**tumor_MPR vs tumor_NMPR (20/20 significant):**
+*Higher in tumor_MPR*: ZBTB4, RFXANK, RFX5, RFXAP, EPAS1, NKX2-1, MYC.
+*Higher in tumor_NMPR*: HSF2, DMTF1, CREB1, DACH1, ESR1, ELK4, FOXJ1, MEIS2, TP53, ATF1, SP1, HIF1A, NFE2L2.
 
-normal_NMPR: DACH1, HIF1A, NFKB, JUN, NKX2-1, signal globally weak = Transcriptionally quiescent, uncoordinated inflammatory state
+**normal_MPR vs normal_NMPR (19/20 significant):**
+*Higher in normal_MPR*: RFXAP, RFXANK, RFX5, NKX2-1, HSF2, MEIS2.
+*Higher in normal_NMPR*: HIF1A, CREB1, DMTF1, EPAS1, TP53, ATF1, MYC, SP1, DACH1, ESR1, ELK4, FOXJ1, NFE2L2.
+Not significant: ZBTB4.
 
-Ciliated: FOXJ1, RFXANK, RFXAP, RFX5, DACH1, CIITA = Ciliary identity (FOXJ1) + constitutive MHC II : stable reference
+**Ciliated_MPR vs Ciliated_NMPR (10/20 significant):**
+*Higher in MPR*: RFXANK, RFX5, RFXAP, HSF2, FOXJ1, CREB1, TP53, MYC.
+*Higher in NMPR*: DMTF1, EPAS1.
+Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DACH1.
 
-**Key cross-compartiment findings:**
-
-**HSF1 feedback loop confirmed (3rd compartment):**
-HSF1 enriched in tumor_NMPR epithelial (CollecTRI + UCell) : ORIGIN
-+ non-responder TAMs (both datasets) + non-responder CD8 (both datasets)
-= HSF1-driven immunosuppressive cascade originating in tumor epithelial compartment
-
-**ELK4 contextual modulator hypothesis confirmed:**
-- tumor_MPR: ELK4 + CIITA/TP53 = pro-immunogenic context
-- tumor_NMPR: ELK4 + HSF1/E2F = immunosuppressive context
-- CD8 MPR: ELK4 + TBX21 = functional cytotoxic program
-- CD8 NMPR: ELK4 without TBX21 = abortive cytotoxic program
-- TAMs MPR: ELK4 Resident M2 + Classical-Mono (GSE243013)
-   - ELK4 functional output determined by co-regulatory partners, not expression level
-   - Supporting references: Yao 2013 (BMC Genomics), Xue et al. 2023 (Advanced Science)
-
-**MHC II program cross-compartment (MPR):**
-RFXAP/RFXANK/RFX5/CIITA enriched in:
-- normal_MPR epithelial (dominant)
-- tumor_MPR epithelial (CIITA present)
-- Ciliated (constitutive)
-- TAMs MPR (Resident M2, Classical-Mono, MRC1+) = Global pro-immunogenic MHC II program in MPR TME
-
-**Literature support:**
-- Lanucara et al., Biomedicines 2024, SCEVAN/CopyKAT benchmark
-- Hu et al., Genome Medicine 2023, normal epithelial expansion in MPR
-- Cui et al., Molecular Cancer 2025, normal epithelial microenvironment after immunotherapy
-- Yao, BMC Genomics 2013, ELK4 contextual modulator in macrophages
-- Xue et al., Advanced Science 2023, ELK4 co-factor dependency in cancer
+**Key points:**
+- The RFX complex (RFXANK, RFX5, RFXAP) is significantly MPR-enriched in all three comparisons, the only TF module showing this same direction across tumor, normal, and Ciliated populations in this dataset.
+- CIITA is absent from the Top 20 (as in the CD8 and TAM compartments in both datasets), despite RFX being consistently discriminant.
+- ELK4 is significantly NMPR-enriched in both tumor and normal comparisons, not tested in Ciliated (not significant there, p_adj=0.159).
+- tumor_MPR_vs_NMPR is the most extensively discriminant comparison in this analysis (20/20 TFs significant).
 
 ### Preliminary observations for LIANA+ GSE207422
 

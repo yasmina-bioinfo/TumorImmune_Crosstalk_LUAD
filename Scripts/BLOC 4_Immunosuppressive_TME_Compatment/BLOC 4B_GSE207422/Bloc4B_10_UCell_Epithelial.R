@@ -1,14 +1,13 @@
 #!/usr/bin/env Rscript
 # ============================================================
-# GSE207422 : Bloc4B Script 10: UCell scoring on epithelial cells
-# 5 groups: tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated
-# Signatures: 7 MSigDB Hallmark + 2 custom (HSF1_targets, Antigen_presentation)
-# References: Liberzon et al. Cell Systems 2015 (MSigDB Hallmark)
-#             Mendillo et al. Cell 2012 (HSF1 targets)
-#             Hu et al. Genome Medicine 2023 (Antigen presentation)
+# GSE207422 : Bloc4B Script 10: UCell Hallmark scoring on epithelial cells
+# Unbiased approach, all 50 Hallmark signatures tested (custom signatures removed)
+# 5 groups: tumor_MPR, tumor_NMPR, normal_MPR, normal_NMPR, Ciliated
+# Reference: Liberzon et al., Cell Systems 2015 (MSigDB Hallmark)
 # Input:  Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds
-# Output: Results/Figures/BLOC4B_Epithelial_TAMs/UCell_Epithelial/
-#         Results/Tables/Bloc4B_10_UCell_Epithelial_scores.csv
+# Output: Results/Tables/Bloc4B_10_UCell_Epithelial_scores.csv
+#         Results/Tables/Bloc4B_10_UCell_Epithelial_wilcox_results.csv
+#         Results/Figures/BLOC4B_Epithelial_TAMs/UCell_Epithelial/
 # ============================================================
 
 suppressPackageStartupMessages({
@@ -16,9 +15,12 @@ suppressPackageStartupMessages({
   library(UCell)
   library(msigdbr)
   library(dplyr)
+  library(tidyr)
   library(ggplot2)
   library(data.table)
+  library(BiocParallel)
 })
+register(SnowParam(workers = 1))
 
 DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
 OUT_FIG  <- file.path(DATA_DIR, "Results/Figures/BLOC4B_Epithelial_TAMs/UCell_Epithelial")
@@ -30,91 +32,119 @@ dir.create(OUT_FIG, recursive = TRUE, showWarnings = FALSE)
 message("Loading epithelial object...")
 seu_Epi <- readRDS(file.path(DATA_DIR, "Objects/Bloc4B_09c_seu_Epithelial_FinalGroups.rds"))
 message("Total cells: ", ncol(seu_Epi))
-message("Group distribution:")
 print(table(seu_Epi$final_group, useNA = "always"))
 
-# 2) Load MSigDB Hallmark signatures
-message("Loading MSigDB Hallmark signatures...")
-hallmarks <- msigdbr(species = "Homo sapiens", category = "H")
+# 2) Load ALL 50 Hallmark signatures (unbiased)
+message("Loading all 50 Hallmark signatures...")
+hallmark_sets <- msigdbr(species = "Homo sapiens", collection = "H") %>%
+  split(x = .$gene_symbol, f = .$gs_name)
+hallmark_cols <- names(hallmark_sets)
+message("Total Hallmark signatures: ", length(hallmark_sets))
 
-get_hallmark <- function(name) {
-  hallmarks %>% filter(gs_name == name) %>% pull(gene_symbol) %>% unique()
-}
+# 3) Compute UCell scores (all 50)
+message("Computing UCell Hallmark scores...")
+seu_Epi <- AddModuleScore_UCell(seu_Epi,
+                                features = hallmark_sets,
+                                name     = "")
+message("Hallmark UCell scores added.")
 
-# 3) Define all signatures
-signatures <- list(
-  # MSigDB Hallmark
-  Proliferation_E2F     = get_hallmark("HALLMARK_E2F_TARGETS"),
-  Proliferation_G2M     = get_hallmark("HALLMARK_G2M_CHECKPOINT"),
-  Apoptosis             = get_hallmark("HALLMARK_APOPTOSIS"),
-  EMT                   = get_hallmark("HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION"),
-  IFN_gamma_response    = get_hallmark("HALLMARK_INTERFERON_GAMMA_RESPONSE"),
-  IL6_JAK_STAT3         = get_hallmark("HALLMARK_IL6_JAK_STAT3_SIGNALING"),
-  TNFA_NFkB             = get_hallmark("HALLMARK_TNFA_SIGNALING_VIA_NFKB"),
-  WNT_beta_catenin      = get_hallmark("HALLMARK_WNT_BETA_CATENIN_SIGNALING"),
-  Notch_signaling       = get_hallmark("HALLMARK_NOTCH_SIGNALING"),
-  Unfolded_protein      = get_hallmark("HALLMARK_UNFOLDED_PROTEIN_RESPONSE"),
-  Hypoxia               = get_hallmark("HALLMARK_HYPOXIA"),
-  
-  # Custom signatures
-  HSF1_targets          = c("HSPA1A", "HSPA1B", "HSP90AA1", "HSP90AB1", 
-                            "HSPB1", "HSPA5", "HSPH1", "DNAJB1"),
-  Antigen_presentation  = c("HLA-DRA", "HLA-DRB1", "CD74", "CIITA")
-)
-
-message("Signatures defined: ", length(signatures))
-
-# 4) Run UCell
-message("Running UCell...")
-seu_Epi <- AddModuleScore_UCell(seu_Epi, features = signatures, name = "_UCell")
-message("UCell done.")
-
-# 5) Save scores
-score_cols <- paste0(names(signatures), "_UCell")
-
-# Check which columns were created
-message("Score columns created:")
-print(intersect(score_cols, colnames(seu_Epi@meta.data)))
-
+# 4) Save full per-cell scores table
 scores_df <- seu_Epi@meta.data %>%
-  dplyr::select(final_group, PathResponse, TME_cell_type, 
-                any_of(score_cols))
+  dplyr::select(final_group, PathResponse, TME_cell_type,
+                all_of(hallmark_cols))
 scores_df$cell <- colnames(seu_Epi)
 
-fwrite(as.data.frame(scores_df), 
+fwrite(as.data.frame(scores_df),
        file.path(OUT_TAB, "Bloc4B_10_UCell_Epithelial_scores.csv"))
 message("Saved: Bloc4B_10_UCell_Epithelial_scores.csv")
 
-# 6) Dotplot , all signatures x all groups
+# 5) Wilcoxon tests — 3 comparisons, BH-corrected within each comparison
+message("Running Wilcoxon tests for the 3 comparisons...")
+
+run_comparison <- function(meta, filter_expr, group_col, level_a, level_b, label) {
+  sub_meta <- meta %>% filter(!!rlang::parse_expr(filter_expr))
+  results <- lapply(hallmark_cols, function(sig) {
+    a <- sub_meta[sub_meta[[group_col]] == level_a, sig]
+    b <- sub_meta[sub_meta[[group_col]] == level_b, sig]
+    a <- a[!is.na(a)]; b <- b[!is.na(b)]
+    if (length(a) < 3 | length(b) < 3) return(NULL)
+    test <- wilcox.test(a, b)
+    data.frame(comparison = label, signature = sig, p_value = test$p.value,
+               median_A = median(a), median_B = median(b))
+  }) %>% bind_rows()
+  names(results)[names(results) == "median_A"] <- paste0("median_", level_a)
+  names(results)[names(results) == "median_B"] <- paste0("median_", level_b)
+  results
+}
+
+meta <- seu_Epi@meta.data
+
+res_tumor    <- run_comparison(meta, "final_group %in% c('tumor_MPR','tumor_NMPR')",
+                               "final_group", "tumor_MPR", "tumor_NMPR", "tumor_MPR_vs_NMPR")
+res_normal   <- run_comparison(meta, "final_group %in% c('normal_MPR','normal_NMPR')",
+                               "final_group", "normal_MPR", "normal_NMPR", "normal_MPR_vs_NMPR")
+res_ciliated <- run_comparison(meta, "final_group == 'Ciliated'",
+                               "PathResponse", "MPR", "NMPR", "Ciliated_MPR_vs_NMPR")
+
+wilcox_results <- bind_rows(res_tumor, res_normal, res_ciliated) %>%
+  group_by(comparison) %>%
+  mutate(p_adj = p.adjust(p_value, method = "BH")) %>%
+  ungroup() %>%
+  arrange(comparison, p_adj)
+
+fwrite(wilcox_results,
+       file.path(OUT_TAB, "Bloc4B_10_UCell_Epithelial_wilcox_results.csv"))
+message("Saved: Bloc4B_10_UCell_Epithelial_wilcox_results.csv")
+
+for (comp in unique(wilcox_results$comparison)) {
+  n_sig <- sum(wilcox_results$comparison == comp & wilcox_results$p_adj < 0.05, na.rm = TRUE)
+  message(comp, ": ", n_sig, "/", length(hallmark_cols), " signatures significant (p_adj < 0.05)")
+}
+
+# 6) Discriminant signatures (post-hoc biological relevance filter)
+irrelevant_sets <- c(
+  "HALLMARK_ADIPOGENESIS", "HALLMARK_ANDROGEN_RESPONSE",
+  "HALLMARK_ESTROGEN_RESPONSE_EARLY", "HALLMARK_ESTROGEN_RESPONSE_LATE",
+  "HALLMARK_HEDGEHOG_SIGNALING", "HALLMARK_MYOGENESIS",
+  "HALLMARK_PANCREAS_BETA_CELLS", "HALLMARK_SPERMATOGENESIS",
+  "HALLMARK_BILE_ACID_METABOLISM", "HALLMARK_XENOBIOTIC_METABOLISM",
+  "HALLMARK_COAGULATION", "HALLMARK_PEROXISOME"
+)
+
+wilcox_discriminant <- wilcox_results %>%
+  filter(!signature %in% irrelevant_sets, p_adj < 0.05)
+
+message("Discriminant signatures retained (biologically relevant, p_adj<0.05): ",
+        length(unique(wilcox_discriminant$signature)))
+
+fwrite(wilcox_discriminant,
+       file.path(OUT_TAB, "Bloc4B_10_UCell_Epithelial_wilcox_discriminant.csv"))
+message("Saved: Bloc4B_10_UCell_Epithelial_wilcox_discriminant.csv")
+
+# 7) Dotplot — descriptive visualization, all 50 signatures x all groups
 message("Producing dotplot...")
 
 seu_sub <- subset(seu_Epi, cells = colnames(seu_Epi)[!is.na(seu_Epi$final_group)])
 Idents(seu_sub) <- "final_group"
 
-# Get actual score column names
-score_cols_present <- intersect(score_cols, colnames(seu_sub@meta.data))
-
-p1 <- DotPlot(seu_sub, 
-              features = score_cols_present,
+p1 <- DotPlot(seu_sub,
+              features = hallmark_cols,
               group.by = "final_group",
               cols = c("lightblue", "red"),
-              dot.scale = 8) +
+              dot.scale = 6) +
   theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 16, color = "black"),
-        axis.text.y = element_text(size = 16, color = "black"),
-        plot.title = element_text(size = 18, color = "black", face = "bold"),
-        panel.grid.major = element_line(color = "grey90"),
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 13)) +
-  ggtitle("UCell scores — Epithelial compartment GSE207422") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6, color = "black"),
+        axis.text.y = element_text(size = 14, color = "black"),
+        plot.title = element_text(size = 18, color = "black", face = "bold")) +
+  ggtitle("UCell Hallmark scores — Epithelial compartment GSE207422 (all 50 signatures)") +
   xlab("") + ylab("")
 
-ggsave(file.path(OUT_FIG, "Bloc4B_10_Dotplot_UCell_Epithelial.png"),
-       p1, width = 20, height = 8, dpi = 300)
-message("Saved: Dotplot")
+ggsave(file.path(OUT_FIG, "Bloc4B_10_Dotplot_UCell_Epithelial_all50.png"),
+       p1, width = 30, height = 8, dpi = 300)
+message("Saved: Dotplot (all 50, descriptive)")
 
-# 7) Violin plots per signature (supplementary)
-message("Producing violin plots...")
+# 8) Violin plots- discriminant signatures only (supplementary)
+message("Producing violin plots for discriminant signatures...")
 
 group_colors <- c(
   "tumor_MPR"   = "#E63946",
@@ -124,25 +154,25 @@ group_colors <- c(
   "Ciliated"    = "#ADB5BD"
 )
 
-for (sig in score_cols_present) {
+for (sig in unique(wilcox_discriminant$signature)) {
   tryCatch({
     p <- VlnPlot(seu_sub, features = sig,
                  group.by = "final_group",
                  cols = group_colors,
                  pt.size = 0) +
-      ggtitle(gsub("_UCell", "", sig)) +
+      ggtitle(gsub("HALLMARK_", "", sig)) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
     
-    fname <- paste0("Bloc4B_10_Violin_", gsub("_UCell", "", sig), ".png")
+    fname <- paste0("Bloc4B_10_Violin_", gsub("HALLMARK_", "", sig), ".png")
     ggsave(file.path(OUT_FIG, fname), p, width = 8, height = 5, dpi = 150)
   }, error = function(e) {
     message("Violin failed for ", sig, ": ", e$message)
   })
 }
-message("Saved: Violin plots")
+message("Saved: Violin plots (discriminant signatures)")
 
-# Save updated Seurat object
+# 9) Save updated Seurat object
 saveRDS(seu_Epi, file.path(DATA_DIR, "Objects/Bloc4B_10_seu_Epithelial_UCell.rds"))
 message("Saved: Bloc4B_10_seu_Epithelial_UCell.rds")
 
