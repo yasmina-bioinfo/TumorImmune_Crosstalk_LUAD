@@ -43,9 +43,9 @@ df_all$source <- case_when(
 
 # Define groups
 cd8_types <- c("CD8.TEX", "CD8.TPEX", "CD8.EM", "CD8.CM", "CD8.TEMRA")
-tam_types  <- c("MRC1+ M2-like", "SPP1+ immunosuppressive", "Resident M2",
-                "IFN-stimulated", "Monocyte-derived", "Lipid-associated",
-                "Regulatory", "M2-SIGLEC8+")
+tam_types <- c("MRC1+ M2-like", "SPP1+ immunosuppressive", "IFN-stimulated",
+               "M2-SIGLEC8+", "Resident M2", "Monocyte-derived", "Lipid-associated",
+               "Stress-response", "Regulatory")
 epi_types  <- c("Tumor epithelial", "Normal epithelial", "Ciliated")
 
 # Function to plot

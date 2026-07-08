@@ -28,23 +28,14 @@ message("Loading TME object...")
 seu_TME <- readRDS(file.path(DATA_DIR, "Objects/Bloc5_01_seu_TME_GSE207422.rds"))
 message("Total cells: ", ncol(seu_TME))
 
-# Apply short labels to TAM types for readability
-short_tam_labels <- c(
-  "TAM_like_MRC1"                                            = "MRC1+ M2-like",
-  "TAM_like_SPP1"                                            = "SPP1+ immunosuppressive",
-  "TAM_like_resident_M2 (iron metabolism/anti-inflammatory)" = "Resident M2",
-  "TAM_like_IFN (PD-L1+/IDO1+/CXCL9+)"                     = "IFN-stimulated",
-  "TAM_like_monocyte (classical inflammatory)"               = "Monocyte-derived",
-  "TAM_like_lipid (CCL18+/AKR+)"                            = "Lipid-associated",
-  "TAM_like_stress (HSP-high/M1-like)"                      = "Stress-response",
-  "TAM_like_regulatory (glucocorticoid-responsive)"          = "Regulatory",
-  "TAM_like_M2 (SIGLEC8+/CCL18+)"                           = "M2-SIGLEC8+"
-)
-
-seu_TME$cell_type <- ifelse(seu_TME$cell_type %in% names(short_tam_labels),
-                            short_tam_labels[seu_TME$cell_type],
-                            seu_TME$cell_type)
-message("TAM labels updated: ", paste(unique(seu_TME$cell_type[seu_TME$cell_type %in% short_tam_labels]), collapse=", "))
+seu_TME <- subset(seu_TME, subset = cell_type %in% c(
+  "CD8.TEX", "CD8.TPEX", "CD8.EM", "CD8.CM",
+               "CD8.TEMRA", "CD8.NaiveLike",
+  "MRC1+ M2-like", "SPP1+ immunosuppressive", "IFN-stimulated",
+  "M2-SIGLEC8+", "Resident M2", "Monocyte-derived", "Lipid-associated",
+  "Stress-response", "Regulatory",
+  "tumor_MPR", "normal_MPR", "tumor_NMPR", "normal_NMPR", "Ciliated"
+))
 
 # ============================================================
 # 2) Load CellChatDB

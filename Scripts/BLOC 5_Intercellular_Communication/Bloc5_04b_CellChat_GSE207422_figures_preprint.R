@@ -49,13 +49,106 @@ df_all$source <- case_when(
 # ============================================================
 cd8_poi <- c("CD8.TEX", "CD8.TPEX")
 
-tam_poi <- c("IFN-stimulated", "SPP1+ immunosuppressive",
-             "Lipid-associated", "Resident M2")
+tam_poi <-  c("MRC1+ M2-like", "SPP1+ immunosuppressive", "IFN-stimulated",
+              "M2-SIGLEC8+", "Resident M2")
 
 epi_types <- c("Tumor epithelial", "Normal epithelial", "Ciliated")
 
 # ============================================================
-# 3) Plot function
+# 3) Cross MPR vs NMPR interactions — all 3 axes of interest
+# ============================================================
+message("Crossing MPR vs NMPR interactions for all axes of interest...")
+
+key_cols <- c("source", "target", "ligand", "receptor")
+
+# --- Axis 1: CD8 <-> TAM (condition NOT encoded in cell type name) ---
+filter_cd8_tam <- function(df) {
+  df %>%
+    filter((source %in% cd8_poi & target %in% tam_poi) |
+             (target %in% cd8_poi & source %in% tam_poi))
+}
+
+crossed_cd8_tam <- full_join(
+  filter_cd8_tam(df_MPR)  %>% select(all_of(key_cols), prob, pval),
+  filter_cd8_tam(df_NMPR) %>% select(all_of(key_cols), prob, pval),
+  by = key_cols, suffix = c("_MPR", "_NMPR")
+) %>%
+  mutate(presence = case_when(
+    !is.na(prob_MPR) & !is.na(prob_NMPR) ~ "Both",
+    !is.na(prob_MPR) & is.na(prob_NMPR)  ~ "MPR_only",
+    is.na(prob_MPR) & !is.na(prob_NMPR)  ~ "NMPR_only"
+  )) %>%
+  arrange(presence, pval_MPR, pval_NMPR)
+
+fwrite(crossed_cd8_tam, file.path(DATA_DIR, "Results/Tables/BLOC5/Bloc5_04b_CellChat_GSE207422_CD8_TAM_crossed.csv"))
+message("CD8<->TAM: ", sum(crossed_cd8_tam$presence=="Both"), " Both, ",
+        sum(crossed_cd8_tam$presence=="MPR_only"), " MPR_only, ",
+        sum(crossed_cd8_tam$presence=="NMPR_only"), " NMPR_only")
+
+# --- Helper: axes involving Epithelial (condition ENCODED in cell type name) ---
+epi_arm_pairs <- list(
+  tumor  = c(mpr = "tumor_MPR",  nmpr = "tumor_NMPR"),
+  normal = c(mpr = "normal_MPR", nmpr = "normal_NMPR")
+)
+epi_encoded <- unlist(epi_arm_pairs)
+
+cross_epithelial_axis <- function(partner_types, axis_label) {
+  # Ciliated: not condition-encoded, compare directly like CD8<->TAM
+  filter_ciliated <- function(df) {
+    df %>% filter((source %in% partner_types & target == "Ciliated") |
+                    (target %in% partner_types & source == "Ciliated"))
+  }
+  crossed_ciliated <- full_join(
+    filter_ciliated(df_MPR)  %>% select(all_of(key_cols), prob, pval),
+    filter_ciliated(df_NMPR) %>% select(all_of(key_cols), prob, pval),
+    by = key_cols, suffix = c("_MPR", "_NMPR")
+  ) %>%
+    mutate(presence = case_when(
+      !is.na(prob_MPR) & !is.na(prob_NMPR) ~ "Both",
+      !is.na(prob_MPR) & is.na(prob_NMPR)  ~ "MPR_only",
+      is.na(prob_MPR) & !is.na(prob_NMPR)  ~ "NMPR_only"
+    ))
+  
+  # Tumor / Normal: condition-encoded — compare the MPR-arm vs NMPR-arm
+  filter_arm <- function(df, literal_label) {
+    df %>% filter((source %in% partner_types & target == literal_label) |
+                    (target %in% partner_types & source == literal_label))
+  }
+  arm_results <- lapply(names(epi_arm_pairs), function(base) {
+    mpr_arm  <- filter_arm(df_MPR,  epi_arm_pairs[[base]]["mpr"])  %>%
+      select(all_of(key_cols), prob, pval) %>%
+      mutate(target = ifelse(target %in% epi_encoded, base, target),
+             source = ifelse(source %in% epi_encoded, base, source))
+    nmpr_arm <- filter_arm(df_NMPR, epi_arm_pairs[[base]]["nmpr"]) %>%
+      select(all_of(key_cols), prob, pval) %>%
+      mutate(target = ifelse(target %in% epi_encoded, base, target),
+             source = ifelse(source %in% epi_encoded, base, source))
+    full_join(mpr_arm, nmpr_arm, by = key_cols, suffix = c("_MPR", "_NMPR")) %>%
+      mutate(presence = case_when(
+        !is.na(prob_MPR) & !is.na(prob_NMPR) ~ "Both",
+        !is.na(prob_MPR) & is.na(prob_NMPR)  ~ "MPR_only",
+        is.na(prob_MPR) & !is.na(prob_NMPR)  ~ "NMPR_only"
+      ))
+  }) %>% bind_rows()
+  
+  result <- bind_rows(crossed_ciliated, arm_results) %>%
+    arrange(presence, pval_MPR, pval_NMPR)
+  
+  fwrite(result, file.path(DATA_DIR, paste0("Results/Tables/BLOC5/Bloc5_04b_CellChat_GSE207422_", axis_label, "_crossed.csv")))
+  message(axis_label, ": ", sum(result$presence=="Both"), " Both, ",
+          sum(result$presence=="MPR_only"), " MPR_only, ",
+          sum(result$presence=="NMPR_only"), " NMPR_only")
+  result
+}
+
+# --- Axis 2: CD8 <-> Epithelial ---
+crossed_cd8_epi <- cross_epithelial_axis(cd8_poi, "CD8_Epithelial")
+
+# --- Axis 3: TAM <-> Epithelial ---
+crossed_tam_epi <- cross_epithelial_axis(tam_poi, "TAM_Epithelial")
+
+# ============================================================
+# 4) Plot function
 # ============================================================
 plot_cellchat <- function(df, source_groups, target_groups, ntop = 5, title = "") {
   
@@ -100,7 +193,7 @@ plot_cellchat <- function(df, source_groups, target_groups, ntop = 5, title = ""
 }
 
 # ============================================================
-# 4) Preprint figures : CD8 <-> TAMs (main narrative)
+# 5) Preprint figures : CD8 <-> TAMs (main narrative)
 # ============================================================
 message("Generating preprint figures CD8 <-> TAMs...")
 
@@ -117,7 +210,7 @@ ggsave(file.path(OUT_FIG_PRE, "Bloc5_04b_CellChat_TAMs_CD8_preprint.png"),
 message("Saved: TAMs -> CD8 preprint")
 
 # ============================================================
-# 5) Discussion/Perspectives figures : Epithelial axes
+# 6) Discussion/Perspectives figures : Epithelial axes
 # ============================================================
 message("Generating discussion figures — Epithelial axes...")
 
