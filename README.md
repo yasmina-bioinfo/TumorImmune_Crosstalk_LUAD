@@ -285,6 +285,15 @@ CD8.MAIT dropped from 1,273 to 47,  confirms cleaner CD8 population in Script 08
 
 **Superseded:** earlier figures used four custom UCell signatures (Cytotoxicity, Exhaustion, Memory, TPEX), all non-significant (p>0.05). This approach has been replaced to align with the Hallmark-only, BH-corrected methodology used throughout the project.
 
+#### Script 14 : CollecTRI pseudobulk MPR vs pCR, CD8, GSE243013
+
+- Purpose: extend the non-MPR vs MPR CollecTRI discriminant TF panel (Script 12b) to a direct MPR vs pCR comparison, to characterize pCR relative to MPR at the transcription factor level
+- Input: Objects/Bloc3_12_tf_acts_raw.rds (raw per-cell TF scores, already computed)
+          Objects/Bloc3_12b_seu_CD8_TF.rds (metadata: sampleID, PathResponse)
+- Same Top 20 TFs as Script 12b, restricted to MPR and pCR patients
+- Patient-level pseudobulk (mean TF score per patient per CD8 state), Wilcoxon rank-sum MPR vs pCR, BH-corrected within each CD8 state
+- Output: Results/Tables/Bloc3_14_CollecTRI_pseudobulk_MPR_vs_pCR.csv
+
 ### Script 12b : CollecTRI CD8 T cells GSE243013 (no downsampling)
 - **Input:** Objects/Bloc3_08_seu_CD8_ProjecTILs.rds
 - **Subset:** CD8.TEX and CD8.TPEX only (CD8.EM excluded, secondary to narrative, RAM constraint)
@@ -472,6 +481,15 @@ Scripts Bloc4A_07 and Bloc4B_06 to be updated accordingly.
   - LAMs non-MPR : MHC II + KAT6B + AEBP1 : heterogeneous
 
 **Superseded:** this Top 20 selection (per-cell variance) and the observations above, including ELK4 in Resident M2, AEBP1, DMTF1, and KAT6B, are superseded by the corrected between-group variance method applied later in this project (see "Preliminary observations : CollecTRI TAMs (Bloc 4-GSE243013)" for the current, statistically verified findings, including the added Wilcoxon test producing Bloc4A_CollecTRI_TF_wilcox_bysubtype.csv).
+
+#### Script 08 : CollecTRI pseudobulk MPR vs pCR, TAMs, GSE243013
+
+- Purpose: extend the non-MPR vs MPR CollecTRI discriminant TF panel (Script 07) to a direct MPR vs pCR comparison, to characterize pCR relative to MPR at the transcription factor level
+- Input: Objects/Bloc4A_07_tf_acts_raw.rds (raw per-cell TF scores, already computed)
+          Objects/Bloc4A_07_seu_TAMs_TF.rds (metadata: sampleID, pathological_response, tam_short)
+- Same Top 20 TFs as Script 07, restricted to MPR and pCR patients
+- Patient-level pseudobulk (mean TF score per patient per TAM subtype), Wilcoxon rank-sum MPR vs pCR, BH-corrected within each subtype
+- Output: Results/Tables/Bloc4A_08_CollecTRI_pseudobulk_MPR_vs_pCR.csv
 
 ### Bloc 4B : GSE207422 TAMs and Epithelial cells
 
@@ -874,7 +892,31 @@ Full TME opened for inference: interpretation prioritized on bidirectional CD8 �
 - Output: Results/Figures/BLOC5_Communication/GSE243013/Preprint/
 - Note: Script 08 (full figures) skipped — went directly to 08b preprint figures on cells of interest for analytical efficiency.
 
+#### Script 09 : Individual HLA-D gene expression by TAM subtype, GSE207422
+
+- Purpose: resolve an apparent discrepancy between CollecTRI's aggregate RFX/CIITA regulon activity and the direction of the HLA-D-LAG3 ligand-receptor communication signal, by testing individual HLA-D gene expression rather than the combined ligand-receptor product score
+- Input: Objects/Bloc4B_04_seu_TAMs_combined.rds
+- Restricted to the 3 TAM subtypes engaging LAG3 in communication analysis: M2-SIGLEC8+, MRC1+ M2-like, SPP1+ immunosuppressive
+- Genes tested: HLA-DQB1, HLA-DRB3
+- Patient-level pseudobulk (mean expression per patient per subtype), Wilcoxon rank-sum MPR vs NMPR, BH-corrected
+- Output: Results/Tables/BLOC5/Bloc5_09_HLA_D_individual_genes_wilcox.csv
+
+#### Script 09b : LAG3 expression, CD8 side, GSE207422
+
+- Purpose: companion test to Script 09, verifying whether LAG3 itself (CD8 side of the HLA-D-LAG3 axis) shows a significant standalone MPR vs NMPR difference
+- Input: Objects/Bloc3_GSE207422_01_seu_CD8_ProjecTILs.rds, restricted to CD8.TEX/CD8.TPEX
+- Gene tested: LAG3
+- Patient-level pseudobulk, Wilcoxon rank-sum MPR vs NMPR, BH-corrected, tested separately for CD8.TEX and CD8.TPEX
+- Output: Results/Tables/BLOC5/Bloc5_09b_LAG3_CD8_wilcox.csv
+
+
 ---
+
+# Preliminary Observations: Reorganized by Compartment
+
+---
+
+# CD8 T CELLS
 
 ## Preliminary observations : TME composition and CD8 states (Bloc 2-3)
 
@@ -884,18 +926,18 @@ Full TME opened for inference: interpretation prioritized on bidirectional CD8 �
 
 ## Preliminary observations : ProjecTILs, CD8 T cell states (Bloc 3, GSE243013)
 
-- CD8.TEX gradient confirmed: non-MPR (32.3%) > MPR (20.2%);pCR (11.5%) retained for reference
+- CD8.TEX gradient confirmed: non-MPR (32.3%) > MPR (20.2%); pCR (11.5%) retained for reference
 - CD8.CM inverse pattern: MPR (35.1%) > non-MPR (25.9%)
 - CD8.TPEX enriched in pCR, consistent with reactivation of precursor-exhausted cells
 - CD8.EM similar across groups, functional status assessed by UCell (Script 10)
 - Proposed gradient: non-MPR (TEX dominant) → MPR (TEX + TPEX) → pCR (TPEX dominant)
 Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 
-## Preliminary observations : UCell CD8 scoring (bloc 3, GSE243013)
+## Preliminary observations : UCell custom signatures, CD8 (Bloc 3, GSE243013)
 
 - Exhaustion gradient confirmed: non-MPR (0.347) > pCR (0.249) > MPR (0.220) in CD8.TEX
 - CD8.EM exhaustion: non-MPR (0.128) > MPR (0.107) ≈ pCR (0.106), EM dysfunction in non-responders
-- CD8.TPEX retains higher cytotoxicity than CD8.TEX across all groups,preserved precursor function
+- CD8.TPEX retains higher cytotoxicity than CD8.TEX across all groups, preserved precursor function
 - Memory score highest in CD8.NaiveLike = expected
 
 **Hypotheses:**
@@ -903,7 +945,7 @@ Hypothesis: anti-PD-1 reactivated a fraction of TEX toward TPEX in responders
 - H2 (CellChat/NicheNet): immunosuppressive TME determines reactivation failure
 - H3: interaction between CD8 intrinsic state and TME context
 
-## Preliminary observations : UCell Hallmark CD8 (GSE243013)
+## Preliminary observations : UCell Hallmark CD8 (Bloc 3, GSE243013)
 
 Unbiased scoring of all 50 Hallmark MSigDB signatures on CD8.TEX and CD8.TPEX (MPR vs non-MPR). Discriminant signatures identified by Wilcoxon test, BH-corrected separately within each CD8 state (not on the pooled TEX+TPEX population), to avoid one state's signal masking or inflating the other's.
 
@@ -931,7 +973,7 @@ HYPOXIA, TNFA_SIGNALING_VIA_NFKB, and EPITHELIAL_MESENCHYMAL_TRANSITION are the 
 - Clonal diversity: MPR (0.490) > pCR (0.458) > non-MPR (0.438), responders maintain broader TCR repertoire
 - pCR more polyclonal, broader anti-tumor response
 
-## Preliminary observations : GSE207422 CD8 ProjecTILs (Bloc 3)
+## Preliminary observations : ProjecTILs, CD8 T cell states (Bloc 3, GSE207422)
 
 **ProjecTILs:**
 - 7 CD8 states identified, consistent with GSE243013
@@ -956,12 +998,11 @@ All 22 tested signatures are significantly enriched in NMPR relative to MPR (all
 **Overall pattern:**
 Contrary to a nuanced state-specific split, both CD8.TEX and CD8.TPEX show a broadly NMPR-dominant transcriptional landscape across nearly all tested Hallmark programs in this dataset; no signature shows robust, significant MPR enrichment in either state. This near-uniform direction, combined with the severe MPR/NMPR imbalance (n=3 vs n=10), warrants caution: it may reflect a genuine biological signal, a power asymmetry artifact, or both. Cross-dataset comparison with GSE243013 is needed before drawing conclusions about CD8 Hallmark-level MPR/NMPR divergence.
 
-
-## Preliminary observations : CollecTRI CD8 (Bloc 3)
+## Preliminary observations : CollecTRI CD8 (Bloc 3, both datasets)
 
 **Methodological correction:** Initial violin plots used manually selected TFs based on prior DoRothEA hypotheses, confirmation bias risk. Corrected to Top 6 by cross-cell variance (objective). Top 10 and Top 15 tested, conclusions unchanged.
 
-**Second methodological correction:** TF selection (Top 6 and Top 20) was further corrected from per-cell variance to between-group variance (variance of state × response means), consistent with comparing response groups rather than generic feature selection. This changed the composition of the Top 20 substantially in both datasets — see below. Applied uniformly to GSE243013 and GSE207422.
+**Second methodological correction:** TF selection (Top 6 and Top 20) was further corrected from per-cell variance to between-group variance (variance of state × response means), consistent with comparing response groups rather than generic feature selection. This changed the composition of the Top 20 substantially in both datasets, see below. Applied uniformly to GSE243013 and GSE207422.
 
 **Visualization approach:** Heatmaps row-scaled (z-score) show state-specific TF patterns within each CD8 state per condition. Violin plots (Top 6 by variance, absolute scores) show global MPR vs non-MPR differences. The two are complementary.
 
@@ -993,7 +1034,7 @@ New Top 20 by between-group variance: MTF1, ELK4, HOPX, HSF4, HSF2, FOXA1, HSF1,
 - ELK4 remains the most robust MPR-enriched TF, now with formal statistical confirmation in both states (CD8.TEX: p_adj ≈ 0; CD8.TPEX: p_adj = 0.021), not just a descriptive z-score elevation as before.
 - MTF1 emerges as a new, strongly significant MPR-enriched TF in both states (CD8.TEX: p_adj ≈ 0; CD8.TPEX: p_adj = 3.7×10⁻¹⁵), not previously identified; its role has not yet been characterized in this context and warrants literature review before being discussed in the Discussion section.
 - The MHC II signature in non-MPR CD8.TEX is now supported by all three RFX subunits (RFX5, RFXANK, RFXAP), but **not by CIITA**, which ranked 42nd out of 752 TFs by between-group variance (same direction as RFX, non-MPR > MPR, but well below the Top 20 cutoff). Since CIITA is the non-DNA-binding coactivator required for RFX-bound enhanceosomes to drive MHC II transcription (RFX alone cannot transactivate MHC II; Gobin et al., 1998; Masternak et al., 2000), this may indicate an incomplete or only partially assembled MHC II program rather than a fully functional antigen-presentation shift.
-- In CD8.TPEX, only RFX5 reaches significance (non-MPR); RFXANK and RFXAP fall just short (p_adj = 0.076 and 0.080) — the MHC II signal is weaker and less complete in TPEX than in TEX.
+- In CD8.TPEX, only RFX5 reaches significance (non-MPR); RFXANK and RFXAP fall just short (p_adj = 0.076 and 0.080), the MHC II signal is weaker and less complete in TPEX than in TEX.
 - pCR and CD8.EM: not included in this analysis (Script 12b restricted to CD8.TEX/CD8.TPEX, MPR vs non-MPR); pCR-specific observations are retained separately in the perspectives/limitations section only.
 
 ### GSE207422 (Script 04b, no downsampling, CD8.TEX and CD8.TPEX)
@@ -1015,20 +1056,20 @@ New Top 20 by between-group variance: MTF1, ELK4, HOPX, HSF4, HSF2, FOXA1, HSF1,
 - ELK4 significantly MPR-enriched in both states (CD8.TEX: p_adj ≈ 0; CD8.TPEX: p_adj = 7.1×10⁻³), confirming the cross-dataset signal.
 - PAWR, a pro-apoptotic tumor suppressor not identified in GSE243013's Top 20, emerges as an additional significant MPR-enriched TF in both states (CD8.TEX: p_adj ≈ 0; CD8.TPEX: p_adj = 2.2×10⁻⁵).
 - The RFX complex (RFX5/RFXANK/RFXAP) is significant in CD8.TEX (all NMPR-enriched) but **none of the three subunits reach significance in CD8.TPEX** (all p_adj > 0.10), the same TEX-only MHC-II pattern seen in GSE243013, here even more pronounced.
-- CIITA ranked 22nd out of ~752 TFs by between-group variance, narrowly missing the Top 20. In CD8.TEX, same direction as RFX (higher NMPR: 12.4 vs 11.0), consistent with an incomplete MHC II program. In CD8.TPEX, opposite direction (higher MPR: 11.2 vs 10.8) — diverging from the (non-significant) RFX trend in this state, unlike GSE243013 where CIITA's direction matched RFX in both states.
+- CIITA ranked 22nd out of ~752 TFs by between-group variance, narrowly missing the Top 20. In CD8.TEX, same direction as RFX (higher NMPR: 12.4 vs 11.0), consistent with an incomplete MHC II program. In CD8.TPEX, opposite direction (higher MPR: 11.2 vs 10.8), diverging from the (non-significant) RFX trend in this state, unlike GSE243013 where CIITA's direction matched RFX in both states.
 
 ### Cross-dataset conclusion (statistically verified, between-group variance + Wilcoxon by state)
 
-- **ELK4 is the most robust MPR-associated transcription factor**, significantly enriched in both CD8.TEX and CD8.TPEX, in both datasets — the only TF with this level of cross-state, cross-cohort consistency.
+- **ELK4 is the most robust MPR-associated transcription factor**, significantly enriched in both CD8.TEX and CD8.TPEX, in both datasets, the only TF with this level of cross-state, cross-cohort consistency.
 - **The RFX complex is a consistent non-MPR/NMPR signal restricted mainly to CD8.TEX.** In CD8.TPEX, the RFX signal is markedly weaker: only RFX5 reaches significance in GSE243013 (p_adj = 7.7×10⁻³); none of the three subunits reach significance in GSE207422. This TEX-specific pattern replicates across both cohorts.
 - **CIITA is absent from the Top 20 in both datasets** (ranked 42nd in GSE243013, 22nd in GSE207422), despite RFX being a strong discriminant signal. Since CIITA is required as the non-DNA-binding coactivator for RFX-bound enhanceosomes to transactivate MHC II genes, this points to a possibly incomplete or only partially assembled MHC II program in non-MPR/NMPR CD8.TEX, rather than a fully functional antigen-presentation shift. This interpretation holds more consistently in GSE243013 (CIITA's direction matches RFX in both states) than in GSE207422, where CIITA diverges from RFX specifically in CD8.TPEX.
-- **ELK4's co-elevated partner TF differs between datasets**: MTF1 in GSE243013 (both states, highly significant, uncharacterized in this context) versus PAWR in GSE207422 (both states, highly significant, a known pro-apoptotic tumor suppressor). Neither partner was tested in the other dataset (absent from its Top 20), so cross-dataset consensus on this specific companion signal cannot yet be established — treated as an open question, not a discrepancy to resolve.
+- **ELK4's co-elevated partner TF differs between datasets**: MTF1 in GSE243013 (both states, highly significant, uncharacterized in this context) versus PAWR in GSE207422 (both states, highly significant, a known pro-apoptotic tumor suppressor). Neither partner was tested in the other dataset (absent from its Top 20), so cross-dataset consensus on this specific companion signal cannot yet be established, treated as an open question, not a discrepancy to resolve.
 - **Six transcription factors were independently selected into the Top 20 of both datasets** despite differing cohort composition: ELK4, HOPX, MYC, RFX5, RFXANK, RFXAP.
-- non-MPR/NMPR CD8.TPEX shows a chronic proliferative/stress program (MYC, E2F-family, HSF-family members, depending on dataset) without cytotoxic coordination — confirmed cross-dataset, though the exact TF composition differs (HSF4/HSF2/FOXA1/NFAT5/NFYB/NFYC/FOXF2/KLF4/DAXX/MLXIP in GSE243013 vs SP1/HIF1A/STAT3/MYC/NFKB/IRF6/TP53/JUN/SRSF2/TFDP1/E2F1/NFKB1/HOPX/E2F4 in GSE207422).
+- non-MPR/NMPR CD8.TPEX shows a chronic proliferative/stress program (MYC, E2F-family, HSF-family members, depending on dataset) without cytotoxic coordination, confirmed cross-dataset, though the exact TF composition differs (HSF4/HSF2/FOXA1/NFAT5/NFYB/NFYC/FOXF2/KLF4/DAXX/MLXIP in GSE243013 vs SP1/HIF1A/STAT3/MYC/NFKB/IRF6/TP53/JUN/SRSF2/TFDP1/E2F1/NFKB1/HOPX/E2F4 in GSE207422).
 
 *Full interpretive discussion of these findings (ELK4/MTF1/PAWR, CIITA/RFX incompleteness) is developed in the preprint, Discussion Section 1.*
 
-## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc3 Script 13)
+## Preliminary observations : Pseudobulk CD8 MPR vs pCR (Bloc 3, Script 13, GSE243013)
 
 **Methodological note:** earlier version used four custom UCell signatures (Cytotoxicity, Exhaustion, Memory, TPEX), all non-significant. Corrected to reuse the same 21 Hallmark MSigDB signatures established as discriminant between MPR and non-MPR, tested here between MPR and pCR (patient-level pseudobulk, BH-corrected).
 
@@ -1039,13 +1080,61 @@ No signature reached significance after BH correction (all p_adj > 0.05). Three 
 - Larger balanced cohort with sufficient statistical power would be required to formally test CD8-level differences between MPR and pCR at patient level
 - Spatial transcriptomics could resolve TAM/CD8 co-localization patterns in the TME to complement these transcriptomic observations
 
-## Preliminary observations : TAMs UCell (Bloc 4, GSE207422)
+## Preliminary observations : CollecTRI pseudobulk MPR vs pCR, CD8 (Bloc 3, Script 14, GSE243013)
+
+**Methodological note:** this analysis extends the existing UCell-based MPR vs pCR pseudobulk comparison to the transcription factor level, testing the same 20 CollecTRI TFs already established as discriminant between non-MPR and MPR (Script 12b) between MPR and pCR specifically. Patient-level pseudobulk, Wilcoxon rank-sum, BH-corrected within each CD8 state.
+
+**Result:** 11 of 40 tests (20 TFs × 2 states) reached significance. In CD8.TEX, 9 TFs were significant, all higher in pCR than MPR (HOPX, KLF4, NFAT5, FOXA1, HSF1, HSF2, HSF4, NFYC, FOXO3). In CD8.TPEX, only 2 TFs were significant: KLF4 (higher in pCR) and MTF1 (higher in MPR, opposite direction).
+
+**Cross-referencing with the non-MPR vs MPR comparison (Script 12b):** of the 9 CD8.TEX-significant TFs here, 8 (HOPX, KLF4, NFAT5, FOXA1, HSF1, HSF2, HSF4, NFYC) were also independently significant and non-MPR-enriched in the earlier non-MPR vs MPR comparison. For these 8 TFs, MPR shows the lowest activity of the three groups (non-MPR > MPR and pCR > MPR), rather than sitting at an intermediate point on a monotonic gradient. This pattern is specific to CD8.TEX; CD8.TPEX shows no comparable pattern, with only KLF4 shared and MTF1 showing the opposite relationship (MPR > pCR, consistent with MTF1's earlier MPR-enriched status vs non-MPR). FOXO3 was significant only in this MPR vs pCR comparison and was not part of the original non-MPR vs MPR discriminant panel, so its full three-group behavior is unconfirmed.
+
+**Interpretation, held provisional:** this analysis does not establish whether non-MPR and pCR are similar to or different from each other; only their relationship to MPR was tested. A direct non-MPR vs pCR comparison was not performed here given the substantial imbalance between these groups (non-MPR n=42 vs pCR n=11), which would limit the reliability of such a test in this already exploratory three-way comparison. Whether MPR represents a genuine outlier state relative to both non-MPR and pCR, or whether this pattern reflects some other structure in the data, remains an open question, to be examined further once communication-level analysis (LIANA+) is extended to the MPR vs pCR comparison for this dataset.
+
+**Output:** Results/Tables/Bloc3_14_CollecTRI_pseudobulk_MPR_vs_pCR.csv
+
+---
+
+# TUMOR-ASSOCIATED MACROPHAGES (TAMs)
+
+## TAM subtype annotation reference (GSE207422)
+
+## TAM subtype annotation reference
+
+### GSE207422
+
+| Short name (used throughout) | Original annotation | Marker basis |
+|---|---|---|
+| MRC1+ M2-like | TAM_like_MRC1 | MRC1 (CD206) |
+| SPP1+ immunosuppressive | TAM_like_SPP1 | SPP1 (osteopontin) |
+| Resident M2 | TAM_like_resident_M2 (iron metabolism/anti-inflammatory) | Iron metabolism, anti-inflammatory program |
+| IFN-stimulated | TAM_like_IFN (PD-L1+/IDO1+/CXCL9+) | Hybrid: CXCL9 (pro-inflammatory/M1) + PD-L1, IDO1 (immunosuppressive) |
+| Monocyte-derived | TAM_like_monocyte (classical inflammatory) | Classical monocyte-derived, inflammatory |
+| Lipid-associated | TAM_like_lipid (CCL18+/AKR+) | CCL18 (M2 marker), AKR (lipid metabolism) |
+| Stress-response | TAM_like_stress (HSP-high/M1-like) | Heat shock proteins, M1-like |
+| Regulatory | TAM_like_regulatory (glucocorticoid-responsive) | Glucocorticoid-responsive program |
+| M2-SIGLEC8+ | TAM_like_M2 (SIGLEC8+/CCL18+) | SIGLEC8, CCL18 (M2 marker) |
+
+### GSE243013
+
+| Short name (tam_short) | Original annotation | Marker basis |
+|---|---|---|
+| Resident M2 | Tissue-resident immunosuppressive TAMs (anti-inflammatory/M2-like) | Anti-inflammatory, M2-like program |
+| LAMs | TREM2+/APOE+ lipid-associated immunosuppressive TAMs (LAMs) | TREM2, APOE (lipid-associated TAM markers) |
+| Monocyte FCN1+ | Inflammatory monocyte-derived TAMs (FCN1+/S100A8+) | FCN1, S100A8 (inflammatory monocyte markers) |
+| Stress-response | Stress-response immunosuppressive TAMs (MARCO+/PPARG+/HSP-high) | MARCO, PPARG, heat shock proteins |
+| Proliferating | Proliferating TAMs (cycling/MKI67+) | MKI67 (proliferation marker) |
+| IFN-stimulated | IFN-stimulated immunomodulatory TAMs (ISG-high/PD-L1+/IDO1+) | Interferon-stimulated genes, PD-L1, IDO1 (immunomodulatory) |
+| Classical-Mono | Classical monocyte-derived TAMs (S100A8+/S100A9+/CCR2+) | S100A8, S100A9, CCR2 (classical monocyte markers) |
+
+*Note: "M1/M2" labels reflect original marker-based annotation and should be read as descriptive shorthand rather than strict functional classification. Subtype names differ between the two datasets (no universal TAM nomenclature exists in the field; Zhu et al., 2023), with three exceptions carrying the same short label in both cohorts: Resident M2, Stress-response, and IFN-stimulated, though their full marker basis differs slightly (see above), so direct cross-dataset equivalence should not be assumed without checking marker overlap.*
+
+## Preliminary observations : TAMs UCell custom signatures (Bloc 4, GSE207422)
 
 **UCell scores (9 subtypes combined):**
-- M2_immunosuppressive: NMPR > MPR, p<0.0001 
-- SPP1_signature: NMPR > MPR, p<0.0001 
-- IFN_response: MPR > NMPR, p=3e-04 
-- M1_inflammatory: ns (p=0.2848) limited power (MPR n=3)
+- M2_immunosuppressive: NMPR > MPR, p<0.0001
+- SPP1_signature: NMPR > MPR, p<0.0001
+- IFN_response: MPR > NMPR, p=3e-04
+- M1_inflammatory: ns (p=0.2848), limited power (MPR n=3)
 
 **Key subtype enrichments:**
 - NMPR: TAM_like_lipid, monocyte, regulatory, SPP1, stress-immunosuppressive niche
@@ -1065,44 +1154,43 @@ Unbiased scoring of all 50 Hallmark MSigDB signatures on TAMs (MPR vs NMPR). 23 
 **NMPR, enriched signatures:**
 HYPOXIA, ANGIOGENESIS, KRAS_SIGNALING_UP, GLYCOLYSIS, EPITHELIAL_MESENCHYMAL_TRANSITION, TNFA_SIGNALING_VIA_NFKB, TGF_BETA_SIGNALING, INFLAMMATORY_RESPONSE, IL2_STAT5_SIGNALING, P53_PATHWAY, G2M_CHECKPOINT, UNFOLDED_PROTEIN_RESPONSE, IL6_JAK_STAT3_SIGNALING, MYC_TARGETS_V2.
 
-**MPR , enriched signatures:**
+**MPR, enriched signatures:**
 COMPLEMENT, REACTIVE_OXYGEN_SPECIES_PATHWAY, MYC_TARGETS_V1, FATTY_ACID_METABOLISM, OXIDATIVE_PHOSPHORYLATION, INTERFERON_ALPHA_RESPONSE, ALLOGRAFT_REJECTION, PI3K_AKT_MTOR_SIGNALING, NOTCH_SIGNALING.
 
-**Inter-dataset asymmetries :**
+**Inter-dataset asymmetries:**
 HYPOXIA, enriched non-MPR GSE243013 but enriched MPR GSE207422.
 MYC_TARGETS_V2, enriched non-MPR GSE243013 but enriched MPR GSE207422.
-MYC_TARGETS_V1, enriched non-MPR in both datasets. 
-TNFA_SIGNALING_VIA_NFKB, enriched non-MPR in both datasets. 
+MYC_TARGETS_V1, enriched non-MPR in both datasets.
+TNFA_SIGNALING_VIA_NFKB, enriched non-MPR in both datasets.
 
-**Overall pattern :**
+**Overall pattern:**
 More nuanced than GSE243013: two distinct clusters with signatures enriched in both MPR and NMPR, reflecting greater TAM transcriptional heterogeneity in this dataset, consistent with the known context-dependency of macrophage programs.
 
-## Preliminary observations : TAMs UCell (Bloc 4, GSE243013)
+## Preliminary observations : TAMs UCell custom signatures (Bloc 4, GSE243013)
 
 **UCell scores pairwise Wilcoxon Bonferroni (p<0.0167):**
-- M2_immunosuppressive: non-MPR > pCR > MPR, all pairs p<0.005 
-- SPP1_signature: non-MPR > MPR > pCR , all pairs p<0.0001 
-- IFN_response: non-MPR dominant; MPR ≈ pCR (p=0.783 ns) 
-- M1_inflammatory: non-MPR > MPR > pCR , MPR/pCR ns Bonferroni
+- M2_immunosuppressive: non-MPR > pCR > MPR, all pairs p<0.005
+- SPP1_signature: non-MPR > MPR > pCR, all pairs p<0.0001
+- IFN_response: non-MPR dominant; MPR ≈ pCR (p=0.783 ns)
+- M1_inflammatory: non-MPR > MPR > pCR, MPR/pCR ns Bonferroni
 
 **Key observations:**
-- Gradient non-MPR > MPR > pCR confirmed all signatures , MPR as biologically unstable intermediate state 
+- Gradient non-MPR > MPR > pCR confirmed all signatures, MPR as biologically unstable intermediate state
 - IFN_response exception: discriminates responders from non-responders, not MPR from pCR
-- IFN-stimulated TAMs: hybrid M1/immunosuppressive profile, TME biology, 
-not artifact
+- IFN-stimulated TAMs: hybrid M1/immunosuppressive profile, TME biology, not artifact
 
 **Biological interpretation:**
 - Non-MPR: triple immunosuppression (M2 + SPP1 + IFN TAMs)
 - pCR more heterogeneous than MPR at patient level, multiple pathways to complete response
 
-## Preliminary observations : UCell Hallmark TAMs (Bloc 4A , GSE243013)
+## Preliminary observations : UCell Hallmark TAMs (Bloc 4A, GSE243013)
 
 Unbiased scoring of all 50 Hallmark MSigDB signatures on TAMs (MPR vs non-MPR, pCR excluded). 25 biologically relevant discriminant signatures retained after filtering (p_adj < 0.05, Wilcoxon BH-corrected).
 
-**MPR - enriched signature:**
+**MPR-enriched signature:**
 G2M_CHECKPOINT, the only signature enriched in MPR TAMs, though with a modest effect size and the weakest significance of the 25 retained signatures (p_adj = 1.7×10⁻³, versus p_adj < 10⁻⁹ for all other signatures in this panel).
 
-**non-MPR - enriched signatures (24/25):**
+**non-MPR-enriched signatures (24/25):**
 Nearly all retained signatures enriched in non-MPR, including metabolic programs (OXIDATIVE_PHOSPHORYLATION, GLYCOLYSIS, FATTY_ACID_METABOLISM), stress programs (UNFOLDED_PROTEIN_RESPONSE, TGF_BETA_SIGNALING, HYPOXIA), oncogenic programs (MYC_TARGETS_V1/V2, KRAS_SIGNALING_UP, MTORC1_SIGNALING, PI3K_AKT_MTOR_SIGNALING), inflammatory/immune programs (TNFA_SIGNALING_VIA_NFKB, INFLAMMATORY_RESPONSE, IL6_JAK_STAT3_SIGNALING, IL2_STAT5_SIGNALING, INTERFERON_ALPHA/GAMMA_RESPONSE, COMPLEMENT, ALLOGRAFT_REJECTION), and other programs (P53_PATHWAY, APOPTOSIS, EPITHELIAL_MESENCHYMAL_TRANSITION, REACTIVE_OXYGEN_SPECIES_PATHWAY, NOTCH_SIGNALING).
 
 **Overall pattern:**
@@ -1110,7 +1198,7 @@ Highly polarized landscape: TAMs in non-MPR show broad and intense activation of
 
 ## Preliminary observations : TAMs Pseudobulk MPR vs pCR (Bloc 4A, GSE243013)
 
-**Methodological note:** Earlier figures compared non-MPR, MPR and pCR using four custom UCell signatures (M2_immunosuppressive, M1_inflammatory, SPP1_signature, IFN_response) with pairwise Wilcoxon tests, Bonferroni-corrected. This has been superseded: the current analysis uses the same 25 Hallmark signatures already established as discriminant between MPR and non-MPR, restricted to MPR vs pCR only (n=10 vs n=11 patients), tested at the pseudobulk patient level (mean UCell score per patient, avoiding pseudo-replication), Wilcoxon rank-sum test, BH-corrected — consistent with the methodology used throughout this project.
+**Methodological note:** Earlier figures compared non-MPR, MPR and pCR using four custom UCell signatures (M2_immunosuppressive, M1_inflammatory, SPP1_signature, IFN_response) with pairwise Wilcoxon tests, Bonferroni-corrected. This has been superseded: the current analysis uses the same 25 Hallmark signatures already established as discriminant between MPR and non-MPR, restricted to MPR vs pCR only (n=10 vs n=11 patients), tested at the pseudobulk patient level (mean UCell score per patient, avoiding pseudo-replication), Wilcoxon rank-sum test, BH-corrected, consistent with the methodology used throughout this project.
 
 **Result:**
 None of the 25 Hallmark signatures discriminant between MPR and non-MPR reached significance between MPR and pCR at the patient level (all p_adj > 0.89). No signature showed even a trend toward separation between the two groups.
@@ -1118,10 +1206,22 @@ None of the 25 Hallmark signatures discriminant between MPR and non-MPR reached 
 **Perspective:**
 At the pseudobulk, patient level, the TAM transcriptional programs that distinguish responders from non-responders (Hallmark signatures) do not further separate partial (MPR) from complete (pCR) pathological responders. This suggests that, within the TAM compartment alone, MPR and pCR are not transcriptionally distinct states along the same axis that separates response from non-response. By contrast, exhausted CD8 T cells showed a weak (non-significant) trend toward separating MPR from pCR on a subset of metabolic and stress-related programs (see CD8 pseudobulk analysis above), raising the possibility that residual biological differences between partial and complete pathological response are more likely to reside in the CD8 compartment than in TAM composition, though neither signal reaches formal significance in the current cohorts.
 
-## Preliminary observations : CollecTRI TAMs (Bloc 4-GSE243013)
+## Preliminary observations : CollecTRI pseudobulk MPR vs pCR, TAMs (Bloc 4A, Script 08, GSE243013)
+
+**Methodological note:** same approach as the CD8 CollecTRI pseudobulk above, testing the same 20 CollecTRI TFs already established as discriminant between non-MPR and MPR (Script 07) between MPR and pCR specifically, within each of the 7 TAM subtypes.
+
+**Result:** none of the 140 tests (20 TFs × 7 subtypes) reached significance (all p_adj > 0.15). This mirrors the earlier UCell Hallmark pseudobulk finding for TAMs (all p_adj > 0.89, Bloc4A Script 06): across two independent analytical layers (functional signature and transcription factor activity), the TAM compartment shows no detectable difference between MPR and pCR.
+
+**Interpretation, held provisional:** the convergence of two independent methods on a null result strengthens the possibility that, within the TAM compartment specifically, MPR and pCR are not transcriptionally distinct states. Combined with the CD8 finding above (8 TFs distinguishing MPR from both non-MPR and pCR in CD8.TEX), this suggests any residual biological signal separating partial from complete pathological response is more likely to reside in the CD8 compartment than in TAM composition or transcriptional activity, consistent with the same suggestion made from the UCell-level pseudobulk analysis.
+
+**Output:** Results/Tables/Bloc4A_08_CollecTRI_pseudobulk_MPR_vs_pCR.csv
+
+## Preliminary observations : CollecTRI TAMs (Bloc 4, both datasets)
+
+### GSE243013
 
 **Violin plots, Top 6 by between-group variance (GSE243013):**
-RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1. HSF1, RELA, NFKB and STAT1 show a clear, consistent pattern: lowest in MPR, highest in non-MPR, intermediate in pCR — matching the broad non-MPR-associated program described below. RFXAP and RFXANK show a much weaker version of the same trend at this pooled, all-subtypes level (MPR slightly lower than non-MPR/pCR), which does not on its own reveal the sharp subtype-specific divergence seen in the heatmap (MPR-enriched in Monocyte FCN1+ and Resident M2, non-MPR-enriched in LAMs and Proliferating), a reminder that the pooled violin view can mask opposing subtype-level patterns that partly cancel out.
+RFXAP, HSF1, RELA, RFXANK, NFKB, STAT1. HSF1, RELA, NFKB and STAT1 show a clear, consistent pattern: lowest in MPR, highest in non-MPR, intermediate in pCR, matching the broad non-MPR-associated program described below. RFXAP and RFXANK show a much weaker version of the same trend at this pooled, all-subtypes level (MPR slightly lower than non-MPR/pCR), which does not on its own reveal the sharp subtype-specific divergence seen in the heatmap (MPR-enriched in Monocyte FCN1+ and Resident M2, non-MPR-enriched in LAMs and Proliferating), a reminder that the pooled violin view can mask opposing subtype-level patterns that partly cancel out.
 
 **Heatmap observations, statistically verified (Wilcoxon MPR vs non-MPR, BH-corrected within each subtype):**
 
@@ -1135,7 +1235,7 @@ Transcription factor activity inference revealed distinct, statistically verifie
 **non-MPR-enriched (significant), by subtype:**
 - LAMs (20/20): STAT1, IRF1, HSF2, REL, HIF1A, SPI1, RELA, NFKB, HSF1, NFKB1, CREB1, DDIT3, CIITA, STAT3, JUN, EGR1, AP1, RFX5, RFXAP, RFXANK, the complete Top 20, including the full MHC II module
 - Proliferating (19/20): STAT1, HSF2, HSF1, NFKB, EGR1, SPI1, RELA, NFKB1, DDIT3, HIF1A, IRF1, REL, JUN, CREB1, CIITA, AP1, RFXAP, RFX5, RFXANK, nearly the complete Top 20, including the full MHC II module
-- Resident M2 (16/20): HIF1A, NFKB1, RELA, HSF2, NFKB, HSF1, STAT1, EGR1, STAT3, CREB1, JUN, AP1, IRF1, REL, SPI1, DDIT3 — everything except the MHC II cluster, which instead trends MPR (see above)
+- Resident M2 (16/20): HIF1A, NFKB1, RELA, HSF2, NFKB, HSF1, STAT1, EGR1, STAT3, CREB1, JUN, AP1, IRF1, REL, SPI1, DDIT3, everything except the MHC II cluster, which instead trends MPR (see above)
 - Monocyte FCN1+ (13/20): HIF1A, HSF1, HSF2, NFKB1, RELA, STAT1, STAT3, NFKB, JUN, AP1, CREB1, SPI1, IRF1, everything except the MHC II cluster, which instead trends MPR (see above)
 - IFN-stimulated (16/20): HSF2, HSF1, STAT1, DDIT3, RELA, NFKB1, IRF1, REL, STAT3, HIF1A, CREB1, NFKB, EGR1, SPI1, JUN, AP1 (RFX/CIITA not significant)
 - Stress-response (16/20): HIF1A, HSF1, NFKB1, HSF2, RELA, NFKB, AP1, STAT3, IRF1, STAT1, JUN, CREB1, EGR1, SPI1, REL, DDIT3 (RFX/CIITA not significant)
@@ -1145,10 +1245,10 @@ Beyond the MHC II axis, the same broad set of transcription factors (the NF-κB 
 
 The clearest response-associated switch in this dataset occurs in Resident M2 and Monocyte FCN1+: both show the broad non-MPR-associated program (HIF1A, NF-κB family, STAT1/3, HSF1/2, etc.) alongside an MHC II signal that runs in the opposite direction from the rest of the subtype's profile, RFX-only (incomplete) toward MPR in Resident M2, and the complete RFX+CIITA module toward MPR in Monocyte FCN1+. LAMs and Proliferating show no such divergence: the MHC II module aligns with the broader non-MPR program in both. This subtype-specific decoupling of MHC II direction from the rest of the transcriptional program will be examined further alongside ligand-receptor communication signals in the CD8-TAM crosstalk section.
 
-## Preliminary observations : CollecTRI TAMs (Bloc 4-GSE207422)
+### GSE207422
 
 **Two complementary visualizations:**
-- **Violin plots (Top 6 by between-group variance, absolute scores)** : global MPR vs non-MPR comparison
+- **Violin plots (Top 6 by between-group variance, absolute scores)**: global MPR vs non-MPR comparison
 - **Heatmaps (scale=row, Top 20 by between-group variance)**, subtype-specific TF patterns per condition
 
 *TF selection performed using the same 20 transcription factors identified by between-group variance for this dataset: RFXAP, RFXANK, RFX5, CIITA, RELA, HSF1, HSF2, NFKB1, NFKBIB, XBP1, REL, CREB1, EGR1, KLF6, IRF1, HIF1A, JUN, JUND, NFKB, IRF5.
@@ -1174,9 +1274,9 @@ RFXAP, RFXANK, HSF1, RFX5, CIITA, RELA, the complete MHC II module (RFX5, RFXANK
 
 **Cross-dataset note:** unlike GSE243013, where non-MPR dominated nearly every subtype (mirroring the global UCell Hallmark pattern, 24/25 signatures NMPR-enriched), GSE207422 shows a more balanced MPR/NMPR split at both the CollecTRI and UCell Hallmark level (9/23 Hallmark signatures MPR-enriched here, versus 1/25 in GSE243013). The RFX/CIITA decoupling pattern observed in Resident M2 (RFX significant, CIITA not) replicates across both datasets in the same subtype, while MRC1+ M2-like's near-total MPR dominance and SPP1+'s clean MHC II/rest-of-program split have no direct counterpart in GSE243013.
 
-## Preliminary observations : CollecTRI TAMs, Cross-dataset observations
+### Cross-dataset observations
 
-While transcription factor networks governing CD8 T cell exhaustion and reactivation have been extensively characterized in the context of immunotherapy response, systematic mapping of TF activity across TAM subtypes in relation to pathological response to neoadjuvant immunotherapy remains largely unexplored in NSCLC. TAM subtype annotations mostly differed between cohorts, reflecting the known absence of universal TAM nomenclature in the field (Zhu et al., 2023; Chen et al., 2024) — with three notable exceptions: Resident M2, Stress-response and IFN-stimulated carry the same label in both datasets, allowing a direct subtype-level comparison for these three.
+While transcription factor networks governing CD8 T cell exhaustion and reactivation have been extensively characterized in the context of immunotherapy response, systematic mapping of TF activity across TAM subtypes in relation to pathological response to neoadjuvant immunotherapy remains largely unexplored in NSCLC. TAM subtype annotations mostly differed between cohorts, reflecting the known absence of universal TAM nomenclature in the field (Zhu et al., 2023; Chen et al., 2024), with three notable exceptions: Resident M2, Stress-response and IFN-stimulated carry the same label in both datasets, allowing a direct subtype-level comparison for these three.
 
 **Resident M2 (direct cross-dataset replication):**
 In both GSE243013 and GSE207422, Resident M2 shows the RFX complex (RFX5, RFXANK, RFXAP) significantly MPR-enriched, while CIITA does not reach significance in either dataset (p_adj = 0.895 in GSE243013, 0.229 in GSE207422). Since CIITA is required as coactivator for RFX-bound complexes to transactivate MHC II genes, this represents a consistent, cross-dataset-replicated pattern of incomplete MHC II signal specifically in this subtype.
@@ -1195,29 +1295,33 @@ Beyond Resident M2's consistent RFX-without-CIITA pattern, other subtypes show t
 
 *Note: earlier cross-dataset observations referencing AEBP1, ELK4 (in Resident M2), and DMTF1 relied on TF selections superseded by the current between-group-variance method; none of these three TFs are part of the current Top 20 in either dataset and are no longer discussed.*
 
+---
+
+# EPITHELIAL COMPARTMENT (GSE207422 only)
+
 ## Preliminary observations : Epithelial compartment CNV (Bloc 4B, GSE207422)
 
 - Epithelial composition: Basal dominant in MPR (~62%), EMT and Tumor_epithelial exclusive to NMPR, transcriptional rather than genomic drivers of non-response
 - CNV clonal profiles (SCEVAN) identical between MPR and NMPR: treatment response not determined by chromosomal architecture differences
-- Both SCEVAN and CopyKAT confirm higher tumor/aneuploid fraction in NMPR (~47%/~75%) vs MPR (~32%/~38%) : directional concordance between tools
+- Both SCEVAN and CopyKAT confirm higher tumor/aneuploid fraction in NMPR (~47%/~75%) vs MPR (~32%/~38%): directional concordance between tools
 - EMT cells: maximal discordance between tools (SCEVAN 0% tumor vs CopyKAT 38% aneuploid); whether EMT resistance is driven by subtle genomic alterations or transcriptional reprogramming alone remains unresolved
 - Tumor_epithelial subtype: strong cross-tool concordance (99% tumor/aneuploid both tools)
 - Next steps: CytoTRACE, UCell, CollecTRI on confirmed tumor vs normal epithelial cells per condition to characterize transcriptional state differences driving non-response
 
-## Preliminary observations : CytoTRACE2 epithelial differentiation (Bloc 4B, GSE207422 — SCEVAN labels)
+## Preliminary observations : CytoTRACE2 epithelial differentiation (Bloc 4B, GSE207422, SCEVAN labels)
 
-**Violin plot observations (CytoTRACE2 Score, 0=differentiated, 1=totipotent) :**
+**Violin plot observations (CytoTRACE2 Score, 0=differentiated, 1=totipotent):**
 
-- Ciliated : very low scores (~0.05-0.10), terminally differentiated, expected for mature bronchial cells
-- EMT_NMPR : low scores (~0.10-0.25), majority converging toward differentiation, supports SCEVAN classification (0% tumor); EMT reprogramming appears terminal rather than stem-like
-- normal_MPR : pear-shaped distribution with two subpopulations coexist; one highly differentiated and one less differentiated, suggesting epithelial plasticity in the normal compartment under MPR conditions
-- normal_NMPR : mass concentrated at low scores, uniformly differentiated, transcriptionally static normal epithelial cells in non-responding patients
-- tumor_MPR : compact distribution, high scores (~0.40-0.65), homogeneously stem-like, low differentiation, consistent with a targetable tumor population
-- tumor_NMPR : broad bimodal distribution (~0.15-0.80), high intra-tumoral differentiation heterogeneity, consistent with treatment resistance mechanisms
+- Ciliated: very low scores (~0.05-0.10), terminally differentiated, expected for mature bronchial cells
+- EMT_NMPR: low scores (~0.10-0.25), majority converging toward differentiation, supports SCEVAN classification (0% tumor); EMT reprogramming appears terminal rather than stem-like
+- normal_MPR: pear-shaped distribution with two subpopulations coexist; one highly differentiated and one less differentiated, suggesting epithelial plasticity in the normal compartment under MPR conditions
+- normal_NMPR: mass concentrated at low scores, uniformly differentiated, transcriptionally static normal epithelial cells in non-responding patients
+- tumor_MPR: compact distribution, high scores (~0.40-0.65), homogeneously stem-like, low differentiation, consistent with a targetable tumor population
+- tumor_NMPR: broad bimodal distribution (~0.15-0.80), high intra-tumoral differentiation heterogeneity, consistent with treatment resistance mechanisms
 
-**Biological interpretation :**
+**Biological interpretation:**
 
-In MPR, a dissociation is observed between tumor and normal compartments : tumor cells are homogeneously stem-like while normal epithelial cells display plasticity, suggesting active epithelial remodeling in the treatment-responsive microenvironment. In NMPR, tumor cells show greater heterogeneity while normal cells are uniformly static, a pattern potentially reflecting impaired epithelial dynamics contributing to non-response. EMT_NMPR low differentiation scores support SCEVAN over CopyKAT for this subtype classification, pending CopyKAT-based CytoTRACE2 cross-validation.
+In MPR, a dissociation is observed between tumor and normal compartments: tumor cells are homogeneously stem-like while normal epithelial cells display plasticity, suggesting active epithelial remodeling in the treatment-responsive microenvironment. In NMPR, tumor cells show greater heterogeneity while normal cells are uniformly static, a pattern potentially reflecting impaired epithelial dynamics contributing to non-response. EMT_NMPR low differentiation scores support SCEVAN over CopyKAT for this subtype classification, pending CopyKAT-based CytoTRACE2 cross-validation.
 
 **EMT reclassification (Script 09c):**
 EMT_NMPR cells were reclassified as normal_NMPR based on three converging lines of evidence:
@@ -1252,11 +1356,11 @@ tumor_MPR, normal_MPR, tumor_NMPR, normal_NMPR, Ciliated
 **Key observations:**
 - The tumor compartment shows the most extensive divergence between conditions (33/50 signatures), with IL6_JAK_STAT3_SIGNALING as the single most significant signature in this analysis (p_adj=3.0×10⁻¹⁷⁵).
 - The normal epithelial compartment shows a comparably extensive divergence (33/50 signatures), but overwhelmingly in one direction: 30 of 33 signatures are higher in normal_NMPR.
-- Ciliated cells, despite their original role as a stable reference population for malignancy calling, show 13/50 significant differences between MPR and NMPR — fewer than tumor or normal compartments, but not zero.
+- Ciliated cells, despite their original role as a stable reference population for malignancy calling, show 13/50 significant differences between MPR and NMPR, fewer than tumor or normal compartments, but not zero.
 - NOTCH_SIGNALING direction differs by population: higher in tumor_MPR, higher in normal_MPR, but higher in Ciliated_NMPR.
 - FATTY_ACID_METABOLISM is higher in MPR in both tumor and normal compartments, the only signature showing this same direction in both.
 
-## Preliminary observations : CollecTRI TF activity epithelial compartment (Bloc 4B, Script 11)
+## Preliminary observations : CollecTRI TF activity epithelial compartment (Bloc 4B, Script 11, GSE207422)
 
 **Methodological note:** TF selection (Top 20/Top 6) corrected from per-cell variance to between-group variance (variance of final_group means), consistent with CD8/TAM methodology. This changed the composition of the Top 20 relative to earlier observations, see below.
 
@@ -1287,11 +1391,30 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - ELK4 is significantly NMPR-enriched in both tumor and normal comparisons, not tested in Ciliated (not significant there, p_adj=0.159).
 - tumor_MPR_vs_NMPR is the most extensively discriminant comparison in this analysis (20/20 TFs significant).
 
-## Preliminary observations : LIANA+ communication, cells of interest (Bloc 5, Script 02b, GSE207422)
+## Preliminary observations : ELK4/malignancy axis, epithelial compartment (Bloc 4B, GSE207422)
+
+ELK4 transcription factor activity was consistently elevated in malignant (tumor) epithelial cells relative to their normal counterparts, regardless of pathological response (p_adj < 10⁻³⁷ in both MPR and NMPR arms). This is consistent with ELK4's broadly reported pro-oncogenic role across multiple cancer types, and specifically in NSCLC, where ELK4 has been shown to transcriptionally activate MSI2, which in turn drives NSCLC proliferation, migration and invasion through TGF-β/SMAD3 pathway activation (Shi et al., 2025, Kaohsiung J Med Sci).
+
+This mechanistic chain connects to two independent findings already established in this dataset. First, ELK4 itself is NMPR-enriched (not MPR-enriched) in both tumor and normal epithelial cells when compared by pathological response (CollecTRI, see above), the same direction in both compartments. Second, the EPITHELIAL_MESENCHYMAL_TRANSITION Hallmark signature, a functional readout of the TGF-β/SMAD3-driven process ELK4 activates via MSI2, was independently found NMPR-enriched in both tumor and normal epithelial compartments (UCell Hallmark, see above). TGF-β/SMAD signaling is an established driver of EMT specifically in lung cancer, including via SMAD3/4-mediated N-cadherin induction.
+
+Together, three independent layers, TF activity (ELK4), a documented NSCLC-specific mechanistic pathway (ELK4→MSI2→TGF-β/SMAD3), and a functional signature (EMT), converge on the same NMPR-associated program across both malignant and non-malignant epithelial populations. Whether this malignancy-associated, NMPR-enriched ELK4/EMT axis shares any regulatory relationship with the MPR-associated ELK4 signal observed independently in exhausted CD8 T cells (CollecTRI, Bloc 3) remains an open question, given that these represent distinct cell lineages, likely distinct upstream regulatory contexts, and, notably, opposite response-group directions (NMPR in epithelial cells vs MPR in CD8 T cells) despite sharing the same transcription factor.
+This divergence, the same transcription factor associating with opposite response-group directions depending on cell lineage, illustrates a general principle of transcription factor biology: a TF's functional consequence depends on the target gene repertoire accessible within a given cell type's chromatin and cofactor landscape, not on a fixed, cell-type-independent function. ELK4 in epithelial cells (via MSI2/TGF-β/SMAD3, driving EMT) and ELK4 in exhausted CD8 T cells (mechanism uncharacterized in this project) likely represent two distinct regulatory programs sharing the same upstream transcription factor, rather than a single pathway operating consistently across the tumor microenvironment.
+
+---
+
+# INTERCELLULAR COMMUNICATION (Bloc 5)
+
+**Note on tool selection:** Both LIANA+ and CellChat v2 were run and are fully documented below for transparency and cross-validation purposes, across both GSE207422 and GSE243013. LIANA+ was selected as the primary framework for the preprint. Its consensus score is computed as a simple product of mean ligand and receptor expression, which could be recomputed directly from the raw expression matrix on a per-patient basis; this allowed a patient-level pseudobulk Wilcoxon test to be added on top of LIANA's own prioritization score, treating each patient as an independent observation and avoiding pseudo-replication at the single-cell level, consistent with the pseudobulk methodology used throughout this project.
+
+CellChat's communication probability, by contrast, is derived from a mass-action model with Hill-function saturation terms, computed internally by the tool itself rather than as a simple, externally reproducible formula. Recomputing this score on a per-patient basis would require re-running CellChat's full algorithm separately for each patient, computationally demanding, and particularly impractical given the smaller response groups (e.g., n=3 MPR patients in GSE207422) typical of neoadjuvant immunotherapy cohorts. CellChat's native permutation test instead pools all cells within each condition without distinguishing between patients — a design vulnerable to pseudo-replication, where a single patient contributing disproportionately more cells could dominate the result — which does not directly support the patient-level comparison this project's methodology requires. CellChat results are retained here as a complementary, qualitative cross-check but are not reported in the preprint.
+
+## GSE207422
+
+### Preliminary observations : LIANA+ communication, cells of interest (Bloc 5, Script 02b)
 
 **Methodological note:** figures restricted to CD8.TEX/CD8.TPEX and the 5 TAM subtypes identified as most discriminant by CollecTRI (MRC1+ M2-like, SPP1+ immunosuppressive, IFN-stimulated, M2-SIGLEC8+, Resident M2). Top 5 interactions per target group prioritized by aggregate_rank ≤ 0.05 (Dimitrov et al., 2022), each tested for MPR vs NMPR difference by patient-level pseudobulk Wilcoxon (BH-corrected). Multi-subunit complexes scored by geometric mean of subunits.
 
-### CD8 ↔ TAM communication 
+#### CD8 ↔ TAM communication
 
 **CD8 → TAM (42 interactions tested, 38 significant):**
 
@@ -1309,9 +1432,22 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - *Resident M2:* S100A8-CD69 NMPR-enriched (CD8.TPEX; absent in MPR, median = 0).
 - *SPP1+ immunosuppressive:* CCL13-CXCR3 NMPR-enriched toward both CD8.TEX and CD8.TPEX; HLA-DRB3-LAG3 NMPR-enriched toward CD8.TPEX (not significant toward CD8.TEX).
 
-**Recurring pattern:** the HLA-DQ (A1 and B1 subunits). LAG3 axis is NMPR-enriched consistently across the TAM subtypes where it appears (M2-SIGLEC8+, MRC1+ M2-like). HLA-DQ is an MHC class II molecule and LAG3 is a checkpoint receptor capable of MHC class II engagement independently of the CD8 TCR. This pattern is discussed further alongside the CollecTRI MHC II findings (RFX/CIITA) in the Discussion.
+**Recurring pattern:** the HLA-DQ (A1 and B1 subunits)-LAG3 axis is NMPR-enriched consistently across the TAM subtypes where it appears (M2-SIGLEC8+, MRC1+ M2-like). HLA-DQ is an MHC class II molecule and LAG3 is an inhibitory checkpoint receptor whose canonical ligand is MHC class II (Huard et al., 1997, PNAS), one of several molecular families through which TAMs can transmit inhibitory signals to CD8 T cells. This pattern is discussed further alongside the CollecTRI MHC II findings (RFX/CIITA) in the Discussion.
 
-### CD8 ↔ Epithelial communication
+#### Individual HLA-D and LAG3 gene expression, follow-up test (Bloc 5, Script 09/09b)
+
+**Methodological note:** this follow-up analysis was prompted by an apparent discrepancy between CollecTRI's RFX/CIITA regulon activity (MPR-enriched in MRC1+ M2-like and SPP1+ immunosuppressive TAMs) and the NMPR-enriched direction of the HLA-D-LAG3 ligand-receptor communication signal identified by LIANA+ in the same subtypes (Preliminary observations, LIANA+ communication section, above). Individual gene expression (not the ligand-receptor product score) was tested at the patient-level pseudobulk, Wilcoxon rank-sum, BH-corrected, consistent with the methodology used throughout this project.
+
+**Script 09 (TAM side):** HLA-DQB1 and HLA-DRB3 expression tested individually in the three TAM subtypes engaging LAG3 in communication analysis (M2-SIGLEC8+, MRC1+ M2-like, SPP1+ immunosuppressive). No gene reached significance in any subtype (all p_adj ≥ 0.719; M2-SIGLEC8+ underpowered, n_MPR = 2).
+
+**Script 09b (CD8 side):** LAG3 expression tested individually in CD8.TEX and CD8.TPEX. Neither state reached significance (CD8.TEX: p_adj = 0.6; CD8.TPEX: p_adj = 0.6).
+
+**Conclusion:** neither the TAM-side ligand (HLA-DQB1, HLA-DRB3) nor the CD8-side receptor (LAG3) shows a significant, standalone MPR vs NMPR difference at the individual gene level, despite the combined ligand-receptor product score being significant in the original LIANA+ analysis. This indicates the NMPR-enriched direction of the HLA-D-LAG3 communication signal cannot be attributed to a robust, independent expression shift in either gene alone. This finding does not contradict the MPR-enriched RFX/CIITA regulon activity identified by CollecTRI in MRC1+ M2-like and SPP1+ immunosuppressive TAMs, since regulon-level TF activity (aggregated across many target genes) and single-gene expression operate at different analytical levels that are not directly comparable. The apparent discrepancy is most likely attributable to the limited statistical power of single-gene tests in this cohort's small MPR group (n = 3) rather than a genuine biological conflict.
+
+**Output:** Results/Tables/BLOC5/Bloc5_09_HLA_D_individual_genes_wilcox.csv
+          Results/Tables/BLOC5/Bloc5_09b_LAG3_CD8_wilcox.csv
+
+#### CD8 ↔ Epithelial communication
 
 **Methodological note:** tumor_MPR/tumor_NMPR and normal_MPR/normal_NMPR were tested using their original condition-encoded labels (patient-level pseudobulk Wilcoxon, since tumor_MPR only exists in MPR patients), then collapsed to "Tumor" and "Normal" for reporting, since both labels of the same axis necessarily yield identical statistics. Ciliated tested directly (condition not encoded in its label).
 
@@ -1329,7 +1465,7 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 
 **Overall pattern:** across both directions of the CD8 ↔ Epithelial axis, nearly all interactions with an interpretable direction (i.e. excluding pairs with median = 0 in both conditions) are MPR-enriched, with CCL5-DPP4 (CD8 → Normal) as the sole clear exception. Based on these results alone, MPR patients show a greater volume of detectable CD8-epithelial communication than NMPR patients. Whether this reflects a functionally beneficial (e.g. cytotoxic, activating) or simply more active communication landscape has not been characterized here and requires examining the specific nature of each ligand-receptor pair individually, a question taken up in the Discussion alongside the CD8 ↔ TAM axis, which shows the same general pattern.
 
-### TAM ↔ Epithelial communication
+#### TAM ↔ Epithelial communication
 
 **Methodological note:** same approach as the CD8 ↔ Epithelial axis with tumor_MPR/tumor_NMPR and normal_MPR/normal_NMPR tested using their condition-encoded labels, then collapsed to "Tumor"/"Normal" for reporting. Ciliated tested directly.
 
@@ -1337,7 +1473,7 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 
 - *IFN-stimulated (4/4 significant, all MPR):* CXCL10-SDC4 (Ciliated, Normal), CXCL9-GRM7 (Ciliated), FN1-SDC1 (Tumor).
 - *M2-SIGLEC8+ (5/6 significant):* PSAP-CELSR1 (Ciliated) and GRN-EGFR (Tumor) MPR-enriched; HGF-SDC1 and IGF1-IGF1R significant with median = 0 in both conditions (direction not interpretable); HGF-MET not significant.
-- *MRC1+ M2-like (7/8 significant):* ADAM17-ERBB4, ALCAM-CHL1, CXCL5-GRM7 (all → Ciliated), FN1-SDC1 and LPL-SDC1 (→ Tumor), LPL-SDC1 (→ Normal) all MPR-enriched — the sole exception being FN1-SDC1 → Normal, which is NMPR-enriched. GRN-EGFR (→ Tumor) not significant.
+- *MRC1+ M2-like (7/8 significant):* ADAM17-ERBB4, ALCAM-CHL1, CXCL5-GRM7 (all → Ciliated), FN1-SDC1 and LPL-SDC1 (→ Tumor), LPL-SDC1 (→ Normal) all MPR-enriched, the sole exception being FN1-SDC1 → Normal, which is NMPR-enriched. GRN-EGFR (→ Tumor) not significant.
 - *Resident M2 (2/2 significant, both MPR):* MMP9-CD44 (Tumor), PSAP-CELSR1 (Ciliated).
 - *SPP1+ immunosuppressive (6/8 significant, nearly all NMPR):* CD209-CEACAM1, CXCL8-SDC1 (Normal and Tumor), F13A1-ITGB1, HGF-SDC1, IGF1-IGF1R all NMPR-enriched. PLAU-ITGA3 significant with median = 0 in both conditions; IGF1-INSR not significant.
 
@@ -1347,13 +1483,51 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - *Normal → (5/7 significant, mixed):* SCGB3A1-MARCO, SCGB3A2-MARCO (→ MRC1+ M2-like) and SLPI-CD4 (→ SPP1+) MPR-enriched; SLPI-PLSCR1 (→ IFN-stimulated) NMPR-enriched; SLPI-CD4/PLSCR1 (→ Resident M2) and MXRA5-SIGLEC8 (→ M2-SIGLEC8+) significant/not significant with median = 0 in both conditions.
 - *Tumor → (7/11 significant, overwhelmingly MPR):* GPC3-CD81 recurs across 4 of the 5 TAM subtypes of interest (IFN-stimulated, M2-SIGLEC8+, MRC1+ M2-like, Resident M2), all MPR-enriched. ANGPTL4-SDC3, MXRA5-SIGLEC8, NTS-SORT1 also MPR-enriched. Remaining pairs (COL4A1/A5-CD93, CX3CL1-CX3CR1, FGF2-SDC3, all → SPP1+/M2-SIGLEC8+) significant with median = 0 in both conditions or not significant.
 
-**Notable contrast:** the direction of the TAM ↔ Epithelial axis depends strongly on which epithelial population is the source. Ciliated → TAM interactions (SLPI axis in particular) are overwhelmingly NMPR-enriched, while Tumor → TAM interactions (GPC3-CD81 in particular) are overwhelmingly MPR-enriched; opposite directions depending on the epithelial source, rather than a uniform MPR- or NMPR-leaning pattern as observed for the CD8 ↔ TAM and CD8 ↔ Epithelial axes. SPP1+ immunosuppressive is also the one TAM subtype whose outgoing signal (TAM → Epithelial) leans consistently NMPR, opposite to the other four subtypes.
+**Notable contrast:** the direction of the TAM ↔ Epithelial axis depends strongly on which epithelial population is the source. Ciliated → TAM interactions (SLPI axis in particular) are overwhelmingly NMPR-enriched, while Tumor → TAM interactions (GPC3-CD81 in particular) are overwhelmingly MPR-enriched, opposite directions depending on the epithelial source, rather than a uniform MPR- or NMPR-leaning pattern as observed for the CD8 ↔ TAM and CD8 ↔ Epithelial axes. SPP1+ immunosuppressive is also the one TAM subtype whose outgoing signal (TAM → Epithelial) leans consistently NMPR, opposite to the other four subtypes.
 
-## Preliminary observations : CellChat , cells of interest (Bloc 5, Script 04b, GSE207422)
+### Preliminary observations : LIANA+ bidirectional loops, CD8/TAM ↔ Epithelial (Bloc 5, GSE207422)
 
-**Methodological note:** CellChat's native permutation-based significance test (nboot=100) is applied independently within each condition (MPR, NMPR); it provides no native statistical test to directly compare an interaction's strength between the two groups. Only interactions classified as MPR_only or NMPR_only (present and significant in one condition, absent from the significant set in the other) are reported below; interactions present in both conditions ("Both", 416/693 tested) are not further discriminated by CellChat's native output and are excluded here. Full listing, including "Both", in Bloc5_04b_CellChat_GSE207422_CD8_TAM_crossed.csv.
+**Methodological note:** loops defined as significant, directionally interpretable signaling (excluding median = 0 in both conditions) in both directions, within the same condition and cell pair, applying the same criterion established for CD8-TAM loops.
 
-### CD8 ↔ TAM communication
+#### CD8 ↔ Epithelial
+
+Three bidirectional loops identified, all MPR, no NMPR loop identified with any epithelial population:
+
+- **CD8.TEX ↔ Tumor**: CCL5-SDC1, HMGB1-SDC1, GZMA-PARD3 ↔ NECTIN4-TIGIT (specific, TIGIT-exclusive ligand; Reches et al., 2020, J Immunother Cancer; NECTIN4 relevant in NSCLC, contributing to anti-PD-1 resistance via CD155 stabilization, Springer 2025), NECTIN1-CD96 (lower-affinity than CD96's primary ligand CD155; functional direction context-dependent), HLA-A-CD8A.
+- **CD8.TEX ↔ Ciliated**: CCL5-SDC4, CCL5-GRM7, GZMA-PARD3, SEMA4D-PLXNB1 (confirmed T cell semaphorin, CD100) ↔ CD59-CD2 (established second CD2 ligand alongside CD58, T cell adhesion/activation; Deckert et al., 1992, Eur J Immunol).
+- **CD8.TPEX ↔ Ciliated**: CCL5-SDC4, SEMA4D-PLXNB1 ↔ CD59-CD2, PCSK1N-GPR171 (GPR171/BigLEN is a genuine T cell checkpoint pathway suppressing TCR signaling; Ma et al., 2021, Nat Commun; direction here is MPR-enriched, opposite to its NMPR-enriched engagement of CD8.TEX noted in the CD8-TAM section, direction differs by CD8 state for this same pair).
+- **No loop with Normal epithelial cells**: CD8 signaled outward (CCL5-SDC4 MPR; CCL5-DPP4 NMPR) without any interpretable reciprocal response.
+
+#### TAM ↔ Epithelial
+
+Four MPR loops with Tumor (IFN-stimulated, M2-SIGLEC8+, MRC1+ M2-like, Resident M2, all subtypes tested), one MPR loop with Ciliated (MRC1+ M2-like), one NMPR loop with Ciliated (SPP1+ immunosuppressive), one partial MPR loop with Normal (MRC1+ M2-like).
+
+**Tumor loops (all MPR):**
+- IFN-stimulated ↔ Tumor: FN1-SDC1 ↔ GPC3-CD81
+- **M2-SIGLEC8+ ↔ Tumor** (most extensively characterized; every tested pair essentially MPR-exclusive, median_NMPR ≈ 0 throughout): GRN-EGFR (progranulin, pro-tumorigenic EGFR-directed signaling, under clinical investigation in NSCLC, anti-progranulin antibody trial NCT05627960; macrophage-derived EGFR ligands documented to drive NSCLC therapy resistance), HGF-SDC1 (HGF/c-MET regulates EMT, cancer stem cell properties and immune evasion in NSCLC TME; connects to the CytoTRACE2-identified MPR-specific tumor/normal stemness dissociation) ↔ MXRA5-SIGLEC8 (not supported by current receptor biology, SIGLEC8's characterized ligands are sialylated glycans, not MXRA5; excluded from interpretation), GPC3-CD81 (specific CD81-GPC3 axis, characterized primarily in HCC; GPC3 shows moderate, clinically relevant expression specifically in squamous NSCLC), ANGPTL4-SDC3 (direct HIF-1α target gene, strongly hypoxia-correlated in NSCLC; converges with EPAS1 and HYPOXIA signature already established as MPR-enriched in this dataset's tumor cells, though hypoxia is otherwise classically linked to NSCLC treatment resistance, Cancers 2021; no mechanistic explanation for the MPR association is proposed).
+- MRC1+ M2-like ↔ Tumor: FN1-SDC1, LPL-SDC1 ↔ GPC3-CD81, NTS-SORT1
+- Resident M2 ↔ Tumor: MMP9-CD44 ↔ GPC3-CD81
+
+**Ciliated loops:**
+- MRC1+ M2-like ↔ Ciliated (MPR): CXCL5-GRM7, ADAM17-ERBB4, ALCAM-CHL1 ↔ SCGB3A1-MARCO, SCGB3A2-MARCO, OMG-RTN4R, FGF14-FGFR1
+- SPP1+ immunosuppressive ↔ Ciliated (NMPR, the only NMPR loop identified in this axis): IGF1-IGF1R ↔ SLPI-CD4, CD59-STAB1, CP-SLC40A1
+
+**Normal (partial MPR loop only):**
+- MRC1+ M2-like ↔ Normal: LPL-SDC1 ↔ SCGB3A1-MARCO, SCGB3A2-MARCO (FN1-SDC1 from TAM side is NMPR, conflicting direction, not part of the coherent loop)
+- SPP1+ immunosuppressive → Normal (NMPR, unidirectional): HGF-SDC1, CXCL8-SDC1, F13A1-ITGB1, no coherent reciprocal signal (Normal's only response, SLPI-CD4, is MPR, opposite direction)
+
+**GPC3-CD81 recurs across 4 of 5 TAM subtypes with Tumor**, the single most shared signal in this axis; CD81 is GPC3's principal binding partner (Hippo/HHEX pathway regulation), characterized mainly in hepatocellular carcinoma, with uncharacterized relevance to tumor-TAM communication specifically.
+
+**Perspectives note:** These epithelial-compartment findings derive from a single dataset (GSE207422; epithelial cells not available in GSE243013) and should be interpreted as hypothesis-generating rather than confirmed. The near-total absence of NMPR loops with Tumor/Normal cells (against a background of frequent unidirectional or condition-discordant signaling) contrasts with the CD8-TAM axis, where NMPR loops were common; whether this reflects a genuine biological asymmetry or a power/detection limitation specific to this cohort's small MPR group (n=3) cannot be resolved here. Because TAMs, rather than CD8 T cells, showed the more extensive and more frequently reciprocated communication with tumor and normal epithelial cells in this dataset (see also the general absence of CD8-Normal loops), TAMs are considered a central axis for future investigation, ideally combined with spatial transcriptomics to resolve physical cell-cell proximity underlying these co-expression-based signals.
+
+### Preliminary observations : CellChat, cells of interest (Bloc 5, Script 04b)
+
+**Methodological note:** CellChat's native permutation-based significance test (nboot=100) is applied independently within each condition (MPR, NMPR); it provides no native statistical test to directly compare an interaction's strength between the two groups. Only interactions classified as MPR_only or NMPR_only (present and significant in one condition, absent from the significant set in the other) are reported below; interactions present in both conditions ("Both") are not further discriminated by CellChat's native output and are excluded here.
+
+#### CD8 ↔ TAM communication
+
+Full listing, including "Both" (416/693 tested), in Bloc5_04b_CellChat_GSE207422_CD8_TAM_crossed.csv.
+
 **MPR_only (74 interactions):**
 - CD8.TEX → M2-SIGLEC8+: CCL3-CCR5, CCL4-CCR5, CCL5-CCR5, HLA-DMA-CD4, PTPRC-CD22
 - CD8.TEX → MRC1+ M2-like: CD96-PVR, FASLG-FAS, HLA-DMA-CD4, PGE2-PTGES3-PTGER4, PTPRC-CD22
@@ -1389,9 +1563,9 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - Resident M2 → CD8: additionally CCL8-CCR1, CXCL9/10-CXCR3, F11R-ITGAL_ITGB2, LGALS9-CD44, PGE2-PTGES3-PTGER4, RETN-CAP1, SIGLEC1-SPN, CDH1-ITGAE_ITGB7 (TPEX), Cholesterol-LIPA-RORA (TPEX), ITGAV_ITGB1-ADGRE5 (TPEX), PGE2-PTGES2-PTGER4 (TPEX)
 - SPP1+ immunosuppressive → CD8: additionally CCL13-CCR1, CCL3L3-CCR1, CCL5-CCR5, CCL8-CCR1, CD80-CTLA4, COL1A1/COL1A2-CD44/ITGA1_ITGB1, FN1-ITGA4_ITGB1/ITGB7, ITGA4_ITGB1-VCAM1, NECTIN2-TIGIT, SPP1-CD44, SPP1-ITGA4_ITGB1, TNF-TNFRSF1B, TNFSF9-TNFRSF9, CDH1-ITGAE_ITGB7 (TPEX), COL1A1-SDC4 (TPEX), COL1A2-SDC4 (TPEX), Cholesterol-LIPA-RORA (TPEX), NECTIN2-CD226 (TPEX)
 
-### CD8 ↔ Epithelial communication
+#### CD8 ↔ Epithelial communication
 
-**Methodological note:** CellChat's native permutation-based significance test is applied independently within each condition; only interactions classified as MPR_only or NMPR_only are reported below. Interactions present in both conditions ("Both", 159/314 tested) are excluded, since CellChat provides no native test to compare their strength directly between conditions. Full listing in Bloc5_04b_CellChat_GSE207422_CD8_Epithelial_crossed.csv.
+Full listing, including "Both" (159/314 tested), in Bloc5_04b_CellChat_GSE207422_CD8_Epithelial_crossed.csv.
 
 **MPR_only (83 interactions):**
 - CD8.TEX → Ciliated: CD99-CD99/CD99L2, HLA-DMA/DPA1/DPB1/DRA/DRB1-CD4
@@ -1420,9 +1594,9 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 - tumor → CD8.TEX: CD55-ADGRE5, KLK6-F2R, SPP1-ITGA4_ITGB1
 - tumor → CD8.TPEX: CDH1-ITGAE_ITGB7, Cholesterol-DHCR24/DHCR7/LIPA-RORA, HLA-A/B/C/E/F-CD8B, PGE2-PTGES2/PTGES3-PTGER4, SPP1-ITGA4_ITGB1
 
-### TAM ↔ Epithelial communication
+#### TAM ↔ Epithelial communication
 
-**Methodological note:** same approach as the other CellChat axes — only MPR_only/NMPR_only interactions reported (792/1491 tested); "Both" (699/1491) excluded, since CellChat provides no native test to compare strength directly between conditions. Full listing in Bloc5_04b_CellChat_GSE207422_TAM_Epithelial_crossed.csv.
+**Methodological note:** only MPR_only/NMPR_only interactions reported (792/1491 tested); "Both" (699/1491) excluded. Full listing in Bloc5_04b_CellChat_GSE207422_TAM_Epithelial_crossed.csv.
 
 **MPR_only (467 interactions):**
 - Ciliated → all 5 TAM subtypes: HLA-DMA/DMB/DOA/DPA1/DPB1/DQA1/DQB1/DRB5-CD4 (recurring MHC-II module, all subtypes); COL9A2-CD44/SDC4, ICAM1 variants, MPZL1-MPZL1, JAG2-NOTCH2, LAMA5-CD44 also recurring
@@ -1442,146 +1616,33 @@ Not significant: ZBTB4, MEIS2, ATF1, ELK4, SP1, NFE2L2, ESR1, HIF1A, NKX2-1, DAC
 
 **Notable pattern:** the complete MHC class II module (HLA-DMA/DMB/DOA/DPA1/DPB1/DQA1/DQB1/DRA/DRB1/DRB5-CD4) recurs as MPR-enriched in both directions (Ciliated↔TAM and normal↔TAM), across nearly all 5 TAM subtypes, and it is the most extensive and consistent MHC-II signal identified across all communication axes analyzed in this dataset.
 
-### Preliminary observations for LIANA+ GSE243013
+## GSE243013
 
-**CD8 → TAMs (MPR vs non-MPR) :**
+> **Status: DRAFT, NOT YET FINALIZED.** The following LIANA+ and CellChat observations for GSE243013 were produced before the current methodology (patient-level Wilcoxon test on LIANA+, CD8 restricted to TEX/TPEX, biological verification of ligand-receptor pairs before literature interpretation, MPR_only/NMPR_only framework for CellChat) was established on GSE207422. They are retained below for reference only and will be reworked once the GSE207422 CD8-TAM communication asymmetry Discussion section is complete. **Do not cite these observations in the preprint as currently written.**
 
-Shared interactions: CD99-PILRA (Stress-response + Monocyte FCN1+), CIRBP-TREM1 (Stress-response + Monocyte FCN1+), HMGB1-THBD (different 
-targets per condition), RPS19-C5AR1 (different targets per condition),TNFSF9-HLA-DPA1 (present both conditions, expanded in non-MPR)
+*(GSE243013 LIANA+ and CellChat draft content retained here, unchanged, pending rework — see prior README version for full text)*
 
-MPR dominant interactions:
-- CCL5-ACKR1 + CXCL13-ACKR1 toward Stress-response : TLS chemokine signal = confirmed cross-dataset
-- HMGB1-CD163 toward Monocyte FCN1+ + Lipid-associated : resolutive remodeling
-- ANXA1-FPR1 toward IFN-stimulated : anti-inflammatory resolution signal
-- B2M-LILRB2 + HLA-A/C-LILRB2 toward IFN-stimulated : inhibitory checkpoint paradoxically in MPR
+---
 
-non-MPR dominant interactions:
-- CCL5-CCRL2 toward Stress-response + Monocyte FCN1+ : decoy receptor diversion = confirmed cross-dataset
-- HMGB1-TLR2 toward Resident M2 : danger/pro-inflammatory signal
-- IFNG-IFNGR1/2 toward Resident M2 + Lipid-associated : diffuse IFN, non-coordinated
-- HLA-A/C-LILRB2 toward IFN-stimulated : inhibitory MHC checkpoint
-- TIGIT-NECTIN2 toward IFN-stimulated : inhibitory checkpoint — double locking of IFN-stimulated TAMs (HLA-LILRB2 + TIGIT-NECTIN2) = confirmed cross-dataset
-- TNFSF9-HLA-DPA1 expanded to Lipid-associated + IFN-stimulated : paradoxically amplified but uncoordinated
+# BULK VALIDATION
 
-Conclusion: MPR = TLS-oriented coordinated program (CCL5/CXCL13-ACKR1) + resolutive signals. non-MPR = CCL5 decoy diversion + double inhibitory checkpoint on IFN-stimulated (most pro-immunogenic TAM subtype specifically locked) + diffuse IFNG. Cross-dataset confirmation.
+## Preliminary observations : Bulk validation (Bloc 6)
 
-**TAMs → CD8 (MPR vs non-MPR) :**
+**Status: not performed.**
 
-Shared interactions: CXCL10-CXCR3 + CXCL11-CXCR3 toward TPEX + TEX (both conditions), HLA-DRA-LAG3 toward TPEX + TEX (both conditions)
+A systematic search for publicly available bulk RNA-seq datasets of neoadjuvant anti-PD-1 treated NSCLC with MPR/non-MPR pathological response classification was conducted. The following options were evaluated and excluded:
 
-MPR dominant interactions:
-- CXCL9-CXCR3 toward TEX : additional chemokine recruitment signal = MPR exclusive
+1. **GSE126044** (Kim et al., Genome Medicine 2020, nivolumab, n=16): RECIST-based classification (CR/PR vs SD/PD), not pathological response (MPR/non-MPR). RECIST underestimates pathological response; in Checkmate 159, 45% achieved MPR while only 10% showed partial response on CT/RECIST. Classification mismatch prevents valid comparison with scRNA-seq findings.
 
-non-MPR dominant interactions:
-- C3-IFITM1 toward TPEX : complement/antiviral signal
-- SECTM1-CD7 toward TPEX : co-stimulation signal
-- CXCL11-CCR5 toward TEX : retention signal via CCR5 (vs CXCR3 = recruitment), same ligand CXCL11 activates both recruitment (CXCR3) and retention (CCR5) simultaneously in non-MPR
+2. **IMvigor210**: urothelial carcinoma cohort (atezolizumab/anti-PD-L1), wrong cancer type and wrong drug class, not applicable.
 
-Bidirectional loop conclusion CD8-TAMs:
-non-MPR TAMs deploy a dual-signal trapping mechanism toward CD8 TEX, chemokine attraction (CXCL9/10/11-CXCR3) paired with checkpoint activation (HLA-DRA-LAG3) and retention (CXCL11-CCR5). CD8 recruitment itself is co-opted as an immunosuppressive mechanism in non-responders.
-MPR = coordinated pro-immunogenic loop with additional CXCL9-CXCR3 signal.
+3. **Hu et al. Genome Medicine 2023 bulk cohort** (n=21): pre-treatment biopsies collected before neoadjuvant ICI, baseline context, not post-treatment surgical resection. Response prediction context differs from post-neoadjuvant MPR classification.
 
-**pCR observations (MPR vs pCR) :**
-Note: interpret with caution, single dataset, pseudobulk MPR/pCR non-significant in Blocs 3-4, low pCR n.
+4. **TCGA-LUAD**: LUAD cohort available, but without the specific neoadjuvant anti-PD-1 treatment context required. TCGA cohorts largely predate widespread neoadjuvant immunotherapy protocols, so treatment-naive surgical resection data cannot substitute for a post-neoadjuvant MPR/non-MPR classification.
 
-CD8 → TAMs:
-- Shared: CIRBP-TREM1, RPS19-C5AR1, HMGB1-CD163, TNFSF9-HLA-DPA1 → Resident M2
-- pCR shares inhibitory signals with non-MPR: HLA-A/C-LILRB2, TIGIT-NECTIN2, HMGB1-TLR2 toward IFN-stimulated/Monocyte FCN1+
-- MPR exclusive vs pCR: CCL5/CXCL13-ACKR1 (TLS signal lost in pCR), ANXA1-FPR1, HMGB1-CD163 toward Lipid-associated
-- pCR specific: COPA-P2RY6, HSPA1A-TLR4, TIGIT-PVR (weak)
+**Conclusion:** No publicly available bulk RNA-seq dataset combining NSCLC, neoadjuvant anti-PD-1, and MPR/non-MPR pathological response classification was identified. Bulk validation remains a priority for future work, contingent on availability of harmonized datasets or institutional cohorts.
 
-TAMs → CD8:
-- Shared: CXCL9/10/11-CXCR3 toward TPEX + TEX
-- MPR exclusive: HLA-DRA-LAG3 → TPEX + TEX — absent pCR. Exploratory 
-  hypothesis: residual LAG3 signaling may limit response magnitude, preventing complete tumor elimination
-- pCR specific: CXCL11-CCR5 (retention, same as non-MPR), NECTIN2-CD226 (activating — DNAM-1), NECTIN2-TIGIT (inhibitory), same NECTIN2 ligand activates opposing receptors simultaneously in pCR
 
-Conclusion: pCR is biologically distinct from both MPR and non-MPR. 
-Shares inhibitory signals with non-MPR but without the decoy diversion (no CCL5-CCRL2). TLS signals lost vs MPR. NECTIN2 contradictory signal 
-(CD226 activating + TIGIT inhibitory) unique to pCR. Complete pathological response does not reflect fully resolved immune TME.
-
-### Preliminary observations for CellChat GSE243013** 
-
-**CD8 → TAMs (MPR vs non-MPR) :**
-
-Shared interactions: MIF-(CD74+CD44) toward Stress-response, Resident M2, IFN-stimulated (both conditions, similar intensity); PTPRC-MRC1 toward Stress-response, Resident M2, Lipid-associated (both conditions); PPIA-BSG toward Lipid-associated (both conditions); MIF-(CD74+CXCR4) toward Resident M2 (both conditions)
-
-MPR dominant interactions:
-- ANXA1-FPR1 toward IFN-stimulated : resolution signal = cross-tool (LIANA+)
-- CD99-PILRA toward IFN-stimulated : immune recognition = cross-tool (LIANA+)
-- HLA-DRB1-CD4 toward Stress-response : CD4 recruitment — MPR exclusive
-- MIF-(CD74+CD44) toward Lipid-associated : extended MIF signal
-
-non-MPR dominant interactions:
-- PPIA-BSG expanded toward Stress-response + IFN-stimulated : stress/immunosuppression toward pro-immunogenic subtypes
-
-**CellChat TAMs → CD8 (MPR vs non-MPR) :**
-
-Shared interactions: HLA-A/B-CD8A → TEX (both conditions)
-
-MPR dominant interactions:
-- HLA-A/B/C-CD8A toward TPEX (weak) : MHC I toward precursors
-- HLA-C-CD8A toward TEX : third HLA allele MPR exclusive
-- MIF-(CD74+CD44) + SPP1-CD44 toward TPEX : survival/retention signals
-
-non-MPR dominant interactions:
-- HLA-A/B-CD8A toward TPEX (strong) : enriched toward precursors, attempted antigen presentation in hostile context
-
-Bidirectional loop conclusion CD8↔TAMs CellChat:
-MPR = MIF basal + CD4 recruitment (HLA-DRB1-CD4) + resolution signals toward IFN-stimulated. 
-non-MPR = PPIA-BSG stress expanded + HLA-A/B enriched toward TPEX without functional recovery.
-
-**CellChat pCR observations (MPR vs pCR) :**
-Note: single dataset, pseudobulk MPR/pCR non-significant in Blocs 3-4.
-
-CD8 → TAMs:
-- Shared: MIF-(CD74+CD44), PTPRC-MRC1 (4 subtypes), ANXA1-FPR1, CD99-PILRA toward IFN-stimulated, MIF-(CD74+CXCR4) toward Resident M2
-- MPR exclusive: HLA-DRB1-CD4 (CD4 recruitment lost in pCR), MIF-(CD74+CD44) toward Lipid-associated, PPIA-BSG toward Lipid-associated
-- pCR exclusive: ANXA1-FPR1 extended to Stress-response, PGE2-PTGES3-PTGER4 toward Resident M2 (prostaglandin resolution signal)
-
-TAMs → CD8:
-- Shared: HLA-A/B-CD8A toward TEX, MIF-(CD74+CXCR4) toward TPEX (MPR) and TPEX+TEX (pCR)
-- MPR exclusive: HLA-C-CD8A toward TEX, MIF-(CD74+CD44) + SPP1-CD44 toward TPEX (weak)
-- pCR exclusive: APP-CD74, CXCL16-CXCR6, LGALS9-CD45 toward TPEX+TEX, pan-HLA strong toward TEX, MIF-(CD74+CD44) strong toward TPEX+TEX
-
-**Cross-tool convergence CellChat/LIANA+ GSE243013 :**
-Confirmed by both tools:
-- ANXA1-FPR1 → IFN-stimulated MPR
-- CD99-PILRA → IFN-stimulated MPR 
-- HLA-A/B-CD8A → TEX (both conditions) 
-- HLA-A/B-CD8A enriched → TPEX non-MPR 
-LIANA+ only: CCL5-ACKR1/CXCL13-ACKR1, CCL5-CCRL2, TIGIT-NECTIN2, HLA-DRA-LAG3, CXCL9/10/11-CXCR3
-CellChat only: MIF signaling, LGALS9-CD45, CXCL16-CXCR6, pCR-specific signals
-
-### General conclusion : Bloc 5 intercellular communication
-
-CellChat v2 constitutes the primary differential communication analysis tool for both datasets, given its established probabilistic framework and curated ligand-receptor-cofactor database. However, LIANA+ provides critical complementary signals across all biological axes — including the CD8-TAMs narrative (CCL5-CCRL2 decoy diversion, GZMB-IGF2R misdirected cytotoxicity, HLA-LILRB checkpoints, LAG3 differential engagement) and the epithelial axes in GSE207422 (HSF1 targets, NECTIN4-TIGIT), that are not detected by CellChat due to database resource differences.
-
-Cross-tool confirmed interactions, most robust findings:
-GSE207422 (6): CCL5-CCR1 (CD8→TAMs), HLA-A/C-CD8A (TAMs→CD8),GZMA-PARD3 + CRTAM-CADM1 (CD8→Epithelial), HLA-A-CD8A (Epithelial→CD8), FN1-SDC1 (TAMs→Epithelial)
-GSE243013 (4): ANXA1-FPR1 + CD99-PILRA (CD8→TAMs MPR IFN-stimulated), HLA-A/B-CD8A toward TEX (TAMs→CD8 both conditions), HLA-A/B-CD8A enriched toward TPEX (TAMs→CD8 non-MPR)
-
-HSF1 cross-dataset observation:
-HSF1 transcriptional activity is enriched in non-MPR/NMPR CD8 and TAM compartments (CollecTRI, Blocs 3-4) but no HSF1 direct target is detected
-as a ligand in CD8↔TAMs interactions in either dataset. HSF1 influences the CD8↔TAMs axis at the intracellular transcriptional level but not at
-the intercellular ligand-receptor level. The intercellular link between HSF1 intracellular activity and the communication programs observed remainsto be resolved a question amenable to spatial transcriptomics.
-
-### Bloc 6 Bulk validation: not performed
-
-A systematic search for publicly available bulk RNA-seq datasets of neoadjuvant anti-PD-1 treated NSCLC with MPR/non-MPR pathological 
-response classification was conducted. The following options were evaluated and excluded:
-
-1. **GSE126044** (Kim et al., Genome Medicine 2020, nivolumab, n=16) : RECIST-based classification (CR/PR vs SD/PD), not pathological response (MPR/non-MPR). RECIST underestimates pathological response, in Checkmate 159, 45% achieved MPR while only 10% showed partial response on CT/RECIST. Classification mismatch prevents valid comparison with scRNA-seq findings.
-
-2. **IMvigor210** : urothelial carcinoma cohort (atezolizumab/anti-PD-L1) , wrong cancer type and wrong drug class, not applicable.
-
-3. **Hu et al. Genome Medicine 2023 bulk cohort** (n=21) : pre-treatment biopsies collected before neoadjuvant ICI, baseline context, not post-treatment surgical resection. Response prediction context differs from post-neoadjuvant MPR classification.
-
-4. **HSF1 signature** : preliminary analysis in both scRNA-seq datasets showed HSF1-target genes are not sufficiently discriminant between MPR and non-MPR in CD8 or TAM compartments to construct a robust ssGSEA signature (majority of HSF1-targets expressed in both conditions; only SESN3 cross-dataset exclusive non-MPR in CD8).
-
-**Conclusion:** No publicly available bulk RNA-seq dataset combining NSCLC, neoadjuvant anti-PD-1, and MPR/non-MPR pathological response 
-classification was identified. Bulk validation remains a priority for future work, contingent on availability of harmonized datasets 
-or institutional cohorts. Signatures retained for future bulk validation: CD8 Exhaustion, CD8 Cytotoxicity, M2_immunosuppressive, SPP1, IFN_response, constructed from UCell modules applied in Blocs 3 and 4.
 
 ---
 
