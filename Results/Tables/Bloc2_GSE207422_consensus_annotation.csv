@@ -1,0 +1,20 @@
+cluster,manual_annotation,manual_confidence,SingleR_main,sctype,final_annotation,final_confidence,notes
+0,CD8 T cells (effector/cytotoxic),high,T_cells,Secretory cell,CD8 T cells (effector/cytotoxic),high,
+1,Neutrophils,high,Neutrophils,Alveolar macrophages,Neutrophils,high,
+2,Monocytes (inflammatory),high,Macrophage,Alveolar macrophages,Monocytes (inflammatory),high,
+3,B cells,high,B_cell,Immune system cells,B cells,high,
+4,CD8 T cells (exhausted/cytotoxic),high,T_cells,Airway goblet cells,CD8 T cells (exhausted/cytotoxic),high,
+5,CD4 T cells (naive/memory),high,T_cells,Secretory cell,CD4 T cells (naive/memory),high,
+6,Tregs (tumor-infiltrating),high,T_cells,Airway goblet cells,Tregs (tumor-infiltrating),high,
+7,Tumor epithelial cells (squamous),high,Epithelial_cells,Mesothelial cells,Tumor epithelial cells (squamous),high,
+8,NK cells (cytotoxic),high,NK_cell,Secretory cell,NK cells (cytotoxic),high,
+9,Proliferating cells (cycling),high,T_cells,Immune system cells,Proliferating cells (cycling),high,
+10,Plasma cells,high,B_cell,Basal cells (Airway progenitor cells),Plasma cells,high,
+11,"Epithelial cells (AT2, normal)",high,Epithelial_cells,Pulmonary alveolar type II cells,"Epithelial cells (AT2, normal)",high,
+12,Alveolar macrophages (tissue-resident),high,Macrophage,Alveolar macrophages,Alveolar macrophages (tissue-resident),high,
+13,Dendritic cells (cDC2),high,Monocyte,Immune system cells,Dendritic cells (cDC2),high,
+14,Mast cells,high,CMP,Cancer stem cells,Mast cells,high,
+15,"Stromal cells (mesenchymal/endothelial, unresolved)",medium,Endothelial_cells,Fibroblasts,"Stromal cells (mesenchymal/endothelial, unresolved)",medium,"sctype and SingleR main disagree (Fibroblasts vs Endothelial); SingleR fine shows mixed mesenchymal/endothelial composition, no single dominant subtype"
+16,Ciliated epithelial cells,high,Epithelial_cells,Ciliated cells,Ciliated epithelial cells,high,
+17,Plasmacytoid dendritic cells (pDCs),high,Monocyte,Immune system cells,Plasmacytoid dendritic cells (pDCs),high,
+18,"T cells (mixed CD4/CD8, low purity)",medium,T_cells,Basal cells (Airway progenitor cells),"T cells (mixed CD4/CD8, low purity)",medium,Revised from initial epithelial call after SingleR fine cross-check showed majority CD4/CD8 lymphocyte composition

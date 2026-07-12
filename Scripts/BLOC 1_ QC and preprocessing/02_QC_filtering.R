@@ -17,7 +17,8 @@ suppressPackageStartupMessages({
 DATA_DIR <- "C:/Users/yasmi/OneDrive/Desktop/Mini-Projets/TumorImmune_Crosstalk_LUAD"
 IN_OBJ   <- file.path(DATA_DIR, "Objects/Bloc1_01_seu_raw.rds")
 OUT_OBJ  <- file.path(DATA_DIR, "Objects")
-OUT_FIG  <- file.path(DATA_DIR, "Results/Figures")
+OUT_FIG <- file.path(DATA_DIR, "Results/Figures/QC and Clustering")
+dir.create(OUT_FIG, showWarnings = FALSE, recursive = TRUE)
 
 # -----------------------------
 # 1) Load raw Seurat object

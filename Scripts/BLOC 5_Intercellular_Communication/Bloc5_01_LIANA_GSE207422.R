@@ -199,12 +199,19 @@ group_means  <- sweep(as.matrix(group_sums), 2, group_counts, "/")
 group_response <- meta_TME %>% distinct(group_key, cell_type, Sample, PathResponse)
 
 # get_scores: works for single genes AND multi-subunit complexes (geometric mean)
+# FIXED: group_response contains one row per (cell_type, Sample) combination
+# across ALL cell types in the merged object (CD8 + TAM + Epithelial), not one
+# row per patient. Using it directly duplicated each patient once per cell type
+# present elsewhere in the object, inflating n_MPR/n_NMPR far beyond the true
+# patient count and producing statistically invalid, artificially tiny p-values.
+# Corrected to use a deduplicated list of unique patients before building keys.
 get_scores <- function(gene_complex, ctype) {
   genes <- strsplit(gene_complex, "_")[[1]]
   genes <- intersect(genes, rownames(expr_sub))
   if (length(genes) == 0) return(NULL)
   
-  keys <- paste(ctype, group_response$Sample, sep = "__")
+  unique_samples <- group_response %>% distinct(Sample, PathResponse)
+  keys <- paste(ctype, unique_samples$Sample, sep = "__")
   present <- keys %in% colnames(group_means)
   
   if (length(genes) == 1) {
@@ -219,7 +226,7 @@ get_scores <- function(gene_complex, ctype) {
     vals <- exp(rowMeans(log1p(sub_vals))) - 1
   }
   
-  data.frame(Sample = group_response$Sample, PathResponse = group_response$PathResponse,
+  data.frame(Sample = unique_samples$Sample, PathResponse = unique_samples$PathResponse,
              mean_expr = vals)
 }
 
